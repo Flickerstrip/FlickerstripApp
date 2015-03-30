@@ -1,0 +1,88 @@
+#preview {
+    width: 100%;
+    height: 400px;
+}
+
+.select-list {
+	height: 500px;
+	width: 100%;
+}
+
+.heading {
+    font-size: 14px;
+    font-weight: bold;
+    color: #36f;
+}
+
+input.seamless {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
+}
+
+.listElement {
+    padding: 2px;
+    border: 1px solid blue;
+    border-radius: 4px;
+    margin: 2px;
+    width: 100%;
+    height: 30px;
+}
+.listElement.selected,.listElement.selected:hover {
+    background-color: #9cf;
+}
+.listElement:hover {
+    background-color: #cff;
+}
+
+.statusIndicator {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    display:inline-block;
+    margin-right: 2px;
+}
+.statusIndicator.connected {
+    background-color: green;
+}
+.statusIndicator.unknown {
+    background-color: grey;
+}
+.statusIndicator.error {
+    background-color: red;
+}
+
+
+.minor {
+    font-size: 10px;
+    color: #999;
+}
+
+.mode-bubble {
+	width: 200px;
+	border-radius: 5px;
+	padding: 3px 3px;
+	border: #00c;
+	-webkit-box-shadow: 0px 0px 16px 3px rgba(147, 158, 255, 1);
+	-moz-box-shadow:    0px 0px 16px 3px rgba(147, 158, 255, 1);
+	box-shadow:         0px 0px 16px 3px rgba(147, 158, 255, 1);
+	display: inline-block;
+	margin:10px;
+	color: white;
+	background-color:  rgba(147, 158, 255, 1);
+}
+
+.mode-bubble:hover {
+	background-color: rgba(200, 200, 255, 1);
+	-webkit-box-shadow: 0px 0px 16px 3px rgba(200, 200, 255, 1);
+	-moz-box-shadow:    0px 0px 16px 3px rgba(200, 200, 255, 1);
+	box-shadow:         0px 0px 16px 3px rgba(200, 200, 255, 1);
+}
+
+.mode-bubble.selected {
+	background-color: rgba(200, 158, 255, 1);
+	-webkit-box-shadow: 0px 0px 16px 3px rgba(200, 158, 255, 1);
+	-moz-box-shadow:    0px 0px 16px 3px rgba(200, 158, 255, 1);
+	box-shadow:         0px 0px 16px 3px rgba(200, 158, 255, 1);
+}

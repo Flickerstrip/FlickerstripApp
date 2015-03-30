@@ -1,0 +1,18 @@
+{
+	"main":"index.html",
+	"name":"wifiledcontrol",
+	"window":
+	{
+		"title":"WiFi LED Control",
+		"icon":"icon.png",
+		"toolbar":true,
+		"frame":true,
+		"min_width":200,
+		"min_height":200,
+		"width":900,
+		"height":500,
+		"resizable":true,
+		"show_in_taskbar":true,
+		"fullscreen":false
+	}
+}

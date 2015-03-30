@@ -1,0 +1,5 @@
+*.swp
+known_strips.json
+nwjc
+nwjs.app
+.DS_Store
