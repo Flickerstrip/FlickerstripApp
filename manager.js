@@ -5,6 +5,7 @@ var util = require("util");
 var fs = require("fs");
 
 var This = function() {
+    console.log("initting manager");
     this.init();
 };
 
@@ -12,6 +13,7 @@ $.extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     stripData:[],
     init:function() {
+        console.log("loading");
         this.loadStrips();
     },
     loadStrips:function() {
@@ -26,6 +28,7 @@ $.extend(This.prototype,{
         },this));
     },
     updateActiveStrips:function() {
+        console.log("loaded");
         var visibleStrips = comm.getVisibleStrips();
         _.each(this.stripData,function(strip) {
             strip.visible = _.contains(visibleStrips,strip.id);

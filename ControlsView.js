@@ -1,6 +1,6 @@
 var _ = require("underscore")._;
 var $ = require("jquery");
-//var tinycolor = require("tinycolor2");
+var tinycolor = require("tinycolor2");
 
 define([],function() {
     var This = function(window,form,data) {
@@ -10,32 +10,36 @@ define([],function() {
 
     $.extend(This.prototype,{
         init:function(form,data) {
+            this.el = this.generateForm(form);
+            this.form = form;
             console.log("foo");
         },
-        computeControlValues:function(p,$el) {
+        getValues:function() {
             var data = {};
-            _.each(p.controls,function(controlInfo) {
-                var $fel = $el.find("[name='"+controlInfo.id+"']");
-                var value = controlInfo.default;
-                if ($fel.length) value = $fel.val();
-                data[controlInfo.id] = value;
-            });
+            _.each(this.form,_.bind(function(control) {
+                var $el = this.el.find("[name='"+control.id+"']");
+                var value = control.default;
+                if ($el.length) value = $el.val();
+                data[control.id] = value;
+            },this));
             return data;
         },
         generateForm:function(form) {
-            var $form = $("<div />");
+            var self = this;
+            var $form = $("<div class='controlsView' />");
             _.each(form,function(control) {
                 var type = control.type;
                 if (type == "foo") {
 
                 } else {
+                    console.log("boo");
                     var $el = $("<input />");
                     $el.attr("type",type);
                     $el.attr("name",control.id);
                     $el.val(tinycolor(control.default).toHexString());
                     $form.append($el);
                     $el.change(function() {
-                        $form.trigger("Change",[$(this)]);
+                        $(self).trigger("Change",[$(this)]);
                     });
                 }
             });

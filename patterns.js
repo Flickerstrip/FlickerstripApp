@@ -1,5 +1,5 @@
-define(['tinycolor2'],
-    [
+define(['tinycolor2'],function(tinycolor) {
+    return [
         {
             name:"Solid Color",
             leds: 100,
@@ -55,5 +55,5 @@ define(['tinycolor2'],
                     return c;
                 }
         }
-    ]
-);
+    ];
+});

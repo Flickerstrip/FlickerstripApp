@@ -4,10 +4,11 @@ var async = require("async");
 var fs = require("fs");
 var tinycolor = require("tinycolor2");
 
-define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],function(patterns, ControlView, LEDStripRenderer, SelectList) {
+define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],function(patterns, ControlsView, LEDStripRenderer, SelectList) {
     var This = function(window) {
         var document = window.document;
         this.document = document;
+        this.window = window;
         $(document).ready(_.bind(function() {
             this.init(document);
         },this));
@@ -142,9 +143,7 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
 
         },
         controlsUpdated:function(e,$eel) {
-            console.log(arguments);
-            var controlValues = this.computeControlValues(this.activePattern,this.$el.find("#controls"));
-            console.log(controlValues);
+            var controlValues = this.controlView.getValues();
             var p = this.activePattern;
             this.stripRenderer.setRenderer(function(x,t) {
                 return p.renderer(x,t,controlValues);
@@ -155,11 +154,10 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
             this.activePattern = p;
             this.stripRenderer.setMetrics(p.leds,p.frames,p.fps);
             if (p.controls) {
-                var $el = this.createControlForm(p);
-                var controlValues = this.computeControlValues(p,$el)
-                $el.on("Change",_.bind(this.controlsUpdated,this));
-                this.$el.find("#controls").empty().append($el);
-                console.log("control values: ",controlValues);
+                this.controlView = new ControlsView(this.window,p.controls,{});
+                var controlValues = this.controlView.getValues();
+                $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
+                this.$el.find("#controls").empty().append(this.controlView.el);
                 this.stripRenderer.setRenderer(function(x,t) {
                     return p.renderer(x,t,controlValues);
                 });
