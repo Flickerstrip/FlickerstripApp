@@ -53,10 +53,26 @@ define([],function() {
             var separation = usableWidth / this.metrics.stripLength;
 
             //render LED strip at current frame
+            g.fillStyle = "black";
+            g.fillRect(padding.left-5,10-separation/2,this.canvas.width - padding.left - padding.right+7, separation*1.5);
             for (var i=0; i<this.metrics.stripLength; i++) {
                 var c = this.neopixelRenderer(i,currentFrame);
-                g.fillStyle = c.toHexString();
-                g.fillRect(padding.left+i*separation,10,separation/2,separation/2);
+
+                var offset = 2;
+                g.fillStyle = tinycolor(c.toString()).darken(20).toHexString();
+                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+
+                offset --;
+                g.fillStyle = tinycolor(c.toString()).darken(15).toHexString();
+                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+
+                offset --;
+                g.fillStyle = tinycolor(c.toString()).darken(10).toHexString();
+                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+
+                offset --;
+                g.fillStyle = tinycolor(c.toString()).toHexString();
+                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
 
                 //g.fillStyle = "#ccc";
                 //g.strokeRect(padding.left+i*separation,10,separation/2,separation/2);
