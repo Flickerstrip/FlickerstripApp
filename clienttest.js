@@ -3,6 +3,8 @@ var net = require('net');
 
 var server = dgram.createSocket('udp4');
 
+var identifier = process.argv.length >= 3 ? process.argv[2] : "defaultidentifier";
+
 server.on('message', function (message,info) {
     console.log('received a message: ' + message);
     console.log("type",typeof message);
@@ -16,7 +18,7 @@ server.on('message', function (message,info) {
     var client = new net.Socket();
     client.connect(tcpport, host, function() {
         console.log('Connected via tcp');
-        client.write('Hello, server! Love, Client.');
+        client.write("id:"+identifier);
     });
      
     client.on('data', function(data) {

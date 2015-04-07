@@ -1,8 +1,13 @@
-var $ = require("jquery");
 var nw = require('nw.gui');
 var requirejs = require("requirejs");
 var Manager = require("./manager");
-requirejs.config({nodeRequire:require});
+var $ = require("jquery");
+requirejs.config({
+    nodeRequire:require,
+    "shim": {
+        //"jquery.contextMenu"  : ["jquery"]
+    }
+});
 
 var win = nw.Window.get();
 win.moveTo(0,30);
@@ -18,12 +23,10 @@ requirejs(['Gui.js'],function(Gui) {
         var manager = new Manager();
 
         $(manager).on("StripDataReady",function() {
-            console.log("strip data ready");
             gui.setStrips(manager.getStrips());
         });
 
         $(gui).on("StripNameUpdated",function(e,id,newname) {
-            console.log("strip name update");
             manager.setStripName(id,newname);
         });
     });

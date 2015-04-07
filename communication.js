@@ -6,7 +6,6 @@ var dgram = require('dgram');
 var net = require('net');
 
 var This = function() {
-    console.log("initting comms");
     this.init();
 };
 
@@ -27,10 +26,12 @@ $.extend(This.prototype,{
             server.setMulticastTTL(128);
         });
 
-        setInterval(function() {
+        var sendBroadcast = function() {
             server.send(message, 0, message.length, dport, ip);
-            console.log("Sent " + message + " to the wire...");
-        }, frequency);
+        }
+
+        sendBroadcast();
+        setInterval(sendBroadcast, frequency);
 
         return server;
     },
@@ -40,25 +41,29 @@ $.extend(This.prototype,{
             
             this.clients.push(socket);
 
-            console.log("client connected",socket.name);
-
-            socket.on('data', this.receivedClientData);
+            socket.on('data', _.bind(this.receivedClientData,this,socket));
             socket.on('end',_.bind(function () {
-                console.log("client disconnected",socket.name);
                 this.clients.splice(this.clients.indexOf(socket), 1);
+                $(this).trigger("StripListUpdated");
             },this));
         },this)).listen(port);
 
         return server;
     },
-    receivedClientData:function(data) {
-        console.log("recevived client data: ",String(data));
+    receivedClientData:function(socket,data) {
+        var match = String(data).match(/id:(.*)/);
+        if (match) {
+            var id = match[1].trim();
+            socket.id = id;
+            $(this).trigger("StripListUpdated");
+        }
     },
     getVisibleStrips:function() {
-		return [
-			"strip123",
-			"strip335"
-		];
+        var ids = [];
+        _.each(this.clients,function(client) {
+            ids.push(client.id);
+        });
+        return ids;
     }
 });
 

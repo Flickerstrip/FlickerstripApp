@@ -1,16 +1,24 @@
 var _ = require("underscore")._;
-var $ = require("jquery");
 var async = require("async");
 var fs = require("fs");
 var tinycolor = require("tinycolor2");
+var $ = require("jquery");
 
 define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],function(patterns, ControlsView, LEDStripRenderer, SelectList) {
     var This = function(window) {
-        var document = window.document;
-        this.document = document;
         this.window = window;
+        var document = window.document;
+        this.document = window.document;
         $(document).ready(_.bind(function() {
             this.init(document);
+
+            /*$.contextMenu({
+                selector: ".listElement",
+                    items: {
+                        foo: {name: "Foo", callback: function(key, opt){ alert("Foo!"); }},
+                        bar: {name: "Bar", callback: function(key, opt){ alert("Bar!") }}
+                    }
+            }); */
         },this));
     }
 

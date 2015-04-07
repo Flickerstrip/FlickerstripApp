@@ -5,7 +5,6 @@ var util = require("util");
 var fs = require("fs");
 
 var This = function() {
-    console.log("initting manager");
     this.init();
 };
 
@@ -13,9 +12,9 @@ $.extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     stripData:[],
     init:function() {
-        console.log("loading");
         this.loadStrips();
         this.comm = new Communication();
+        $(this.comm).on("StripListUpdated",_.bind(this.updateActiveStrips,this));
     },
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
@@ -29,7 +28,6 @@ $.extend(This.prototype,{
         },this));
     },
     updateActiveStrips:function() {
-        console.log("loaded");
         var visibleStrips = this.comm.getVisibleStrips();
         _.each(this.stripData,function(strip) {
             strip.visible = _.contains(visibleStrips,strip.id);
