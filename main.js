@@ -13,9 +13,7 @@ dev.width =  window.screen.availWidth;
 win.focus();
 
 requirejs(['Gui.js'],function(Gui) {
-    console.log("main.js");
     $(document).ready(function() {
-        console.log("onload");
         var gui = new Gui(window);
         var manager = new Manager();
 

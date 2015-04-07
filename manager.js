@@ -1,6 +1,6 @@
 var $ = require("jquery");
 var _ = require("underscore")._;
-var comm = require("./communication")
+var Communication = require("./Communication")
 var util = require("util");
 var fs = require("fs");
 
@@ -15,6 +15,7 @@ $.extend(This.prototype,{
     init:function() {
         console.log("loading");
         this.loadStrips();
+        this.comm = new Communication();
     },
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
@@ -29,7 +30,7 @@ $.extend(This.prototype,{
     },
     updateActiveStrips:function() {
         console.log("loaded");
-        var visibleStrips = comm.getVisibleStrips();
+        var visibleStrips = this.comm.getVisibleStrips();
         _.each(this.stripData,function(strip) {
             strip.visible = _.contains(visibleStrips,strip.id);
             if (strip.visible) {

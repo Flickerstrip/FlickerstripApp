@@ -4,3 +4,4 @@ nwjc
 nwjs.app
 node_modules/.bin
 .DS_Store
+gitversion.txt
