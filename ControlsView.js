@@ -1,8 +1,6 @@
 var _ = require("underscore")._;
-var $ = require("jquery");
-var tinycolor = require("tinycolor2");
 
-define([],function() {
+define(['jquery','tinycolor'],function($,tinycolor) {
     var This = function(window,form,data) {
         this.window = window;
         this.init(form,data);

@@ -62,6 +62,12 @@ $.extend(This.prototype,{
         this.stripData[index].name = name;
         this.saveStrips();
     },
+    forgetStrip:function(id) {
+        var index = this.findStrip(id);
+        this.stripData.splice(index,1);
+        this.saveStrips()
+        $(this).trigger("StripDataReady");
+    },
     saveStrips:function() {
         fs.writeFile(this.knownStripsFile,JSON.stringify(this.stripData),function(err) {
             if (err) console.err("Failed to write strip data",err);

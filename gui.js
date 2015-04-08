@@ -1,10 +1,8 @@
 var _ = require("underscore")._;
-var async = require("async");
 var fs = require("fs");
-var tinycolor = require("tinycolor2");
-var $ = require("jquery");
 
-define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],function(patterns, ControlsView, LEDStripRenderer, SelectList) {
+define(['jquery','tinycolor','patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js','jquery.contextMenu'],
+function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
     var This = function(window) {
         this.window = window;
         var document = window.document;
@@ -12,13 +10,6 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
         $(document).ready(_.bind(function() {
             this.init(document);
 
-            /*$.contextMenu({
-                selector: ".listElement",
-                    items: {
-                        foo: {name: "Foo", callback: function(key, opt){ alert("Foo!"); }},
-                        bar: {name: "Bar", callback: function(key, opt){ alert("Bar!") }}
-                    }
-            }); */
         },this));
     }
 
@@ -83,8 +74,7 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
             var strip = this.selectedStrips[0];
             strip.name = newval;
 
-            var $stripList = this.$el.find("#strip-list");
-            $stripList.find("option").eq(this.selectedStrips[0].index).text(newval);
+            this.selectList.refresh();
 
             $(this).trigger("StripNameUpdated",[strip.id,strip.name]);
         },
@@ -96,7 +86,22 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
 
             var $stripList = this.$el.find("#strip-list");
             var selectList = new SelectList(this.stripData,this.stripElementRenderer);
+            this.selectList = selectList;
             $stripList.append(selectList.$el);
+
+
+            var self = this;
+            $.contextMenu( 'destroy' );
+            $.contextMenu({
+                selector: ".listElement",
+                    items: {
+                        foo: {name: "Forget Strip", callback: function(key, opt){
+                            var obj = $(this).data("object")
+                            $(self).trigger("ForgetStrip",[obj.id]);
+                        }},
+                        //bar: {name: "Boo", callback: function(key, opt){ console.log("bar arguments: ",arguments); }},
+                    }
+            });
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
 
@@ -123,12 +128,14 @@ define(['patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js'],
         },
         stripElementRenderer:function(strip,$el) {
             if ($el) {
-                 //update
+                $el.find(".stripName").text(strip.name);
+                var statusClass = strip.visible ? "connected" : "error";
+                $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
                 $el = $("<div class='listElement' />");
-                statusClass = strip.visible ? "connected" : "error";
+                var statusClass = strip.visible ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
-                $el.append(strip.name);
+                $el.append($("<span class='stripName'></span>").text(strip.name));
             }
             return $el;
         },

@@ -1,7 +1,6 @@
 var _ = require("underscore")._;
-var $ = require("jquery");
 
-define([],function() {
+define(['jquery'],function($) {
     var This = function(data,renderer) {
         this.init(data,renderer);
     }
@@ -30,6 +29,13 @@ define([],function() {
             this.$el.focus(_.bind(this.focused,this));
             this.$el.blur(_.bind(this.blurred,this));
             this.$el.keydown(_.bind(this.keyDown,this));
+        },
+        refresh:function() {
+            var self = this;
+            this.$el.find(".listElement").each(function() {
+                var index = $(this).data("index");
+                self.renderer(self.data[index],$(this));
+            });
         },
         focused:function(e) {
             this.focused = true;

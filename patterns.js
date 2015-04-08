@@ -1,4 +1,4 @@
-define(['tinycolor2'],function(tinycolor) {
+define(['tinycolor'],function(tinycolor) {
     return [
         {
             name:"Solid Color",
