@@ -117,6 +117,18 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                     }
                 }	
             });
+        },
+        getCurrentStripState:function() {
+            var leds = [];
+            var currentFrame = (this.metrics.fps*((new Date().getTime() - this.start)/1000)) % this.metrics.animationLength;
+            for (var i=0; i<this.metrics.stripLength; i++) {
+                var c = this.neopixelRenderer(i,currentFrame).toRgb();
+                //TODO fix me
+                leds.push(Math.floor(c.g/10));
+                leds.push(Math.floor(c.r/10));
+                leds.push(Math.floor(c.b/10));
+            }
+            return leds;
         }
     });
 

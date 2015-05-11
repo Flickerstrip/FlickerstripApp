@@ -27,14 +27,21 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             var $form = $("<div class='controlsView' />");
             _.each(form,function(control) {
                 var type = control.type;
-                if (type == "foo") {
-
-                } else {
-                    console.log("boo");
+                if (type == "color") {
                     var $el = $("<input />");
                     $el.attr("type",type);
                     $el.attr("name",control.id);
                     $el.val(tinycolor(control.default).toHexString());
+                    $form.append($el);
+                    $el.change(function() {
+                        $(self).trigger("Change",[$(this)]);
+                    });
+
+                } else {
+                    var $el = $("<input />");
+                    $el.attr("type",type);
+                    $el.attr("name",control.id);
+                    $el.val(control.default);
                     $form.append($el);
                     $el.change(function() {
                         $(self).trigger("Change",[$(this)]);

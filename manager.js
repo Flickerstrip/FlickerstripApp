@@ -3,18 +3,52 @@ var _ = require("underscore")._;
 var Communication = require("./Communication")
 var util = require("util");
 var fs = require("fs");
+var USBCommunication = require("./USBCommunication");
 
-var This = function() {
-    this.init();
+var This = function(view) {
+    this.init(view);
 };
 
 $.extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     stripData:[],
-    init:function() {
-        this.loadStrips();
+    init:function(view) {
+        this.view = view;
         this.comm = new Communication();
+        this.usb = new USBCommunication();
+
+        this.loadStrips();
+
+        setInterval(_.bind(this.tick),100);
+
         $(this.comm).on("StripListUpdated",_.bind(this.updateActiveStrips,this));
+        $(this.comm).on("Ready",_.bind(function(e,id) {
+            this.stripReady(id);
+        },this));
+
+        $(this.comm).on("StripConnected",_.bind(this.stripConnected,this));
+
+        $(this).on("StripDataReady",_.bind(function() {
+            view.trigger("StripsUpdated",[this.getStrips()]);
+        },this));
+
+        this.view.on("StripNameUpdated",_.bind(function(e,id,newname) {
+            this.setStripName(id,newname);
+        },this));
+
+        this.view.on("PatternActivated",_.bind(function(e,selectedStrips) {
+            _.each(selectedStrips,_.bind(function(strip) {
+                if (this.comm.getClient(strip.id).status == "ready") {
+                    this.stripReady(strip.id);
+                }
+            },this));
+        },this));
+
+        this.view.on("ForgetStrip",_.bind(function(e,id) {
+            this.forgetStrip(id);
+        },this));
+    },
+    tick:function() {
     },
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
@@ -26,6 +60,20 @@ $.extend(This.prototype,{
                 return console.log("Failed to parse strip data: ",e);
             }
         },this));
+    },
+    stripConnected:function(e,id) {
+        console.log("Strip Connected: ",id);
+        this.stripReady(id);
+    },
+    stripReady:function(id) {
+        if (id == null) throw "ID is null!";
+        var client = this.comm.getClient(id);
+        if (client == null) throw "Client not found:"+id;
+        client.status = "ready";
+        if (this.view.activePattern) {
+            var leds = this.view.stripRenderer.getCurrentStripState();
+            this.sendData(id,"set:"+leds.join(","));
+        }
     },
     updateActiveStrips:function() {
         var visibleStrips = this.comm.getVisibleStrips();
@@ -41,6 +89,11 @@ $.extend(This.prototype,{
                 visible:true,
                 name:"Unknown Strip"
             });
+        },this));
+
+        //get rid of invalid strips TODO: figure out why we get invalid strips in the first place
+        this.stripData = _.reject(this.stripData,_.bind(function(strip) {
+                return strip == null || !strip.id || strip.id.length == 0;
         },this));
 
         this.saveStrips();
@@ -67,6 +120,10 @@ $.extend(This.prototype,{
         this.stripData.splice(index,1);
         this.saveStrips()
         $(this).trigger("StripDataReady");
+    },
+    sendData:function(id,data) {
+        this.comm.getClient(id).status = "busy";
+        this.comm.getClient(id).write(data+"\n");
     },
     saveStrips:function() {
         fs.writeFile(this.knownStripsFile,JSON.stringify(this.stripData),function(err) {

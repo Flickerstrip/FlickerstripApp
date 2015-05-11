@@ -1,7 +1,6 @@
 var $ = require("jquery");
 var _ = require("underscore")._;
 var util = require("util");
-var fs = require("fs");
 var dgram = require('dgram'); 
 var net = require('net');
 
@@ -13,7 +12,7 @@ $.extend(This.prototype,{
     clients:[],
     init:function() {
         var tcpport = 3836;
-        var message = "Announcement.. PORT:"+tcpport;
+        var message = "Announcement.. PORT:"+tcpport+"\r\n";
         //-->                                                     message,freq,multicast addr   ,sprt,dprt
         this.announcementServer = this.startAnnouncementBroadcast(message,3000,"255.255.255.255",1836,2836);
         this.startServer(tcpport);
@@ -27,7 +26,8 @@ $.extend(This.prototype,{
         });
 
         var sendBroadcast = function() {
-            server.send(message, 0, message.length, dport, ip);
+            var buf = Buffer(message);
+            server.send(buf, 0, buf.length, dport, ip);
         }
 
         sendBroadcast();
@@ -38,17 +38,46 @@ $.extend(This.prototype,{
     startServer:function(port) {
         var server = net.createServer(_.bind(function (socket) {
             socket.name = socket.remoteAddress + ":" + socket.remotePort;
-            
+
             this.clients.push(socket);
 
-            socket.on('data', _.bind(this.receivedClientData,this,socket));
+            var buffer = "";
+            socket.on('data', _.bind(function(data) {
+                data = String(data).replace("\r","");
+                if (data.length == 0) return;
+                buffer += data;
+                var index = buffer.indexOf("\n");
+                if (index != -1) {
+                    var line = buffer.substring(0,index);
+                    this.receivedClientData(socket,line);
+                    buffer = buffer.substring(index+1);
+                }
+            },this));
             socket.on('end',_.bind(function () {
+                console.log("client disconnected");
                 this.clients.splice(this.clients.indexOf(socket), 1);
                 $(this).trigger("StripListUpdated");
+            },this));
+
+            socket.on('error',_.bind(function(error) {
+                if (error.code == "ECONNRESET") {
+                    console.log("Connection reset by peer: ",socket.id);
+                    this.clients.splice(this.clients.indexOf(socket), 1);
+                    $(this).trigger("StripListUpdated");
+                } else {
+                    console.log("uncaught error: ",error);
+                }
             },this));
         },this)).listen(port);
 
         return server;
+    },
+    getClient:function(id) {
+        var client = null;
+        _.each(this.clients,function(c) {
+            if (c.id == id) client = c;
+        });
+        return client;
     },
     receivedClientData:function(socket,data) {
         var match = String(data).match(/id:(.*)/);
@@ -56,6 +85,13 @@ $.extend(This.prototype,{
             var id = match[1].trim();
             socket.id = id;
             $(this).trigger("StripListUpdated");
+            $(this).trigger("StripConnected",[id]);
+        }
+        match = String(data).match(/ready/);
+        if (match ) {
+            console.log("got ready ack");
+            socket.ready = true;
+            $(this).trigger("Ready",[socket.id]);
         }
     },
     getVisibleStrips:function() {
@@ -63,6 +99,7 @@ $.extend(This.prototype,{
         _.each(this.clients,function(client) {
             ids.push(client.id);
         });
+        ids = _.uniq(ids);
         return ids;
     }
 });

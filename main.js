@@ -1,5 +1,8 @@
 var nw = require('nw.gui');
 var Manager = require("./manager");
+var fs = require("fs");
+var ShutdownHandler = require("./ShutdownHandler");
+global.ShutdownHandler = ShutdownHandler;
 
 requirejs.config({
     nodeRequire:require,
@@ -16,31 +19,27 @@ dev.moveTo(0,win.height+40);
 dev.height =  window.screen.availHeight - win.height - 20;
 dev.width =  window.screen.availWidth;
 win.focus();
+nw.App.setCrashDumpDir("./");
+
+var closedOnce = false;
+var closeImmediately = true;
+win.on('close',function() {
+    if (closedOnce) win.close(true);
+    ShutdownHandler.callHandlers();
+    if (closeImmediately) win.close(true);
+    closedOnce = true;
+});
 
 var $$ = require('jquery');
 
 requirejs(['jquery','Gui.js'],function($,Gui) {
     $$(document).ready(function() {
         var gui = new Gui(window);
-        var manager = new Manager();
-
-        //use the node instance of jquery to work with manager..
-        $$(manager).on("StripDataReady",function() {
-            gui.setStrips(manager.getStrips());
-        });
-
-        //use the UI version of jquery to work with gui
-        $(gui).on("StripNameUpdated",function(e,id,newname) {
-            manager.setStripName(id,newname);
-        });
-
-        $(gui).on("ForgetStrip",function(e,id) {
-            manager.forgetStrip(id);
-        });
+        var manager = new Manager(gui);
     });
 });
 
 window.onkeydown = function(e) {
-    if (e.keyCode == 27) nw.App.quit();
+    if (e.keyCode == 27) nw.App.closeAllWindows();
 };
 
