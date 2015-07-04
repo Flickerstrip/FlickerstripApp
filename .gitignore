@@ -6,3 +6,8 @@ node_modules/.bin
 .DS_Store
 gitversion.txt
 shutdownlog.txt
+nw.pak
+miniterm.py
+*.dll
+*.exe
+*.dat

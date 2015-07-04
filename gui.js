@@ -1,15 +1,18 @@
 var _ = require("underscore")._;
 var fs = require("fs");
+var $$ = require("jquery");
+var util = require("./util");
 
-define(['jquery','tinycolor','patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js','jquery.contextMenu'],
-function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
+define(['jquery','tinycolor','patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js',"GroupDetailsPanel.js",'jquery.contextMenu'],
+function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel) {
+    var stripListTemplate = util.loadTemplate("./stripList.html");
+
     var This = function(window) {
         this.window = window;
         var document = window.document;
         this.document = window.document;
         $(document).ready(_.bind(function() {
             this.init(document);
-
         },this));
     }
 
@@ -30,17 +33,19 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
         init:function(document) {
             this.$el = $(document.body);
 
-            fs.readFile("./stripList.html", "ascii", _.bind(function(err,contents) {
-                this.stripListTemplate = _.template(contents);
-
-                this.showStripList();
-            },this));
-
-
             this.showStripList();
 
             this.on("StripsUpdated",_.bind(function(e,stripData) {
                 this.setStrips(stripData);
+            },this));
+
+            this.on("ReceivedPatternMetadata",_.bind(function(e,strip,patterns) {
+                console.log("receive pattern metadata called..");
+                if (this.groupDetails) console.log(this.groupDetails,this.groupDetails.strip.id,strip.id,patterns);
+                if (this.groupDetails && this.groupDetails.strip.id == strip.id) {
+                    console.log("refreshing patterns");
+                    this.groupDetails.refreshPatterns(patterns);
+                }
             },this));
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
@@ -54,19 +59,8 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
             }
         },
         selectSingleStrip:function(strip) {
-            this.$el.find("#identifierValue").show().text(strip.id);
-            this.$el.find("#nameValue").text(strip.name);
-
-            this.$el.find("#nameValue").off("dblclick");
-            this.doubleClickEditable(this.$el.find("#nameValue"),_.bind(this.nameUpdated,this));
-
-            var statusIndicator = this.$el.find("#activeStrip .statusIndicator").css("visibility","visible");
-            statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (strip.visible) {
-                statusIndicator.addClass("connected").attr("title","connected");
-            } else {
-                statusIndicator.addClass("error").attr("title","disconnected");
-            }
+            this.groupDetails = new GroupDetailsPanel(this,strip);
+            this.$el.find(".groupDetails").empty().append(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
             var $el = this.$el.find("#activeStrip");
@@ -83,18 +77,37 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
 
             $(this).trigger("StripNameUpdated",[strip.id,strip.name]);
         },
+        addDebugButtons:function() {
+//            //debug buttons
+//            var self = this;
+//            var $div = $("<div />");
+//            var $a = $("<a href='#' />").text("click A").click(_.bind(function() {
+//                //self.sendStripData();
+//            },this));
+//            var $b = $("<a href='#' />").text("click B").click(_.bind(function() {
+//                
+//                //$(this.view).on("SavePattern",_.bind(function(e,id,name,address,fps,data) {
+//                data = [
+//                    [10,0,0],
+//                    [0,10,0],
+//                    [0,0,10]
+//                ];
+//                $$(self).trigger("SavePattern",[this.stripData[0].id,"pattern",0x400,1,data]);
+//            },this));
+//            $div.append($a).append("<br/>").append($b);
+//            this.$el.find("#modes").after($div);
+        },
         showStripList:function() {
-            if (!(this.stripData && this.$el && this.stripListTemplate)) return;
+            if (!(this.stripData && this.$el)) return;
 
             this.$el.empty();
-            this.$el.append(this.stripListTemplate());
+            this.$el.append(stripListTemplate());
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");
             var selectList = new SelectList(this.stripData,this.stripElementRenderer);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
-
 
             var self = this;
             $.contextMenu( 'destroy' );
@@ -111,38 +124,7 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
 
-            var $modes = this.$el.find("#modes");
-            _.each(patterns,_.bind(function(pat,index) {
-                $modes.append($("<div class='mode-bubble'>").text(pat.name).data("index",index));
-            },this));
-
-            $modes.children().click(_.bind(function(e) {
-                var $el = $(e.target);
-
-                $modes.children().removeClass("selected");
-                $el.addClass("selected");
-
-                this.activatePattern($el.data("index"));
-            },this));
-
-            //debug buttons
-            /*var $div = $("<div />");
-            var $a = $("<a href='#' />").text("click A").click(_.bind(function() {
-                self.sendStripData();
-            },this));
-            var $b = $("<a href='#' />").text("click B").click(_.bind(function() {
-                $(self).trigger("SendData",[this.stripData[0].id,"50,0,0"]);
-            },this));
-            $div.append($a).append("<br/>").append($b);
-            this.$el.find("#modes").after($div);
-            */
-
-            var $preview = this.$el.find("#preview");
-            var canvas = this.document.createElement("canvas");
-            canvas.width = $preview.width();
-            canvas.height = $preview.height();
-            this.stripRenderer = new LEDStripRenderer(canvas);
-            $preview.append(canvas);
+            //addDebugButtons();
         },
         stripElementRenderer:function(strip,$el) {
             if ($el) {
@@ -156,50 +138,6 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList) {
                 $el.append($("<span class='stripName'></span>").text(strip.name));
             }
             return $el;
-        },
-        doubleClickEditable:function($el,editCallback) {
-            $el.dblclick(_.bind(function(e) {
-                if ($el.find("input").length) return;
-                var $input = $("<input class='seamless'>");
-                $input.height($el.height());
-                var oldval = $el.text();
-                $input.val(oldval);
-                $el.empty().append($input);
-                $input.focus();
-                $input.blur(_.bind(function() {
-                    var newval = $input.val();
-                    $el.empty();
-                    $el.text(newval);
-                    editCallback(newval);
-                },this));
-            },this));
-
-        },
-        controlsUpdated:function(e,$eel) {
-            var controlValues = this.controlView.getValues();
-            var p = this.activePattern;
-            this.stripRenderer.setRenderer(function(x,t) {
-                return p.renderer(x,t,controlValues);
-            });
-        },
-        activatePattern:function(index) {
-            var p = patterns[index];
-            this.activePattern = p;
-            this.stripRenderer.setMetrics(p.leds,p.frames,p.fps);
-            this.$el.find("#controls").empty();
-            if (p.controls) {
-                this.controlView = new ControlsView(this.window,p.controls,{});
-                var controlValues = this.controlView.getValues();
-                $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
-                this.$el.find("#controls").append(this.controlView.el);
-                this.stripRenderer.setRenderer(function(x,t) {
-                    return p.renderer(x,t,controlValues);
-                });
-            } else {
-                this.stripRenderer.setRenderer(p.renderer);
-            }
-            console.log("activeating pattern",this.selectedStrips);
-            this.trigger("PatternActivated",[this.selectedStrips]);
         },
         setStrips:function(stripData) {
             this.stripData = stripData;

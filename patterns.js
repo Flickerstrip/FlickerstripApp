@@ -71,6 +71,35 @@ define(['tinycolor'],function(tinycolor) {
                 }
         },
         {
+            name:"Color Blink",
+            leds: 150,
+            frames: 2,
+            fps: 1,
+            controls: [
+                {
+                    name: "Color1",
+                    id: "color1",
+                    type: "color",
+                    default: "#f00"
+                },
+                {
+                    name: "Color2",
+                    id: "color2",
+                    type: "color",
+                    default: "#0f0"
+                }
+            ],
+            renderer: function(x,t,args) {
+                    var color;
+                    if (t == 0) {
+                        color = tinycolor(args.color1).toRgb();
+                    } else {
+                        color = tinycolor(args.color2).toRgb();
+                    }
+                    return new tinycolor({r:color.r,g:color.g,b:color.b});
+                }
+        },
+        {
             name:"Solid Color",
             leds: 150,
             frames: 1,

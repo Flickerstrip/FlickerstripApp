@@ -10,7 +10,6 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         init:function(form,data) {
             this.el = this.generateForm(form);
             this.form = form;
-            console.log("foo");
         },
         getValues:function() {
             var data = {};

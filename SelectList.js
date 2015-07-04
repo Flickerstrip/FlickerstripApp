@@ -2,16 +2,20 @@ var _ = require("underscore")._;
 
 define(['jquery'],function($) {
     var This = function(data,renderer) {
-        this.init(data,renderer);
+        this.init.apply(this,arguments);
     }
 
     $.extend(This.prototype, {
-        init:function(data,renderer) {
+        defaultOpts:{
+            multiple:true,
+        },
+        init:function(data,renderer,opts) {
             this.$el = $("<div />");
             this.$el.attr("tabindex","0");
             this.$el.css("user-select","none");
             this.selectedIndexes = [];
             this.cursorIndex = -1;
+            this.opts = opts ? opts : this.defaultOpts;
 
             this.data = data;
             this.renderer = renderer;
@@ -32,7 +36,7 @@ define(['jquery'],function($) {
         },
         refresh:function() {
             var self = this;
-            this.$el.find(".listElement").each(function() {
+            this.$el.children(".listElement").each(function() {
                 var index = $(this).data("index");
                 self.renderer(self.data[index],$(this));
             });
@@ -84,18 +88,21 @@ define(['jquery'],function($) {
                 i++;
             });
 
+            var args = [this.getSelected(),this.selectedIndexes];
+            $(self).trigger("change",args);
+        },
+        getSelected:function() {
             var selectedObjects = _.map(this.selectedIndexes,_.bind(function(index) {
                 return this.data[index];
             },this));
-            var args = [selectedObjects,this.selectedIndexes]
-            $(self).trigger("change",args);
+            return selectedObjects;
         },
         addBehavior:function() {
             var $el = this.$el;
             var self = this;
-            $el.find(".listElement").each(function() {
+            $el.children(".listElement").each(function() {
                 $(this).click(function(e) {
-                    if (e.shiftKey) {
+                    if (self.opts.multiple && e.shiftKey) {
                         var clickedIndex = $(this).data("index");
                         var min = Math.min(clickedIndex,self.cursorIndex);
                         var max = Math.max(clickedIndex,self.cursorIndex);

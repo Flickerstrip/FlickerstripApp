@@ -3,6 +3,7 @@ var _ = require("underscore")._;
 var util = require("util");
 var dgram = require('dgram'); 
 var net = require('net');
+var StripWrapper = require("./StripWrapper.js");
 
 var This = function() {
     this.init();
@@ -39,60 +40,32 @@ $.extend(This.prototype,{
         var server = net.createServer(_.bind(function (socket) {
             socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
-            this.clients.push(socket);
-
-            var buffer = "";
-            socket.on('data', _.bind(function(data) {
-                data = String(data).replace("\r","");
-                if (data.length == 0) return;
-                buffer += data;
-                var index = buffer.indexOf("\n");
-                if (index != -1) {
-                    var line = buffer.substring(0,index);
-                    this.receivedClientData(socket,line);
-                    buffer = buffer.substring(index+1);
-                }
-            },this));
-            socket.on('end',_.bind(function () {
-                console.log("client disconnected");
-                this.clients.splice(this.clients.indexOf(socket), 1);
-                $(this).trigger("StripListUpdated");
-            },this));
-
-            socket.on('error',_.bind(function(error) {
-                if (error.code == "ECONNRESET") {
-                    console.log("Connection reset by peer: ",socket.id);
-                    this.clients.splice(this.clients.indexOf(socket), 1);
-                    $(this).trigger("StripListUpdated");
-                } else {
-                    console.log("uncaught error: ",error);
-                }
-            },this));
+			console.log("client socket received");
+			var strip = new StripWrapper(socket);
+			
+			$(strip).on("Connect",_.bind(this.clientConnected,this));
+			$(strip).on("Disconnect",_.bind(this.clientDisconnected,this));
         },this)).listen(port);
 
         return server;
     },
+	clientConnected:function(e,strip) {
+		var id = strip.getId();
+		console.log("client connection established",id);
+		this.clients.push(strip);
+	    $(this).trigger("StripListUpdated");
+        $(this).trigger("StripConnected",[id,strip]);
+	},
+	clientDisconnected:function(strip) {
+		this.clients.splice(this.clients.indexOf(socket), 1);
+		$(this).trigger("StripListUpdated");
+	},
     getClient:function(id) {
         var client = null;
         _.each(this.clients,function(c) {
-            if (c.id == id) client = c;
+            if (c.getId() == id) client = c;
         });
         return client;
-    },
-    receivedClientData:function(socket,data) {
-        var match = String(data).match(/id:(.*)/);
-        if (match) {
-            var id = match[1].trim();
-            socket.id = id;
-            $(this).trigger("StripListUpdated");
-            $(this).trigger("StripConnected",[id]);
-        }
-        match = String(data).match(/ready/);
-        if (match ) {
-            console.log("got ready ack");
-            socket.ready = true;
-            $(this).trigger("Ready",[socket.id]);
-        }
     },
     getVisibleStrips:function() {
         var ids = [];

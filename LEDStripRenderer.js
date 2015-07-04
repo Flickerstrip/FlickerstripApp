@@ -16,14 +16,18 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         g.stroke();
     }
 
-    var This = function(el) {
-        this.init(el);
+    var This = function() {
+        this.init.apply(this,arguments);
     }
 
     $.extend(This.prototype,{
-        init:function(canvas) {
+        init:function() {
+            var canvas = document.createElement("canvas");
+            canvas.width = 500;
+            canvas.height = 200;
+
             this.canvas = canvas;
-            document = this.canvas.ownerDocument;
+            this.$el = $(this.canvas);
 
             this.start = new Date().getTime();
             this.metrics = null;
@@ -44,7 +48,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
 
             if (!(this.metrics && this.rendered && this.neopixelRenderer)) return;
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
-            var currentFrame = (this.metrics.fps*((new Date().getTime() - this.start)/1000)) % this.metrics.animationLength;
+            var currentFrame = Math.floor((this.metrics.fps*((new Date().getTime() - this.start)/1000)) % this.metrics.animationLength);
         
             var padding = {top: 35, right: 20, bottom: 10, left: 20};
             var usableWidth = this.canvas.width - padding.left - padding.right;
@@ -117,6 +121,9 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                     }
                 }	
             });
+        },
+        getRenderer:function() {
+            return this.neopixelRenderer;
         },
         getCurrentStripState:function() {
             var leds = [];

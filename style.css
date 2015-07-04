@@ -1,6 +1,6 @@
-#preview {
+.patternPreview {
     width: 100%;
-    height: 400px;
+    height: 200px;
 }
 
 .select-list {
@@ -12,6 +12,10 @@
     font-size: 14px;
     font-weight: bold;
     color: #36f;
+}
+
+.loadPatternDialog .modal-dialog {
+    width: 90%;
 }
 
 input.seamless {

@@ -13,7 +13,7 @@ requirejs.config({
 });
 
 var win = nw.Window.get();
-win.moveTo(0,30);
+win.moveTo(400,30);
 var dev = win.showDevTools();
 dev.moveTo(0,win.height+40);
 dev.height =  window.screen.availHeight - win.height - 20;
@@ -34,6 +34,10 @@ var $$ = require('jquery');
 
 requirejs(['jquery','Gui.js'],function($,Gui) {
     $$(document).ready(function() {
+        window.$ = $;
+        window.jQuery = $;
+        $(document.body).append('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>');
+        
         var gui = new Gui(window);
         var manager = new Manager(gui);
     });
