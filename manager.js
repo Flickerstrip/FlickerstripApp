@@ -1,6 +1,8 @@
 var $ = require("jquery");
 var _ = require("underscore")._;
-var Communication = require("./Communication")
+var DiscoveryServer = require("./DiscoveryServer")
+var StripWrapper = require("./StripWrapper")
+var LEDStrip = require("./LEDStrip")
 var fs = require("fs");
 var USBCommunication = require("./USBCommunication");
 
@@ -10,125 +12,133 @@ var This = function(view) {
 
 $.extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
-    stripData:[],
+    strips:[],
     init:function(view) {
         this.view = view;
-        this.comm = new Communication();
+        this.view.setManager(this);
+        this.discovery = new DiscoveryServer();
         this.usb = new USBCommunication();
-
-        this.view.on("SendData",_.bind(function(e,type,id,data) {
-            this.sendData(type,id,data);
-        },this));
-
-        this.view.on("SavePattern",_.bind(function(e,id,name,fps,data) {
-            this.comm.getClient(id).savePattern(name,fps,data);
-        },this));
-
-        this.view.on("SelectPattern",_.bind(function(e,id,index) {
-		    this.comm.getClient(id).selectPattern(index);
-        },this));
-		
-		this.view.on("ForgetPattern",_.bind(function(e,id,index) {
-			this.comm.getClient(id).forgetPattern(index);
-		},this));
 
         this.loadStrips();
 
-        setInterval(_.bind(this.tick),100);
+        $(this.discovery).on("ClientConnected",_.bind(this.clientConnected,this));
 
-        $(this.comm).on("StripListUpdated",_.bind(this.updateActiveStrips,this));
+        ///////////////////////////////////////// Strip actions
+        this.on("SelectPattern",_.bind(function(e,id,index) {
+		    this.getStrip(id).selectPattern(index);
+        },this));
+		
+        this.on("LoadPattern",_.bind(function(e,id,name,fps,data) {
+            this.getStrip(id).loadPattern(name,fps,data);
+        },this));
 
-        $(this.comm).on("StripConnected",_.bind(this.stripConnected,this));
+		this.on("ForgetPattern",_.bind(function(e,id,index) {
+			this.getStrip(id).forgetPattern(index);
+		},this));
 
-        this.view.on("StripNameUpdated",_.bind(function(e,id,newname) {
+        this.on("RenameStrip",_.bind(function(e,id,newname) {
             this.setStripName(id,newname);
         },this));
 
-        this.view.on("PatternActivated",_.bind(function(e,selectedStrips) {
-            _.each(selectedStrips,_.bind(function(strip) {
-                if (this.comm.getClient(strip.id).status == "ready") {
-                    this.stripReady(strip.id);
-                }
-            },this));
-        },this));
-
-        this.view.on("ForgetStrip",_.bind(function(e,id) {
+        this.on("ForgetStrip",_.bind(function(e,id) {
             this.forgetStrip(id);
         },this));
+        ///////////////////////////////////////// Strip actions
+
+        setInterval(_.bind(this.tick),100);
     },
-	stripConnected:function(e,id,strip) {
-        console.log("@@@@@@@@@@@ strip connected called.. adding handler",strip);
-		$(strip).on("PatternMetadata",_.bind(function(e,strip,patterns) {
-			this.view.trigger("ReceivedPatternMetadata",[strip,patterns]);
-		},this));
-	},
     tick:function() {
     },
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             try {
-                this.stripData = JSON.parse(contents);
+                var strips = JSON.parse(contents);
+                this.strips = [];
+                _.each(strips,_.bind(function(strip) {
+                    var lstrip = new LEDStrip();
+                    for (var key in strip) {
+                        if (strip.hasOwnProperty(key)) {
+                            lstrip[key] = strip[key];
+                        }
+                    }
+                    this.strips.push(lstrip);
+                    $(this).trigger("StripAdded",[lstrip]);
+                },this));
             } catch (e) {
                 return console.log("Failed to parse strip data: ",e,contents);
             }
-            this.updateActiveStrips();
         },this));
     },
-    updateActiveStrips:function() {
-        //console.log("update active strips called");
-        var visibleStrips = this.comm.getVisibleStrips();
-        _.each(this.stripData,function(strip) {
-            strip.visible = _.contains(visibleStrips,strip.id);
-            if (strip.visible) {
-                visibleStrips.splice(_.indexOf(visibleStrips,strip.id),1);
-            }
+    saveStrips:function() {
+        var text = JSON.stringify(this.strips,function(key,value) {
+            if (key == "connection") return false;
+            return value;
         });
-        _.each(visibleStrips,_.bind(function(stripIdentifier) {
-            this.stripData.push({
-                id:stripIdentifier,
-                visible:true,
-                name:"Unknown Strip",
-                strip:this.comm.getClient(stripIdentifier)
-            });
-        },this));
-
-        //get rid of invalid strips TODO: figure out why we get invalid strips in the first place
-        this.stripData = _.reject(this.stripData,_.bind(function(strip) {
-                return strip == null || !strip.id || strip.id.length == 0;
-        },this));
-
+        fs.writeFile(this.knownStripsFile,text,function(err) {
+            if (err) console.err("Failed to write strip data",err);
+        });
+    },
+   /////////////////////
+    setStripName:function(id,name) {
+        var index = this.findStrip(id);
+        this.strips[index].name = name;
         this.saveStrips();
-        //console.log("triggering strips updated");
+    },
+    forgetStrip:function(id) {
+        var index = this.findStrip(id);
+        this.strips.splice(index,1);
+        this.saveStrips()
         this.view.trigger("StripsUpdated",[this.getStrips()]);
     },
-    findStrip:function(id) {
+///////////////////////////////////////////////////////////////////////////////
+    getStrips:function() {
+        return this.strips;
+    },
+    getStripIndex:function(id) {
         var found = null;
-        _.each(this.stripData,function(strip,index) {
+        _.each(this.strips,function(strip,index) {
             if (found != null) return;
             if (strip.id == id) found = index;
         });
         return found;
     },
-    getStrips:function() {
-        return this.stripData;
+    getStrip:function(id) {
+        var index = this.getStripIndex(id);
+        if (index != null) return this.strips[index];
+        return null;
     },
-    setStripName:function(id,name) {
-        var index = this.findStrip(id);
-        this.stripData[index].name = name;
-        this.saveStrips();
+    clientConnected:function(e,socket) {
+        var connection = new StripWrapper(socket);
+        $(connection).on("Connect",_.bind(this.clientIdentified,this));
     },
-    forgetStrip:function(id) {
-        var index = this.findStrip(id);
-        this.stripData.splice(index,1);
-        this.saveStrips()
-        this.view.trigger("StripsUpdated",[this.getStrips()]);
+	clientIdentified:function(e,connection) {
+        var strip = this.getStrip(connection.id);
+        if (strip) {
+            strip.setConnection(connection);
+            $(strip).trigger("StripStatusUpdated",[strip]);
+        } else {
+            strip = new LEDStrip(connection);
+            this.strips.push(strip);
+            this.saveStrips();
+            $(this).trigger("StripAdded",[strip]);
+        }
+        strip.lastSeen = new Date();
+        strip.on("PatternsUpdated",_.bind(this.saveStrips,this));
+        strip.on("Disconnect",_.bind(this.clientDisconnected,this));
+        $(this).trigger("StripConnected",[strip]);
+	},
+	clientDisconnected:function(e,strip) {
+        $(strip).trigger("StripStatusUpdated",[strip]);
+		$(this).trigger("StripDisconnected",[strip]);
+	},
+    /////////////////////////////
+    on:function(trigger,callback) {
+        $(this).on(trigger,callback);
     },
-    saveStrips:function() {
-        fs.writeFile(this.knownStripsFile,JSON.stringify(this.stripData),function(err) {
-            if (err) console.err("Failed to write strip data",err);
-        });
-    }
+    trigger:function(trigger,args) {
+        $(this).trigger(trigger,args);
+    },
 });
 
 module.exports = This;

@@ -1,7 +1,7 @@
 var _ = require("underscore")._;
 var util = require("./util.js");
 
-define(['jquery','SelectList.js',"LoadPatternDialog.js"],function($,SelectList,LoadPatternDialog) {
+define(['jquery','SelectList.js',"LoadPatternDialog.js","ProgressDialog.js"],function($,SelectList,LoadPatternDialog,ProgressDialog) {
     var template = util.loadTemplate("./groupDetailPanel.html");
 
     var This = function() {
@@ -9,70 +9,76 @@ define(['jquery','SelectList.js',"LoadPatternDialog.js"],function($,SelectList,L
     }
 
     $.extend(This.prototype, {
-        init:function(gui,strip) {
-            this.gui = gui;
-            this.$el = $("<div />");
+        init:function(manager,strip) {
+            this.manager = manager;
+            this.$el = $("<div class='panel panel-info flexcol' />");
             this.$el.empty().append(template());
             this.strip = strip;
-            console.log("strip",strip);
-            if (strip.strip && strip.strip.patterns) this.refreshPatterns(strip.patterns);
+            if (strip && strip.patterns) this.refreshPatterns();
+            strip.on("PatternsUpdated",_.bind(this.refreshPatterns,this));
 
             this.updateValues(strip);
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
-            this.$el.find(".forgetPattern").on("click",_.bind(this.forgetPatternClicked,this));
-            this.$el.find(".selectPattern").on("click",_.bind(this.selectPatternClicked,this));
         },
         updateValues:function(strip) {
             var $header = this.$el.find(".stripHeader");
             $header.find(".identifierValue").text(strip.id);
-            $header.find(".name").text(strip.name);
+            var name = strip.getName() || "Unknown Strip";
+            $header.find(".name").text(name);
 
             $header.find(".name").off("dblclick");
             util.doubleClickEditable($header.find(".name"),_.bind(this.nameUpdated,this));
 
             var statusIndicator = $header.find(".statusIndicator").css("visibility","visible");
             statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (strip.visible) {
+            if (strip.connection) {
                 statusIndicator.addClass("connected").attr("title","connected");
             } else {
                 statusIndicator.addClass("error").attr("title","disconnected");
             }
         },
         nameUpdated:function() {
-            console.log("name updated",arguments);
         },
         selectPatternClicked:function(e) {
-            var selectedPatterns = this.patternList.getSelected();
-            if (selectedPatterns.length > 1) return alert("Multiple patterns selected, choose one!");
-            $(this.gui).trigger("SelectPattern",[this.strip.id,selectedPatterns[0].index]);
+            var pattern = $(e.target).closest(".listElement").data("object");
+            this.manager.trigger("SelectPattern",[this.strip.id,pattern.index]);
         },
         loadPatternClicked:function(e) {
             var patternDialog = new LoadPatternDialog();
-            $(patternDialog).on("LoadPattern",_.bind(this.savePattern,this));
+            $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();
         },
         savePattern:function(e,name,fps,pattern) {
             var len = pattern.length * pattern[0].length;
-            console.log("saving pattern size: ",len);
-            $(this.gui).trigger("SavePattern",[this.strip.id,name,fps,pattern]);
+            this.manager.trigger("LoadPattern",[this.strip.id,name,fps,pattern]);
+            var progressDialog = new ProgressDialog(this.strip);
+            progressDialog.show();
+            $(progressDialog).on("Complete",function() {
+                //console.log("Complete!");
+            });
         },
         forgetPatternClicked:function(e) {
-		    var selectedPatterns = this.patternList.getSelected();
-            if (selectedPatterns.length > 1) return alert("Multiple patterns selected, choose one!");
-			$(this.gui).trigger("ForgetPattern",[this.strip.id,selectedPatterns[0].index]);
+            var pattern = $(e.target).closest(".listElement").data("object");
+			this.manager.trigger("ForgetPattern",[this.strip.id,pattern.index]);
         },
-        refreshPatterns:function(patterns) {
-            console.log("refreshing patterns",patterns);
-            this.patternList = new SelectList(patterns,this.patternListRenderer)
+        refreshPatterns:function() {
+            this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)
             this.$el.find(".patterns").empty().append(this.patternList.$el);
         },
         patternListRenderer:function(pattern,$el) {
             if ($el) {
                 $el.find(".name").text(pattern.name);
             } else {
-                $el = $("<div class='listElement' />");
+                $el = $("<li class='list-group-item listElement' />");
+                var $select = $("<button class='selectPattern btn btn-success btn-xs'><span class='glyphicon glyphicon-play'></span></button>");
+                var $forget = $("<button class='forgetPattern btn btn-danger btn-xs'><span class='glyphicon glyphicon-minus'></span></button>");
+
+                $forget.on("click",_.bind(this.forgetPatternClicked,this));
+                $select.on("click",_.bind(this.selectPatternClicked,this));
+                $el.append($select);
                 $el.append($("<span class='name'></span>").text(pattern.name));
+                $el.append($forget);
             }
             return $el;
         },

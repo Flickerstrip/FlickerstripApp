@@ -25,7 +25,6 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
     }
 
     $.extend(This.prototype,{
-        stripData:null,
         canvas:null,
         stripListComponent:null,
         stripRenderer:null,
@@ -33,20 +32,26 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
         init:function(document) {
             this.$el = $(document.body);
 
-            this.showStripList();
-
-            this.on("StripsUpdated",_.bind(function(e,stripData) {
-                this.setStrips(stripData);
-            },this));
+            this.render();
 
             this.on("ReceivedPatternMetadata",_.bind(function(e,strip,patterns) {
                 console.log("receive pattern metadata called..");
                 if (this.groupDetails) console.log(this.groupDetails,this.groupDetails.strip.id,strip.id,patterns);
                 if (this.groupDetails && this.groupDetails.strip.id == strip.id) {
-                    console.log("refreshing patterns");
                     this.groupDetails.refreshPatterns(patterns);
                 }
             },this));
+        },
+        setManager:function(manager) {
+            this.manager = manager;
+            manager.on("StripAdded",_.bind(this.stripAdded,this));
+        },
+        stripAdded:function(e,strip) {
+            this.selectList.addElement(strip);
+            var self = this;
+            strip.on("StripStatusUpdated",function(e,strip) {
+                self.selectList.updateElement(strip);
+            });
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
@@ -59,7 +64,7 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
             }
         },
         selectSingleStrip:function(strip) {
-            this.groupDetails = new GroupDetailsPanel(this,strip);
+            this.groupDetails = new GroupDetailsPanel(this.manager,strip);
             this.$el.find(".groupDetails").empty().append(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
@@ -77,35 +82,13 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
 
             $(this).trigger("StripNameUpdated",[strip.id,strip.name]);
         },
-        addDebugButtons:function() {
-//            //debug buttons
-//            var self = this;
-//            var $div = $("<div />");
-//            var $a = $("<a href='#' />").text("click A").click(_.bind(function() {
-//                //self.sendStripData();
-//            },this));
-//            var $b = $("<a href='#' />").text("click B").click(_.bind(function() {
-//                
-//                //$(this.view).on("SavePattern",_.bind(function(e,id,name,address,fps,data) {
-//                data = [
-//                    [10,0,0],
-//                    [0,10,0],
-//                    [0,0,10]
-//                ];
-//                $$(self).trigger("SavePattern",[this.stripData[0].id,"pattern",0x400,1,data]);
-//            },this));
-//            $div.append($a).append("<br/>").append($b);
-//            this.$el.find("#modes").after($div);
-        },
-        showStripList:function() {
-            if (!(this.stripData && this.$el)) return;
-
+        render:function() {
             this.$el.empty();
             this.$el.append(stripListTemplate());
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");
-            var selectList = new SelectList(this.stripData,this.stripElementRenderer);
+            var selectList = new SelectList([],this.stripElementRenderer);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
 
@@ -123,19 +106,20 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
             });
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
-
-            //addDebugButtons();
         },
         stripElementRenderer:function(strip,$el) {
+            var name = strip.getName();
+            if (!name) name = "Unknown Strip";
+
             if ($el) {
-                $el.find(".stripName").text(strip.name);
-                var statusClass = strip.visible ? "connected" : "error";
+                $el.find(".stripName").text(name);
+                var statusClass = strip.connection ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
-                $el = $("<div class='listElement' />");
-                var statusClass = strip.visible ? "connected" : "error";
+                $el = $("<li class='list-group-item listElement' />");
+                var statusClass = strip.connection ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
-                $el.append($("<span class='stripName'></span>").text(strip.name));
+                $el.append($("<span class='stripName'></span>").text(name));
             }
             return $el;
         },

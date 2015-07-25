@@ -30,7 +30,7 @@ define(["jquery","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsVi
         loadPatternButtonClicked:function(e) {
             this.$el.modal('hide')
             var pattern = this.generatePattern();
-            $(this).trigger("LoadPattern",[this.activePattern.name,this.activePattern.fps,pattern]);
+            $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern]);
         },
         generatePattern:function() {
             var renderer = this.stripRenderer.getRenderer();
@@ -76,7 +76,7 @@ define(["jquery","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsVi
             if ($el) {
                 $el.find(".name").text(pattern.name);
             } else {
-                $el = $("<div class='listElement' />");
+                $el = $("<ul class='list-group-item listElement' />");
                 $el.append($("<span class='name'></span>").text(pattern.name));
             }
             return $el;

@@ -13,12 +13,17 @@ requirejs.config({
 });
 
 var win = nw.Window.get();
-win.moveTo(400,30);
-var dev = win.showDevTools();
-dev.moveTo(0,win.height+40);
-dev.height =  window.screen.availHeight - win.height - 20;
-dev.width =  window.screen.availWidth;
-win.focus();
+
+var debugMode = true;
+if (debugMode) {
+    win.moveTo(400,30);
+    var dev = win.showDevTools();
+    dev.moveTo(0,win.height+40);
+    dev.height =  window.screen.availHeight - win.height - 20;
+    dev.width =  window.screen.availWidth;
+    win.focus();
+}
+
 nw.App.setCrashDumpDir("./");
 
 var closedOnce = false;

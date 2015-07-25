@@ -9,20 +9,20 @@ define(['jquery'],function($) {
         defaultOpts:{
             multiple:true,
         },
-        init:function(data,renderer,opts) {
-            this.$el = $("<div />");
+        init:function(data,renderer,rendererthis,opts) {
+            this.rendererthis = rendererthis;
+            this.$el = $("<ul class='list-group'/>");
             this.$el.attr("tabindex","0");
             this.$el.css("user-select","none");
             this.selectedIndexes = [];
             this.cursorIndex = -1;
             this.opts = opts ? opts : this.defaultOpts;
 
-            this.data = data;
             this.renderer = renderer;
 
-            _.each(this.data,_.bind(function(value,index) {
+            _.each(data,_.bind(function(value,index) {
                 value.index = index;
-                var $el = this.renderer(value);
+                var $el = this.renderer.call(this.rendererthis,value);
                 $el.data("index",index);
                 $el.data("object",value);
                 this.$el.append($el);
@@ -34,11 +34,27 @@ define(['jquery'],function($) {
             this.$el.blur(_.bind(this.blurred,this));
             this.$el.keydown(_.bind(this.keyDown,this));
         },
+        addElement:function(element) {
+            var $el = this.renderer.call(this.rendererthis,element);
+            this.$el.append($el);
+            this.addBehavior($el);
+            var index = this.$el.find(".listElement").length-1;
+            $el.data("index",index);
+            $el.data("object",element);
+        },
+        updateElement:function(element) {
+            var self = this;
+            this.$el.find(".listElement").each(function() {
+                if ($(this).data("object") == element) {
+                    self.renderer.call(self.rendererthis,element,$(this));
+                }
+            });
+        },
         refresh:function() {
             var self = this;
             this.$el.children(".listElement").each(function() {
                 var index = $(this).data("index");
-                self.renderer(self.data[index],$(this));
+                self.renderer.call(self.rendererthis,self.data[index],$(this));
             });
         },
         focused:function(e) {
@@ -55,18 +71,23 @@ define(['jquery'],function($) {
                     } else if (this.selectedIndexes.length >= 1) {
                         this.select(this.cursorIndex+1,e.shiftKey);
                     }
+                    return true;
                 } else if (e.keyCode == 38) { //up
                     if (this.selectedIndexes.length == 0) {
-                        this.select(this.data.length-1);
+                        this.select(this.getSize()-1);
                     } else if (this.selectedIndexes.length >= 1) {
                         this.select(this.cursorIndex-1,e.shiftKey);
                     }
+                    return true;
                 }
             }
         },
+        getSize:function() {
+            return this.$el.find(".listElement").length;
+        },
         select:function(index,appendSelection) {
             if (index < 0) index = 0;
-            if (index >= this.data.length) index = this.data.length-1;
+            if (index >= this.getSize()) index = this.getSize()-1;
             this.cursorIndex = index;
 
             if (appendSelection) {
@@ -92,16 +113,25 @@ define(['jquery'],function($) {
             $(self).trigger("change",args);
         },
         getSelected:function() {
-            var selectedObjects = _.map(this.selectedIndexes,_.bind(function(index) {
-                return this.data[index];
-            },this));
+            var selectedObjects = [];
+            this.$el.children().each(function() {
+                if ($(this).is(".selected")) {
+                    selectedObjects.push($(this).data("object"));
+                }
+            });
             return selectedObjects;
         },
-        addBehavior:function() {
-            var $el = this.$el;
+        addBehavior:function($el) {
+            var $nodes = null;
+            if ($el) {
+                $nodes = $el;
+            } else {
+                $nodes = this.$el.children(".listElement");
+            }
             var self = this;
-            $el.children(".listElement").each(function() {
+            $nodes.each(function() {
                 $(this).click(function(e) {
+                    var clickedIndex = $(this).data("index");
                     if (self.opts.multiple && e.shiftKey) {
                         var clickedIndex = $(this).data("index");
                         var min = Math.min(clickedIndex,self.cursorIndex);

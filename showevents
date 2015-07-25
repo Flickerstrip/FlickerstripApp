@@ -1,0 +1,75 @@
+#!/bin/bash
+
+allcode=`for i in *.js; do nl $i | perl -pe 's/^\s*?([0-9]+)/'$i' \1: /'; done`
+triggerlist=`echo "$allcode" | grep \\.trigger\(\"\[A-Z\] | perl -pe 's/.*\.trigger\("(.*?)".*/\1/' | sort | uniq`
+listenlist=`echo "$allcode" | grep \\.on\(\"\[A-Z\] | perl -pe 's/.*\.on\("(.*?)".*/\1/' | sort | uniq`
+
+triggerDetails=`echo "$allcode" | grep \\.trigger\(\"\[A-Z\] | perl -pe 's/(.*):.*\.trigger\("(.*?)".*/\1|\2/'`
+listenerDetails=`echo "$allcode" | grep \\.on\(\"\[A-Z\] | perl -pe 's/(.*):.*\.on\("(.*?)".*/\1|\2/'`
+
+function db() {
+    while read line
+    do
+        echo "DB:$line" >2
+        echo $line
+    done
+}
+
+function indent() {
+    sed 's/^/  /'
+}
+
+function oneLineCommas() {
+    xargs | sed 's/ /, /g'
+}
+
+function showTriggers() {
+    while read line
+    do
+        echo -n $line
+        echo -n " ["
+        echo -n `echo "$triggerDetails" | grep "|$line" | perl -pe 's/^(.*?) (.*?)\|(.*?)$/\1:\2/' | oneLineCommas`
+        echo -n "]"
+        echo
+    done
+}
+
+function showListeners() {
+    while read line
+    do
+        echo -n $line
+        echo -n " ["
+        echo -n `echo "$listenerDetails" | grep "|$line" | perl -pe 's/^(.*?) (.*?)\|(.*?)$/\1:\2/' | oneLineCommas`
+        echo -n "]"
+        echo
+    done
+}
+
+function showBoth() {
+    while read line
+    do
+        triggers=`echo "$triggerDetails" | grep "|$line" | perl -pe 's/^(.*?) (.*?)\|(.*?)$/\1:\2/' | oneLineCommas`
+        listeners=`echo "$listenerDetails" | grep "|$line" | perl -pe 's/^(.*?) (.*?)\|(.*?)$/\1:\2/' | oneLineCommas`
+        printf "%-30s %-50s %-50s\n" "$line" "$triggers" "$listeners"
+    done
+}
+
+echo "$triggerlist" > /tmp/tlist.txt
+echo "$listenlist" > /tmp/llist.txt
+
+unheard=`comm -23 /tmp/tlist.txt /tmp/llist.txt`
+untriggered=`comm -13 /tmp/tlist.txt /tmp/llist.txt`
+matched=`comm -12 /tmp/tlist.txt /tmp/llist.txt`
+
+echo
+echo "Untriggered: "
+echo "$untriggered" | showListeners | indent
+
+echo
+echo "Unheard: "
+echo "$unheard" | showTriggers | indent
+
+echo
+echo "Matched: "
+printf "%-30s %-50s %-50s\n" "Event" "Triggers" "Listeners"
+echo "$matched" | showBoth | indent

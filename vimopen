@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mvim -p LEDStrip.js StripWrapper.js manager.js Gui.js

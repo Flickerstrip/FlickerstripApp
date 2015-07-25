@@ -1,7 +1,7 @@
 var $ = require("jquery");
 var _ = require("underscore")._;
 var util = require("util");
-var dgram = require('dgram'); 
+//var dgram = require('dgram'); 
 var net = require('net');
 
 var _c = require("c-struct");
@@ -31,21 +31,45 @@ function trim(str) {
 }
 
 var This = function() {
-	console.log("strip wrapper initted",arguments);
     this.init.apply(this,arguments);
 };
+
+This.packetTypes = {
+    UNUSED: 0,
+    PING: 1,
+    GET_PATTERNS: 2,
+    CLEAR_PATTERNS: 3,
+    DELETE_PATTERN: 4,
+    SELECT_PATTERN: 5,
+    SAVE_PATTERN: 6,
+    PATTERN_BODY: 7,
+}
 
 $.extend(This.prototype,{
 	id:-1,
 	sendBuffer:[],
+    session:null,
 	socket:null,
 	init:function(socket) {
-		console.log("init function",arguments);
-		var buffer = "";
+        if (socket) {
+            this.connect(socket);
+        }
+	},
+    connect:function(socket) {
 		this.socket = socket;
+
+		var buffer = "";
 		socket.on('data', _.bind(function(data) {
-			data = String(data).replace("\r","");
-			console.log("socket data",data);
+                /*
+            var bytes = [];
+            for (var i = 0; i < buffer.length; ++i) {
+                bytes.push(buffer.charCodeAt(i));
+            }
+            console.log("data raw:", bytes);
+            */
+
+			data = String(data);
+            data = data.replace(/\r/g,"");
 			if (data.length == 0) return;
 			buffer += data;
             while(true) {
@@ -53,13 +77,12 @@ $.extend(This.prototype,{
                 if (index == -1) break;
 
                 var line = buffer.substring(0,index);
-                this.receivedClientData(socket,line);
+                this._receivedClientData(socket,line);
                 buffer = buffer.substring(index+1);
-                console.log("splitting.. buffer remains: ",buffer);
             }
 		},this));
 		
-		socket.on('end',_.bind(function () {
+		socket.on('disconnect',_.bind(function () {
 			$(this).trigger("Disconnect",[this]);
 		},this));
 
@@ -70,93 +93,67 @@ $.extend(This.prototype,{
 				console.log("uncaught error: ",error);
 			}
 		},this));
-	},
+
+        //this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
+    },
+    idlePing:function() {
+        var now = new Date().getTime();
+        if (now - this.lastReceivedData > 1500) {
+            this.socket.end();
+			$(this).trigger("Disconnect",[this]);
+        }
+        if (this.socket && this.sendBuffer.length == 0 && this.status == "ready") {
+            this.sendCommand(This.packetTypes.PING);
+        }
+    },
+    destroy:function() {
+        if (this.idlePingTimer) clearInterval(this.idlePingTimer);
+        try {
+            if (this.socket) this.socket.end();
+        } catch (e) {console.log("error closing socket");}
+    },
 	getId:function() {
 		return this.id;
 	},
 	getSocket:function() {
 		return this.socket;
 	},
-	_stripReady:function() {
-        this.status = "ready";
-		this.manageQueue();
-    },
-	manageQueue:function() {
-		console.log("manage queue called");
-		if (this.sendBuffer.length != 0) {
-			console.log("sending queued: queue size: ",this.sendBuffer.length)
-			this.status = "busy";
-			var buf = this.sendBuffer.shift();
-			this.socket.write(buf);
-		}
-	},
-	receivedClientData:function(socket,data) {
-        stringData = trim(String(data));
-        console.log("string data received",stringData);
-		if (stringData.length == 0) return;
-
-        var match = stringData.match(/id:(.*)/);
-        if (match) {
-            var id = match[1].trim();
-            this.id = id;
-			this.stripConnected();
-			$(this).trigger("Connect",[this]);
-            return;
+    sendCommand:function(command,param1,param2,payload) {
+        param1 = param1 | 0;
+        param2 = param2 | 0;
+        var buffer = Buffer.concat([bufferFromNumber(command,4),bufferFromNumber(param1,4),bufferFromNumber(param2,4)]);
+        if (payload) {
+            buffer = Buffer.concat([buffer,payload]);
         }
+        this.queueData("bin",buffer);
+    },
+    queueData:function(type,data) {
+        var buf = this._prepareBuffer(type,data);
 
-        if (stringData.startsWith("patterns")) {
-            var lines = stringData.split("\n");
-            lines.splice(0,1);
-            console.log("lines",lines);
-            var patternData = [];
-            _.each(lines,function(line) {
-                var tokens = line.split(",");
-                patternData.push({
-                    index: parseInt(tokens[0]),
-                    name: tokens[1],
-                    address: parseInt(tokens[2]),
-                    len: parseInt(tokens[3]),
-                    frames: parseInt(tokens[4]),
-                    flags: parseInt(tokens[5]),
-                    fps: parseInt(tokens[6])
-                });
-            });
-			this.patterns = patternData;
-            console.log("triggering pattern metadata..",this);
-            $(this).trigger("PatternMetadata",[this,patternData]);
-            return;
+        if (this.session) {
+            this.session.buffers.push(buf);
+            this.session.size ++;
+        } else {
+            this.sendBuffer.push(buf);
         }
-
-        match = stringData.match(/ready/);
-        if (match) {
-			console.log("ready received");
-			this._stripReady();
-			
-            $(this).trigger("Ready",[this]);
-            return;
+        this._manageQueue()
+    },
+    getCurrentSession:function() {
+        if (this.sendBuffer.length && this.sendBuffer[0].buffers) {
+            return this.sendBuffer[0];
+        } else {
+            return null;
         }
-
-        console.log("got unexpected data: ",stringData);
     },
-	stripConnected:function() {
-        console.log("Strip Connected: ",this.id);
-        this.sendBuffer = [];
-        this._stripReady();
-		
-		this.requestPatterns();
+    startSession:function() {
+        this.session = {buffers:[],size:0};
     },
-	requestPatterns:function() {
-		console.log("requesting patterns");
-	    this._sendData("str","mem");
-	},
-    selectPattern:function(id,index) {
-        this._sendData("bin",Buffer.concat([new Buffer("select\0"),bufferFromNumber(index,1)]));
+    endSession:function() {
+        this.sendBuffer.push(this.session);
+        this.session = null;
+        this._manageQueue();
     },
-	forgetPattern:function(index) {
-        this._sendData("bin",Buffer.concat([new Buffer("del\0"),bufferFromNumber(index,1)]));
-		this.requestPatterns();
-    },
-	savePattern:function(name,fps,data) {
+	sendPattern:function(name,fps,data) {
         var frames = data.length;
         var len = data[0].length;
         var metadata = _c.packSync("PatternMetadata",{
@@ -167,18 +164,20 @@ $.extend(This.prototype,{
             flags: 0x0000,
             fps: fps,
         });
-        console.log("pattern size: ",len*frames);
         var sendPages = 2;
         var page = 0;
         var bufferSize = Math.min(len*frames,sendPages*0x100);
         var payload = new Buffer(bufferSize);
         var offset = 0;
 
-        this._sendData("bin",Buffer.concat([new Buffer("save\0"),metadata]));
+        this.startSession();
+        this.sendCommand(This.packetTypes.SAVE_PATTERN,0,0,metadata);
+        //this.queueData("bin",Buffer.concat([new Buffer("save\0"),metadata]));
         for (var i=0; i<frames; i++) {
             for (var l=0; l<len; l++) {
                 if (offset >= bufferSize) {
-                    this._sendData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
+                    this.sendCommand(This.packetTypes.PATTERN_BODY,0xff,page,payload);
+                    //this.queueData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
 
                     bufferSize = Math.min(len*frames - (page+sendPages)*0x100,sendPages*0x100);
                     if (bufferSize > 0) {
@@ -194,30 +193,89 @@ $.extend(This.prototype,{
                 payload.writeUIntLE(data[i][l],offset++,1);
             }
         }
-        this._sendData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
+        this.sendCommand(This.packetTypes.PATTERN_BODY,0xff,page,payload);
+        //this.queueData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
+        this.endSession();
+    },
 
-		this.requestPatterns();
+    ///////////////////////////////// Private Methods Below ///////////////////////////////////////////////////
+
+	_stripReady:function() {
+        this.status = "ready";
+		this._manageQueue();
+    },
+	_manageQueue:function() {
+		if (this.sendBuffer.length != 0) {
+			this.status = "busy";
+			var next = this.sendBuffer.shift();
+            var buf = null;
+            if (next.buffers) {
+                buf = next.buffers.shift();
+                if (next.buffers.length != 0) {
+                    this.sendBuffer.unshift(next);
+                }
+            } else {
+                buf = next;
+            }
+			if (buf != null) {
+                this.socket.write(buf);
+            }
+            $(this).trigger("ProgressUpdate",[this]);
+		}
+	},
+	_receivedClientData:function(socket,data) {
+        this.lastReceivedData = new Date().getTime();
+        stringData = trim(String(data));
+		if (stringData.length == 0) return;
+
+        var match = stringData.match(/id:(.*)/);
+        if (match) {
+            var id = match[1].trim();
+            this.id = id;
+            this.sendBuffer = [];
+            this._stripReady();
+
+			$(this).trigger("Connect",[this]);
+            return;
+        }
+
+        if (stringData.startsWith("patterns")) {
+            var lines = stringData.split("\n");
+            lines.splice(0,1);
+            var patternData = [];
+            _.each(lines,function(line) {
+                var tokens = line.split(",");
+                patternData.push({
+                    index: parseInt(tokens[0]),
+                    name: tokens[1],
+                    address: parseInt(tokens[2]),
+                    len: parseInt(tokens[3]),
+                    frames: parseInt(tokens[4]),
+                    flags: parseInt(tokens[5]),
+                    fps: parseInt(tokens[6])
+                });
+            });
+			this.patterns = patternData;
+            $(this).trigger("ReceivedPatternMetadata",[this,patternData]);
+            return;
+        }
+
+        match = stringData.match(/ready/);
+        if (match) {
+			this._stripReady();
+            return;
+        }
+
+        console.log("got unexpected data: ",stringData);
     },
     _prepareBuffer:function(type,data) {
         if (type == "bin") {
-            var buf = Buffer.concat([new Buffer([0]),bufferFromNumber(data.length,4),data]);
+            var buf = Buffer.concat([bufferFromNumber(data.length,4),data]);
             return buf;
         } else if (type == "str") {
-            var dataBuffer = new Buffer(data+"\n\n");
-            return Buffer.concat([new Buffer([1]),dataBuffer]);
-        }
-    },
-    _sendData:function(type,data) {
-        var buf = this._prepareBuffer(type,data);
-        console.log("senddata BUFFER",buf);
-
-        if (this.status != "ready") {
-			console.log("adding to queue");
-            this.sendBuffer.push(buf);
-        } else {
-            console.log("strip ready, sending");
-            this.status = "busy";
-            this.socket.write(buf);
+            throw "ERROR, using string!";
+            //var dataBuffer = new Buffer(data+"\n\n");
+            //return Buffer.concat([new Buffer([1]),dataBuffer]);
         }
     },
 });
