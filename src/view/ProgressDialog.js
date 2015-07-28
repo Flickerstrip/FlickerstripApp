@@ -1,9 +1,4 @@
-var _ = require("underscore")._;
-var util = require("./util.js");
-
-define(["jquery"],function($) {
-    var template = util.loadTemplate("./progressDialog.html");
-
+define(["jquery","util.js","text!../tmpl/progressDialog.html"],function($,util,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -15,7 +10,7 @@ define(["jquery"],function($) {
             this.strip = strip;
             strip.one("ProgressUpdated",_.bind(this.update,this));
 
-            this.$el.append(template());
+            this.$el.append(_.template(template)());
         },
         update:function(e,strip,session) {
             if (session == null) {

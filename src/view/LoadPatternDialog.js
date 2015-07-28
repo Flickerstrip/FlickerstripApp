@@ -1,9 +1,5 @@
-var _ = require("underscore")._;
-var util = require("./util.js");
-
-define(["jquery","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsView.js"],function($,SelectList,patterns,LEDStripRenderer,ControlsView) {
-    var template = util.loadTemplate("./loadPatternDialog.html");
-
+define(["jquery","util.js","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsView.js","text!../tmpl/loadPatternDialog.html"],
+function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -12,7 +8,7 @@ define(["jquery","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsVi
         init:function(strip) {
             this.$el = $("<div class='loadPatternDialog modal'/>");
 
-            this.$el.append(template());
+            this.$el.append(_.template(template)());
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");

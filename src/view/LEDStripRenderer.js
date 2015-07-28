@@ -1,5 +1,3 @@
-var _ = require("underscore")._;
-
 define(['jquery','tinycolor'],function($,tinycolor) {
     var renderToCanvas = function (width, height, renderFunction) {
         var buffer = document.createElement('canvas');

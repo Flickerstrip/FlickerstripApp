@@ -1,5 +1,3 @@
-var _ = require("underscore")._;
-
 define(['jquery','tinycolor'],function($,tinycolor) {
     var This = function(window,form,data) {
         this.window = window;

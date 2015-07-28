@@ -1,4 +1,4 @@
-define(['jquery','underscore'],function($,_) {
+define(['jquery'],function($) {
     var This = function(view) {
     };
     $.extend(This,{

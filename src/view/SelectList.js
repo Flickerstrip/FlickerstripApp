@@ -1,5 +1,3 @@
-var _ = require("underscore")._;
-
 define(['jquery'],function($) {
     var This = function(data,renderer) {
         this.init.apply(this,arguments);

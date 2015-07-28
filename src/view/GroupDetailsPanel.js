@@ -1,8 +1,4 @@
-var _ = require("underscore")._;
-var util = require("./util.js");
-
-define(['jquery','SelectList.js',"LoadPatternDialog.js","ProgressDialog.js"],function($,SelectList,LoadPatternDialog,ProgressDialog) {
-    var template = util.loadTemplate("./groupDetailPanel.html");
+define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialog.js","text!../tmpl/groupDetailPanel.html"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -12,7 +8,7 @@ define(['jquery','SelectList.js',"LoadPatternDialog.js","ProgressDialog.js"],fun
         init:function(manager,strip) {
             this.manager = manager;
             this.$el = $("<div class='panel panel-info flexcol' />");
-            this.$el.empty().append(template());
+            this.$el.empty().append(_.template(template)());
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
             strip.on("PatternsUpdated",_.bind(this.refreshPatterns,this));

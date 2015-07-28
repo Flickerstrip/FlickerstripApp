@@ -1,9 +1,7 @@
 var $ = require("jquery");
 var _ = require("underscore")._;
 var util = require("util");
-//var dgram = require('dgram'); 
 var net = require('net');
-
 var _c = require("c-struct");
 
 var PatternMetadata = new _c.Schema({

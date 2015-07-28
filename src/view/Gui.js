@@ -1,12 +1,5 @@
-var _ = require("underscore")._;
-var fs = require("fs");
-var $$ = require("jquery");
-var util = require("./util");
-
-define(['jquery','tinycolor','patterns.js','ControlsView.js','LEDStripRenderer.js', 'SelectList.js',"GroupDetailsPanel.js",'jquery.contextMenu'],
-function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel) {
-    var stripListTemplate = util.loadTemplate("./stripList.html");
-
+define(['jquery','underscore','util.js','tinycolor','ControlsView.js','LEDStripRenderer.js', 'SelectList.js',"GroupDetailsPanel.js","text!../tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,template) {
     var This = function(window) {
         this.window = window;
         var document = window.document;
@@ -86,7 +79,7 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
         },
         render:function() {
             this.$el.empty();
-            this.$el.append(stripListTemplate());
+            this.$el.append(_.template(template)());
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");

@@ -1,12 +1,12 @@
 var nw = require('nw.gui');
-var Manager = require("./manager");
+var Manager = require("../controller/manager");
 var fs = require("fs");
-var ShutdownHandler = require("./ShutdownHandler");
+var ShutdownHandler = require("../controller/ShutdownHandler");
 global.ShutdownHandler = ShutdownHandler;
 
 requirejs.config({
     nodeRequire:require,
-    baseUrl: "lib",
+    baseUrl: "./lib",
     "shim": {
         "jquery.contextMenu"  : ["jquery"]
     }
@@ -51,4 +51,3 @@ requirejs(['jquery','Gui.js'],function($,Gui) {
 window.onkeydown = function(e) {
     if (e.keyCode == 27) nw.App.closeAllWindows();
 };
-
