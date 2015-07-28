@@ -13,3 +13,4 @@ miniterm.py
 *.exe
 *.dat
 npm-debug.log
+.refactorix
