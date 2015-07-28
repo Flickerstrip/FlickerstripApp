@@ -20,6 +20,7 @@ $.extend(This,{
             $input.val(oldval);
             $el.empty().append($input);
             $input.focus();
+            $input.select();
             $input.blur(_.bind(function() {
                 var newval = $input.val();
                 $el.empty();

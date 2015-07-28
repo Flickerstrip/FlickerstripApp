@@ -94,7 +94,7 @@ $.extend(This.prototype,{
 			}
 		},this));
 
-        //this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
+        this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
     },
     idlePing:function() {
         var now = new Date().getTime();

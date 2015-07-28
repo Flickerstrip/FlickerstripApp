@@ -2,7 +2,7 @@
 known_strips.json
 nwjc
 nwjs.app
-node_modules/.bin
+node_modules/
 .DS_Store
 gitversion.txt
 shutdownlog.txt
@@ -11,3 +11,4 @@ miniterm.py
 *.dll
 *.exe
 *.dat
+npm-debug.log

@@ -4,7 +4,8 @@ var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
 var LEDStrip = require("./LEDStrip")
 var fs = require("fs");
-var USBCommunication = require("./USBCommunication");
+//var USBCommunication = require("./USBCommunication");
+//var WirelessManager = require("./WirelessManager");
 
 var This = function(view) {
     this.init(view);
@@ -15,9 +16,10 @@ $.extend(This.prototype,{
     strips:[],
     init:function(view) {
         this.view = view;
+        //this.wifi = new WirelessManager();
         this.view.setManager(this);
         this.discovery = new DiscoveryServer();
-        this.usb = new USBCommunication();
+        //this.usb = new USBCommunication();
 
         this.loadStrips();
 
@@ -124,7 +126,11 @@ $.extend(This.prototype,{
             $(this).trigger("StripAdded",[strip]);
         }
         strip.lastSeen = new Date();
+
         strip.on("PatternsUpdated",_.bind(this.saveStrips,this));
+        strip.on("StripConnected",_.bind(this.saveStrips,this));
+        strip.on("NameUpdated",_.bind(this.saveStrips,this));
+
         strip.on("Disconnect",_.bind(this.clientDisconnected,this));
         $(this).trigger("StripConnected",[strip]);
 	},

@@ -58,6 +58,7 @@ $.extend(This.prototype,{
     },
     setName:function(name) {
         this.name = name;
+        $(this).trigger("NameUpdated",[this]);
     },
     getName:function() {
         return this.name;

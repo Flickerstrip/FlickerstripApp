@@ -18,6 +18,9 @@ define(['jquery','SelectList.js',"LoadPatternDialog.js","ProgressDialog.js"],fun
             strip.on("PatternsUpdated",_.bind(this.refreshPatterns,this));
 
             this.updateValues(strip);
+            strip.on("StripStatusUpdated",_.bind(function() {
+                this.updateValues(strip);
+            },this));
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
         },
@@ -38,7 +41,8 @@ define(['jquery','SelectList.js',"LoadPatternDialog.js","ProgressDialog.js"],fun
                 statusIndicator.addClass("error").attr("title","disconnected");
             }
         },
-        nameUpdated:function() {
+        nameUpdated:function(name) {
+            this.strip.setName(name);
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");

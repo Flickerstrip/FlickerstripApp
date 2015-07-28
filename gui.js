@@ -52,6 +52,9 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
             strip.on("StripStatusUpdated",function(e,strip) {
                 self.selectList.updateElement(strip);
             });
+            strip.on("NameUpdated",function(e,strip) {
+                self.selectList.updateElement(strip);
+            });
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
@@ -73,14 +76,6 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
             $el.find("#identifierValue").hide();
             $el.find("#nameValue").text(strips.length+" selected");
             $el.find(".statusIndicator").css("visibility","hidden");
-        },
-        nameUpdated:function(newval) {
-            var strip = this.selectedStrips[0];
-            strip.name = newval;
-
-            this.selectList.refresh();
-
-            $(this).trigger("StripNameUpdated",[strip.id,strip.name]);
         },
         render:function() {
             this.$el.empty();
