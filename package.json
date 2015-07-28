@@ -1,7 +1,7 @@
 {
 	"name":"wifiledcontrol",
-		"version":"0.0.1",
-		"description":"An application to allow you to interact with your LED strips.",
+    "version":"0.0.1",
+    "description":"An application to allow you to interact with your LED strips.",
 	"main":"index.html",
 	"window":
 	{

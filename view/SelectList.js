@@ -57,6 +57,14 @@ define(['jquery'],function($) {
                 self.renderer.call(self.rendererthis,self.data[index],$(this));
             });
         },
+        each:function(cb) {
+            this.$el.children(".listElement").each(function() {
+                var obj = $(this).data("object");
+                var index = $(this).data("index");
+                var $el = $(this);
+                cb(obj,$el);
+            });
+        },
         focused:function(e) {
             this.focused = true;
         },

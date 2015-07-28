@@ -42,6 +42,13 @@ function($, tinycolor, patterns, ControlsView, LEDStripRenderer, SelectList, Gro
                 }
             },this));
         },
+        handleStripEvent(eventType,stripId) {
+            this.selectList.each(function(strip,$el) {
+                if (strip.id == stripId) {
+                    $(strip).trigger(eventType);
+                }
+            });
+        },
         setManager:function(manager) {
             this.manager = manager;
             manager.on("StripAdded",_.bind(this.stripAdded,this));

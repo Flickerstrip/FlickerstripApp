@@ -46,10 +46,6 @@ $.extend(This.prototype,{
             this.forgetStrip(id);
         },this));
         ///////////////////////////////////////// Strip actions
-
-        setInterval(_.bind(this.tick),100);
-    },
-    tick:function() {
     },
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
