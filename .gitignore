@@ -1,4 +1,5 @@
 *.swp
+build
 known_strips.json
 nwjc
 nwjs.app
