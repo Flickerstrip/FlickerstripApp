@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var fs = require("fs");
 var util = require("util");
@@ -15,7 +15,7 @@ var This = function() {
 var retryIntervals = [500,2000,10000];
 var listRefresh = 3000;
 var staleCheckInterval = 2000;
-$.extend(This.prototype,{
+extend(This.prototype,{
     ports:{},
     lastListRefresh:-1,
     init:function() {

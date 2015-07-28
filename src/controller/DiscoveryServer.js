@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var util = require("util");
 var dgram = require('dgram'); 
@@ -8,7 +8,7 @@ var This = function() {
     this.init();
 };
 
-$.extend(This.prototype,{
+extend(This.prototype,{
     init:function() {
         var tcpport = 3836;
         var message = "announce\0"+tcpport+"\0\0";

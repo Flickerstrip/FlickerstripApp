@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
@@ -11,7 +11,7 @@ var This = function(view) {
     this.init(view);
 };
 
-$.extend(This.prototype,{
+extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     strips:[],
     init:function(view) {

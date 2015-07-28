@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var util = require("util");
 var fs = require("fs");
@@ -6,7 +6,7 @@ var fs = require("fs");
 var This = function() {
 };
 
-$.extend(This.prototype,{
+extend(This.prototype,{
     shutdownHandlers:[],
     addHandler:function(cb) {
         this.shutdownHandlers.push(cb);

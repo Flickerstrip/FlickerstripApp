@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var util = require("util");
 var StripWrapper = require("./StripWrapper");
@@ -7,7 +7,7 @@ var This = function() {
     this.init.apply(this,arguments);
 };
 
-$.extend(This.prototype,{
+extend(This.prototype,{
 	id:null,
     name:null,
     connection:null,

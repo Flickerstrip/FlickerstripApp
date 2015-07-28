@@ -1,4 +1,4 @@
-var $ = require("jquery");
+var extend = require("extend");
 var _ = require("underscore")._;
 var util = require("util");
 var net = require('net');
@@ -43,7 +43,7 @@ This.packetTypes = {
     PATTERN_BODY: 7,
 }
 
-$.extend(This.prototype,{
+extend(This.prototype,{
 	id:-1,
 	sendBuffer:[],
     session:null,
