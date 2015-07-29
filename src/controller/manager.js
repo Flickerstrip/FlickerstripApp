@@ -1,4 +1,5 @@
 var extend = require("extend");
+var EventEmitter = require("events").EventEmitter;
 var _ = require("underscore")._;
 var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
