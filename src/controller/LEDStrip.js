@@ -8,6 +8,7 @@ var This = function() {
     this.init.apply(this,arguments);
 };
 
+util.inherit(This,EventEmitter);
 extend(This.prototype,{
 	id:null,
     name:null,

@@ -12,6 +12,7 @@ var This = function(view) {
     this.init(view);
 };
 
+util.inherit(This,EventEmitter);
 extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     strips:[],
