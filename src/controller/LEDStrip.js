@@ -34,15 +34,15 @@ extend(This.prototype,{
     },
     progressUpdate:function(e,connection) {
         var session = connection.getCurrentSession();
-        this.emit("ProgressUpdated",[this,session]);
+        this.emit("ProgressUpdated",this,session);
     },
     receivedPatternMetadata:function(e,connection,patterns) {
         this.patterns = patterns;
-        this.emit("PatternsUpdated",[patterns]);
+        this.emit("PatternsUpdated",patterns);
     },
     connectionReset:function(e,connection,error) {
         this.clearConnection();
-        this.emit("Disconnect",[this]);
+        this.emit("Disconnect",this);
     },
 	requestPatterns:function() {
 	    this.connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
@@ -60,7 +60,7 @@ extend(This.prototype,{
     },
     setName:function(name) {
         this.name = name;
-        this.emit("NameUpdated",[this]);
+        this.emit("NameUpdated",this);
     },
     getName:function() {
         return this.name;

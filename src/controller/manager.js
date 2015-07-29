@@ -132,7 +132,7 @@ extend(This.prototype,{
 	},
 	clientDisconnected:function(e,strip) {
         strip.trigger("StripStatusUpdated",[strip]);
-		this.emit("StripDisconnected",[strip]);
+		this.emit("StripDisconnected",strip);
 	},
 });
 
