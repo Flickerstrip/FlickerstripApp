@@ -27,7 +27,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
 
             this.render();
 
-            this.on("ReceivedPatternMetadata",_.bind(function(e,strip,patterns) {
+            $(this).on("ReceivedPatternMetadata",_.bind(function(strip,patterns) {
                 console.log("receive pattern metadata called..");
                 if (this.groupDetails) console.log(this.groupDetails,this.groupDetails.strip.id,strip.id,patterns);
                 if (this.groupDetails && this.groupDetails.strip.id == strip.id) {
@@ -46,14 +46,14 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             this.manager = manager;
             manager.on("StripAdded",_.bind(this.stripAdded,this));
         },
-        stripAdded:function(e,strip) {
+        stripAdded:function(strip) {
             console.log("strip added",strip);
             this.selectList.addElement(strip);
             var self = this;
-            strip.on("StripStatusUpdated",function(e,strip) {
+            strip.on("StripStatusUpdated",function(strip) {
                 self.selectList.updateElement(strip);
             });
-            strip.on("NameUpdated",function(e,strip) {
+            strip.on("NameUpdated",function(strip) {
                 self.selectList.updateElement(strip);
             });
         },
@@ -122,13 +122,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         setStrips:function(stripData) {
             this.stripData = stripData;
             this.showStripList();
-        },
-        on:function(evt,cb) {
-            $(this).on(evt,cb);
-        },
-        trigger:function(evt,args) {
-            $(this).trigger(evt,args);
-        },
+        }
     });
 
 

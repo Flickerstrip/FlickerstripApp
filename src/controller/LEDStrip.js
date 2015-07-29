@@ -22,9 +22,9 @@ extend(This.prototype,{
         if (this.id == null) this.id = this.connection.id;
         if (this.id != this.connection.id) throw "Error, connection ID mismatch: "+this.id+" =/= "+this.connection.id;
 
-		$(connection).on("ReceivedPatternMetadata",_.bind(this.receivedPatternMetadata,this));
-		$(connection).on("ProgressUpdate",_.bind(this.progressUpdate,this));
-		$(connection).on("Disconnect",_.bind(this.connectionReset,this));
+		connection.on("ReceivedPatternMetadata",_.bind(this.receivedPatternMetadata,this));
+		connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
+		connection.on("Disconnect",_.bind(this.connectionReset,this));
 
         this.requestPatterns();
     },
@@ -32,15 +32,15 @@ extend(This.prototype,{
         if (this.connection) this.connection.destroy();
         this.connection = null;
     },
-    progressUpdate:function(e,connection) {
+    progressUpdate:function(connection) {
         var session = connection.getCurrentSession();
         this.emit("ProgressUpdated",this,session);
     },
-    receivedPatternMetadata:function(e,connection,patterns) {
+    receivedPatternMetadata:function(connection,patterns) {
         this.patterns = patterns;
         this.emit("PatternsUpdated",patterns);
     },
-    connectionReset:function(e,connection,error) {
+    connectionReset:function(connection,error) {
         this.clearConnection();
         this.emit("Disconnect",this);
     },

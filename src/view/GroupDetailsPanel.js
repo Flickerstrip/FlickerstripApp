@@ -42,7 +42,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
-            this.manager.trigger("SelectPattern",[this.strip.id,pattern.index]);
+            this.manager.emit("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
             var patternDialog = new LoadPatternDialog();
@@ -51,7 +51,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         savePattern:function(e,name,fps,pattern) {
             var len = pattern.length * pattern[0].length;
-            this.manager.trigger("LoadPattern",[this.strip.id,name,fps,pattern]);
+            this.manager.emit("LoadPattern",this.strip.id,name,fps,pattern);
             var progressDialog = new ProgressDialog(this.strip);
             progressDialog.show();
             $(progressDialog).on("Complete",function() {
@@ -60,7 +60,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         forgetPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
-			this.manager.trigger("ForgetPattern",[this.strip.id,pattern.index]);
+			this.manager.emit("ForgetPattern",this.strip.id,pattern.index);
         },
         refreshPatterns:function() {
             this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)

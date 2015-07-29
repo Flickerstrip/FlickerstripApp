@@ -29,23 +29,23 @@ extend(This.prototype,{
         this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
 
         ///////////////////////////////////////// Strip actions
-        this.on("SelectPattern",_.bind(function(e,id,index) {
+        this.on("SelectPattern",_.bind(function(id,index) {
 		    this.getStrip(id).selectPattern(index);
         },this));
 		
-        this.on("LoadPattern",_.bind(function(e,id,name,fps,data) {
+        this.on("LoadPattern",_.bind(function(id,name,fps,data) {
             this.getStrip(id).loadPattern(name,fps,data);
         },this));
 
-		this.on("ForgetPattern",_.bind(function(e,id,index) {
+		this.on("ForgetPattern",_.bind(function(id,index) {
 			this.getStrip(id).forgetPattern(index);
 		},this));
 
-        this.on("RenameStrip",_.bind(function(e,id,newname) {
+        this.on("RenameStrip",_.bind(function(id,newname) {
             this.setStripName(id,newname);
         },this));
 
-        this.on("ForgetStrip",_.bind(function(e,id) {
+        this.on("ForgetStrip",_.bind(function(id) {
             this.forgetStrip(id);
         },this));
         ///////////////////////////////////////// Strip actions
@@ -87,7 +87,7 @@ extend(This.prototype,{
         var index = this.findStrip(id);
         this.strips.splice(index,1);
         this.saveStrips()
-        this.view.trigger("StripsUpdated",[this.getStrips()]);
+        this.view.emit("StripsUpdated",this.getStrips());
     },
 ///////////////////////////////////////////////////////////////////////////////
     getStrips:function() {
@@ -106,11 +106,11 @@ extend(This.prototype,{
         if (index != null) return this.strips[index];
         return null;
     },
-    clientConnected:function(e,socket) {
+    clientConnected:function(socket) {
         var connection = new StripWrapper(socket);
         connection.on("Connect",_.bind(this.clientIdentified,this));
     },
-	clientIdentified:function(e,connection) {
+	clientIdentified:function(connection) {
         var strip = this.getStrip(connection.id);
         if (strip) {
             strip.setConnection(connection);
@@ -130,8 +130,8 @@ extend(This.prototype,{
         strip.on("Disconnect",_.bind(this.clientDisconnected,this));
         this.emit("StripConnected",strip);
 	},
-	clientDisconnected:function(e,strip) {
-        strip.trigger("StripStatusUpdated",[strip]);
+	clientDisconnected:function(strip) {
+        strip.emit("StripStatusUpdated",strip);
 		this.emit("StripDisconnected",strip);
 	},
 });
