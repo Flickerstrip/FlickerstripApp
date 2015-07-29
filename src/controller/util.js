@@ -6,7 +6,7 @@ var fs = require("fs");
 var This = function(view) {
 };
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This,{
     loadTemplate:function(path) {
         var contents = fs.readFileSync(path, 'ascii');

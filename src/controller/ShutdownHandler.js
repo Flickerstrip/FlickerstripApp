@@ -7,7 +7,7 @@ var fs = require("fs");
 var This = function() {
 };
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
     shutdownHandlers:[],
     addHandler:function(cb) {

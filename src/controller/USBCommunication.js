@@ -16,7 +16,7 @@ var This = function() {
 var retryIntervals = [500,2000,10000];
 var listRefresh = 3000;
 var staleCheckInterval = 2000;
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
     ports:{},
     lastListRefresh:-1,

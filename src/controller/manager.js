@@ -1,6 +1,7 @@
 var extend = require("extend");
 var EventEmitter = require("events").EventEmitter;
 var _ = require("underscore")._;
+var util = require("util");
 var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
 var LEDStrip = require("./LEDStrip")
@@ -12,7 +13,7 @@ var This = function(view) {
     this.init(view);
 };
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     strips:[],
@@ -25,7 +26,7 @@ extend(This.prototype,{
 
         this.loadStrips();
 
-        $(this.discovery).on("ClientConnected",_.bind(this.clientConnected,this));
+        this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
 
         ///////////////////////////////////////// Strip actions
         this.on("SelectPattern",_.bind(function(e,id,index) {
@@ -52,22 +53,19 @@ extend(This.prototype,{
     loadStrips:function() {
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
-            try {
-                var strips = JSON.parse(contents);
-                this.strips = [];
-                _.each(strips,_.bind(function(strip) {
-                    var lstrip = new LEDStrip();
-                    for (var key in strip) {
-                        if (strip.hasOwnProperty(key)) {
-                            lstrip[key] = strip[key];
-                        }
+            var strips = JSON.parse(contents);
+            this.strips = [];
+            _.each(strips,_.bind(function(strip) {
+                var lstrip = new LEDStrip();
+                for (var key in strip) {
+                    if (strip.hasOwnProperty(key)) {
+                        lstrip[key] = strip[key];
                     }
-                    this.strips.push(lstrip);
-                    this.emit("StripAdded",[lstrip]);
-                },this));
-            } catch (e) {
-                return console.log("Failed to parse strip data: ",e,contents);
-            }
+                }
+                this.strips.push(lstrip);
+                console.log("emitting stripadded",lstrip);
+                this.emit("StripAdded",lstrip);
+            },this));
         },this));
     },
     saveStrips:function() {
@@ -110,18 +108,18 @@ extend(This.prototype,{
     },
     clientConnected:function(e,socket) {
         var connection = new StripWrapper(socket);
-        $(connection).on("Connect",_.bind(this.clientIdentified,this));
+        connection.on("Connect",_.bind(this.clientIdentified,this));
     },
 	clientIdentified:function(e,connection) {
         var strip = this.getStrip(connection.id);
         if (strip) {
             strip.setConnection(connection);
-            $(strip).trigger("StripStatusUpdated",[strip]);
+            strip.emit("StripStatusUpdated",strip);
         } else {
             strip = new LEDStrip(connection);
             this.strips.push(strip);
             this.saveStrips();
-            this.emit("StripAdded",[strip]);
+            this.emit("StripAdded",strip);
         }
         strip.lastSeen = new Date();
 
@@ -130,19 +128,12 @@ extend(This.prototype,{
         strip.on("NameUpdated",_.bind(this.saveStrips,this));
 
         strip.on("Disconnect",_.bind(this.clientDisconnected,this));
-        this.emit("StripConnected",[strip]);
+        this.emit("StripConnected",strip);
 	},
 	clientDisconnected:function(e,strip) {
-        $(strip).trigger("StripStatusUpdated",[strip]);
+        strip.trigger("StripStatusUpdated",[strip]);
 		this.emit("StripDisconnected",[strip]);
 	},
-    /////////////////////////////
-    on:function(trigger,callback) {
-        this.on(trigger,callback);
-    },
-    trigger:function(trigger,args) {
-        this.emit(trigger,args);
-    },
 });
 
 module.exports = This;

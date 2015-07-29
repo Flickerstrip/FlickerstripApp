@@ -8,7 +8,7 @@ var This = function() {
     this.init.apply(this,arguments);
 }
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype, {
     init:function() {
         console.log("initting");

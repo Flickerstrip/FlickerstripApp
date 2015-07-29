@@ -44,7 +44,7 @@ This.packetTypes = {
     PATTERN_BODY: 7,
 }
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
 	id:-1,
 	sendBuffer:[],

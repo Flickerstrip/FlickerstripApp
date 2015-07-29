@@ -47,6 +47,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             manager.on("StripAdded",_.bind(this.stripAdded,this));
         },
         stripAdded:function(e,strip) {
+            console.log("strip added",strip);
             this.selectList.addElement(strip);
             var self = this;
             strip.on("StripStatusUpdated",function(e,strip) {

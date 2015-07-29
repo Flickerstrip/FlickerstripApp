@@ -8,7 +8,7 @@ var This = function() {
     this.init.apply(this,arguments);
 };
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
 	id:null,
     name:null,
@@ -64,13 +64,6 @@ extend(This.prototype,{
     },
     getName:function() {
         return this.name;
-    },
-    /////////////////////////////
-    on:function(trigger,callback) {
-        this.on(trigger,callback);
-    },
-    one:function(trigger,callback) {
-        $(this).one(trigger,callback);
     },
 });
 

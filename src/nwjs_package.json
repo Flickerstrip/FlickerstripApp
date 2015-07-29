@@ -26,7 +26,8 @@
     "serialport": "1.6.3",
     "tinycolor2": "1.1.2",
     "underscore": "1.8.3",
-    "wireless": "0.3.2"
+    "wireless": "0.3.2",
+    "extend": "3.0.0"
   },
   "repository": {
     "type": "git",

@@ -9,7 +9,7 @@ var This = function() {
     this.init();
 };
 
-util.inherit(This,EventEmitter);
+util.inherits(This,EventEmitter);
 extend(This.prototype,{
     init:function() {
         var tcpport = 3836;
