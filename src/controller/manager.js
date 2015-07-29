@@ -63,7 +63,7 @@ extend(This.prototype,{
                         }
                     }
                     this.strips.push(lstrip);
-                    $(this).trigger("StripAdded",[lstrip]);
+                    this.emit("StripAdded",[lstrip]);
                 },this));
             } catch (e) {
                 return console.log("Failed to parse strip data: ",e,contents);
@@ -121,7 +121,7 @@ extend(This.prototype,{
             strip = new LEDStrip(connection);
             this.strips.push(strip);
             this.saveStrips();
-            $(this).trigger("StripAdded",[strip]);
+            this.emit("StripAdded",[strip]);
         }
         strip.lastSeen = new Date();
 
@@ -130,18 +130,18 @@ extend(This.prototype,{
         strip.on("NameUpdated",_.bind(this.saveStrips,this));
 
         strip.on("Disconnect",_.bind(this.clientDisconnected,this));
-        $(this).trigger("StripConnected",[strip]);
+        this.emit("StripConnected",[strip]);
 	},
 	clientDisconnected:function(e,strip) {
         $(strip).trigger("StripStatusUpdated",[strip]);
-		$(this).trigger("StripDisconnected",[strip]);
+		this.emit("StripDisconnected",[strip]);
 	},
     /////////////////////////////
     on:function(trigger,callback) {
-        $(this).on(trigger,callback);
+        this.on(trigger,callback);
     },
     trigger:function(trigger,args) {
-        $(this).trigger(trigger,args);
+        this.emit(trigger,args);
     },
 });
 

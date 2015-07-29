@@ -40,7 +40,7 @@ extend(This.prototype,{
         var server = net.createServer(_.bind(function (socket) {
             socket.name = socket.remoteAddress + ":" + socket.remotePort;
 
-            $(this).trigger("ClientConnected",[socket]);
+            this.emit("ClientConnected",[socket]);
         },this)).listen(port);
 
         return server;

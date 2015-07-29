@@ -34,15 +34,15 @@ extend(This.prototype,{
     },
     progressUpdate:function(e,connection) {
         var session = connection.getCurrentSession();
-        $(this).trigger("ProgressUpdated",[this,session]);
+        this.emit("ProgressUpdated",[this,session]);
     },
     receivedPatternMetadata:function(e,connection,patterns) {
         this.patterns = patterns;
-        $(this).trigger("PatternsUpdated",[patterns]);
+        this.emit("PatternsUpdated",[patterns]);
     },
     connectionReset:function(e,connection,error) {
         this.clearConnection();
-        $(this).trigger("Disconnect",[this]);
+        this.emit("Disconnect",[this]);
     },
 	requestPatterns:function() {
 	    this.connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
@@ -60,14 +60,14 @@ extend(This.prototype,{
     },
     setName:function(name) {
         this.name = name;
-        $(this).trigger("NameUpdated",[this]);
+        this.emit("NameUpdated",[this]);
     },
     getName:function() {
         return this.name;
     },
     /////////////////////////////
     on:function(trigger,callback) {
-        $(this).on(trigger,callback);
+        this.on(trigger,callback);
     },
     one:function(trigger,callback) {
         $(this).one(trigger,callback);

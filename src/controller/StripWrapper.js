@@ -83,12 +83,12 @@ extend(This.prototype,{
 		},this));
 		
 		socket.on('disconnect',_.bind(function () {
-			$(this).trigger("Disconnect",[this]);
+			this.emit("Disconnect",[this]);
 		},this));
 
 		socket.on('error',_.bind(function(error) {
 			if (error.code == "ECONNRESET") {
-				$(this).trigger("Disconnect",[this,error]);
+				this.emit("Disconnect",[this,error]);
 			} else {
 				console.log("uncaught error: ",error);
 			}
@@ -100,7 +100,7 @@ extend(This.prototype,{
         var now = new Date().getTime();
         if (now - this.lastReceivedData > 1500) {
             this.socket.end();
-			$(this).trigger("Disconnect",[this]);
+			this.emit("Disconnect",[this]);
         }
         if (this.socket && this.sendBuffer.length == 0 && this.status == "ready") {
             this.sendCommand(This.packetTypes.PING);
@@ -220,7 +220,7 @@ extend(This.prototype,{
 			if (buf != null) {
                 this.socket.write(buf);
             }
-            $(this).trigger("ProgressUpdate",[this]);
+            this.emit("ProgressUpdate",[this]);
 		}
 	},
 	_receivedClientData:function(socket,data) {
@@ -235,7 +235,7 @@ extend(This.prototype,{
             this.sendBuffer = [];
             this._stripReady();
 
-			$(this).trigger("Connect",[this]);
+			this.emit("Connect",[this]);
             return;
         }
 
@@ -256,7 +256,7 @@ extend(This.prototype,{
                 });
             });
 			this.patterns = patternData;
-            $(this).trigger("ReceivedPatternMetadata",[this,patternData]);
+            this.emit("ReceivedPatternMetadata",[this,patternData]);
             return;
         }
 
