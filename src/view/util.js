@@ -12,6 +12,9 @@ define(['jquery'],function($) {
                 $el.empty().append($input);
                 $input.focus();
                 $input.select();
+                $input.keypress(function(e) {
+                    if (e.keyCode == 13) $(this).blur();
+                });
                 $input.blur(_.bind(function() {
                     var newval = $input.val();
                     $el.empty();

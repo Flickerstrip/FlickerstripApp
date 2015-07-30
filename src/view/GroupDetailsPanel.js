@@ -15,11 +15,11 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
 
             this.updateValues(strip);
             $(strip).on("Strip.Connected",_.bind(function() {
-                strip.connection = true;
+                strip._connection = true;
                 this.updateValues(strip);
             },this));
             $(strip).on("Strip.Disconnected",_.bind(function() {
-                strip.connection = false;
+                strip._connection = false;
                 this.updateValues(strip);
             },this));
 
@@ -36,7 +36,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
 
             var statusIndicator = $header.find(".statusIndicator").css("visibility","visible");
             statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (strip.connection) {
+            if (strip._connection) {
                 statusIndicator.addClass("connected").attr("title","connected");
             } else {
                 statusIndicator.addClass("error").attr("title","disconnected");
@@ -44,6 +44,8 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         nameUpdated:function(name) {
             this.strip.name = name;
+            $(this.strip).trigger("NameUpdated",this.strip.id,name);
+            this.send("RenameStrip",this.strip.id,name);
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");

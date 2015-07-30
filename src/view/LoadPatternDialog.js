@@ -24,9 +24,13 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
         },
         loadPatternButtonClicked:function(e) {
-            this.$el.modal('hide')
-            var pattern = this.generatePattern();
-            $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern]);
+            this.$el.hide();
+            this.$el.modal('hide');
+
+            setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
+                var pattern = this.generatePattern();
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern]);
+            },this),5);
         },
         generatePattern:function() {
             var renderer = this.stripRenderer.getRenderer();

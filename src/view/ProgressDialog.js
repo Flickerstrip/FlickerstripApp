@@ -8,19 +8,18 @@ define(["jquery","util.js","text!../tmpl/progressDialog.html"],function($,util,t
             this.$el = $("<div class='progressDialog modal'/>");
 
             this.strip = strip;
-            $(strip).one("ProgressUpdated",_.bind(this.update,this));
+            $(strip).one("Strip.ProgressUpdated",_.bind(this.update,this));
 
             this.$el.append(_.template(template)());
         },
         update:function(e,strip,session) {
-            console.log(arguments);
             if (session == null) {
                 this.$el.modal('hide')
                 $(this).trigger("Complete");
             } else {
                 var percent = Math.floor(100*(session.size-session.buffers.length)/session.size);
                 this.$el.find(".progress-bar").css("width",percent+"%").text(percent+"%");
-                this.strip.one("ProgressUpdated",_.bind(this.update,this));
+                $(this.strip).one("Strip.ProgressUpdated",_.bind(this.update,this));
             }
         },
         show:function() {

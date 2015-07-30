@@ -31,8 +31,22 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             this.render();
         },
         eventHandler:function() {
+            var preprocessors = {
+                "Strip.Connected":function(strip) {
+                    strip.connected = true;
+                },
+                "Strip.Disconnected":function(strip) {
+                    strip.connected = false;
+                },
+                "Strip.PatternsUpdated":function(strip,patterns) {
+                    strip.patterns = patterns;
+                },
+            };
             if (arguments[0].indexOf("Strip.") === 0) {
                 var strip = this.findStripId(arguments[1]);
+                if (preprocessors[arguments[0]]) {
+                    preprocessors[arguments[0]].apply(this,[strip].concat(Array.prototype.slice.call(arguments, 2)));
+                }
                 $(strip).trigger(arguments[0],Array.prototype.slice.call(arguments, 2));
             } else {
                 $(this).trigger(arguments[0],Array.prototype.slice.call(arguments, 1));
@@ -49,14 +63,14 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             this.selectList.addElement(strip);
             var self = this;
             $(strip).on("Strip.Connected",_.bind(function() {
-                strip.connection = true;
+                strip._connection = true;
                 self.selectList.updateElement(strip);
             },this));
             $(strip).on("Strip.Disconnected",_.bind(function() {
-                strip.connection = false;
+                strip._connection = false;
                 self.selectList.updateElement(strip);
             },this));
-            $(strip).on("NameUpdated",function(strip) {
+            $(strip).on("NameUpdated",function() {
                 self.selectList.updateElement(strip);
             });
         },
@@ -112,11 +126,11 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
 
             if ($el) {
                 $el.find(".stripName").text(name);
-                var statusClass = strip.connection ? "connected" : "error";
+                var statusClass = strip._connection ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
-                var statusClass = strip.connection ? "connected" : "error";
+                var statusClass = strip._connection ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='stripName'></span>").text(name));
             }

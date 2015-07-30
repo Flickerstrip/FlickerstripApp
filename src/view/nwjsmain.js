@@ -46,19 +46,21 @@ requirejs(['jquery','Gui.js'],function($,Gui) {
         var gui, manager;
 
         function guiEmit() {
-            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments)));
-            for (var i=0; i<args.length; i++) {
-                delete args[i]._events;
-            }
-            console.log("guiEmit:", args);
+            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
+                if (key.indexOf("_") === 0) return false;
+                return value;
+            }));
+
+            //console.log("guiEmit:", args);
             manager.eventHandler.apply(manager,args);
         }
         function managerEmit() {
-            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments)));
-            for (var i=0; i<args.length; i++) {
-                delete args[i]._events;
-            }
-            console.log("managerEmit:", args);
+            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
+                if (key.indexOf("_") === 0) return false;
+                return value;
+            }));
+
+            //console.log("managerEmit:", args);
             gui.eventHandler.apply(gui,args);
         }
 

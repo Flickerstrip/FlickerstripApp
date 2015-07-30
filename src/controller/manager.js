@@ -30,9 +30,7 @@ extend(This.prototype,{
 
         ///////////////////////////////////////// Strip actions
         this.on("SelectPattern",_.bind(function(id,index) {
-            console.log("select pattern triggered");
 		    var strip = this.getStrip(id);
-            console.log("strip",strip);
             if (!strip) return;
             strip.selectPattern(index);
         },this));
@@ -59,8 +57,6 @@ extend(This.prototype,{
         ///////////////////////////////////////// Strip actions
     },
     eventHandler:function() {
-        console.log("manager received event",arguments);
-        var slicedArgs = Array.prototype.slice.call(arguments, 1);
         this.emit.apply(this,arguments);
     },
     loadStrips:function() {
@@ -71,13 +67,11 @@ extend(This.prototype,{
             _.each(strips,_.bind(function(strip) {
                 var lstrip = new LEDStrip();
                 for (var key in strip) {
+                    if (key.indexOf("_") === 0) continue;
                     if (strip.hasOwnProperty(key)) {
                         lstrip[key] = strip[key];
                     }
                 }
-                delete lstrip.connection; //todo better way of doing this
-                delete lstrip._events;
-                delete lstrip._all;
                 this.strips.push(lstrip);
                 this.stripAdded(lstrip);
             },this));
@@ -86,16 +80,13 @@ extend(This.prototype,{
     stripAdded:function(strip) {
         var self = this;
         strip.onAny(function() {
-            console.log("StripEvent: ",this.event,arguments);
-            console.log(self.send);
-            self.send.apply(self,[this.event,strip.id].concat(arguments));
+            self.send.apply(self,[this.event,strip.id].concat(Array.prototype.slice.call(arguments)));
         });
         this.send("StripAdded",strip);
     },
     saveStrips:function() {
         var text = JSON.stringify(this.strips,function(key,value) {
-            if (key == "connection") return false;
-            if (key == "_events") return false;
+            if (key.indexOf("_") === 0) return false;
             return value;
         });
         fs.writeFile(this.knownStripsFile,text,function(err) {
@@ -104,12 +95,12 @@ extend(This.prototype,{
     },
    /////////////////////
     setStripName:function(id,name) {
-        var index = this.findStrip(id);
-        this.strips[index].name = name;
+        var strip = this.getStrip(id);
+        strip.name = name;
         this.saveStrips();
     },
     forgetStrip:function(id) {
-        var index = this.findStrip(id);
+        var index = this.getStripIndex(id);
         this.strips.splice(index,1);
         this.saveStrips()
         this.send("StripRemoved",id);
@@ -120,12 +111,8 @@ extend(This.prototype,{
     },
     getStripIndex:function(id) {
         var found = null;
-        console.log("Strips",this.strips);
         _.each(this.strips,function(strip,index) {
-            console.log("args",arguments);
-            console.log("finding strip",id,strip,strip.id);
             if (found != null) return;
-            console.log("cmp",strip.id,id);
             if (strip.id == id) found = index;
         });
         return found;

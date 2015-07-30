@@ -18,9 +18,9 @@ extend(This.prototype,{
         if (connection) this.setConnection(connection);
 	},
     setConnection:function(connection) {
-        this.connection = connection;
-        if (this.id == null) this.id = this.connection.id;
-        if (this.id != this.connection.id) throw "Error, connection ID mismatch: "+this.id+" =/= "+this.connection.id;
+        this._connection = connection;
+        if (this.id == null) this.id = this._connection.id;
+        if (this.id != this._connection.id) throw "Error, connection ID mismatch: "+this.id+" =/= "+this._connection.id;
 
 		connection.on("ReceivedPatternMetadata",_.bind(this.receivedPatternMetadata,this));
 		connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
@@ -29,16 +29,15 @@ extend(This.prototype,{
         this.requestPatterns();
     },
     clearConnection:function() {
-        if (this.connection) this.connection.destroy();
-        this.connection = null;
+        if (this._connection) this._connection.destroy();
+        this._connection = null;
     },
     progressUpdate:function(connection) {
         var session = connection.getCurrentSession();
-        this.emit("ProgressUpdated",this,session);
+        this.emit("Strip.ProgressUpdated",this,session);
     },
     receivedPatternMetadata:function(connection,patterns) {
         this.patterns = patterns;
-        console.log("received patterns",patterns);
         this.emit("Strip.PatternsUpdated",patterns);
     },
     connectionReset:function(connection,error) {
@@ -46,17 +45,17 @@ extend(This.prototype,{
         this.emit("Disconnect",this);
     },
 	requestPatterns:function() {
-	    this.connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
+	    this._connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
 	},
     loadPattern:function(name,fps,data) {
-        this.connection.sendPattern(name,fps,data);
+        this._connection.sendPattern(name,fps,data);
         this.requestPatterns();
     },
     selectPattern:function(index) {
-        this.connection.sendCommand(StripWrapper.packetTypes.SELECT_PATTERN,index);
+        this._connection.sendCommand(StripWrapper.packetTypes.SELECT_PATTERN,index);
     },
 	forgetPattern:function(index) {
-        this.connection.sendCommand(StripWrapper.packetTypes.DELETE_PATTERN,index);
+        this._connection.sendCommand(StripWrapper.packetTypes.DELETE_PATTERN,index);
 		this.requestPatterns();
     },
     setName:function(name) {
