@@ -1,5 +1,5 @@
 var extend = require("extend");
-var EventEmitter = require("events").EventEmitter;
+var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
 var net = require('net');
@@ -94,7 +94,7 @@ extend(This.prototype,{
 			}
 		},this));
 
-        this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
+        //this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
     },
     idlePing:function() {
         var now = new Date().getTime();

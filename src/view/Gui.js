@@ -1,14 +1,14 @@
 define(['jquery','underscore','util.js','tinycolor','ControlsView.js','LEDStripRenderer.js', 'SelectList.js',"GroupDetailsPanel.js","text!../tmpl/stripList.html",'jquery.contextMenu'],
 function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,template) {
-    var This = function(window) {
+    var This = function(window,send) {
+        this.send = send;
         this.window = window;
         var document = window.document;
         this.document = window.document;
         $(document).ready(_.bind(function() {
-            this.init(document);
+            this.init(document,send);
         },this));
     }
-
     function getSelectedArray($el) {
         var selected = [];
         $el.find(":selected").each(function() {
@@ -22,38 +22,41 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         stripListComponent:null,
         stripRenderer:null,
         activePattern:null,
-        init:function(document) {
+        init:function(document,eventRelay) {
+            this.eventRelay = eventRelay;
             this.$el = $(document.body);
 
-            this.render();
+            $(this).on("StripAdded",_.bind(this.stripAdded,this));
 
-            $(this).on("ReceivedPatternMetadata",_.bind(function(strip,patterns) {
-                console.log("receive pattern metadata called..");
-                if (this.groupDetails) console.log(this.groupDetails,this.groupDetails.strip.id,strip.id,patterns);
-                if (this.groupDetails && this.groupDetails.strip.id == strip.id) {
-                    this.groupDetails.refreshPatterns(patterns);
-                }
-            },this));
+            this.render();
         },
-        handleStripEvent(eventType,stripId) {
-            this.selectList.each(function(strip,$el) {
-                if (strip.id == stripId) {
-                    $(strip).trigger(eventType);
-                }
+        eventHandler:function() {
+            if (arguments[0].indexOf("Strip.") === 0) {
+                var strip = this.findStripId(arguments[1]);
+                $(strip).trigger(arguments[0],Array.prototype.slice.call(arguments, 2));
+            } else {
+                $(this).trigger(arguments[0],Array.prototype.slice.call(arguments, 1));
+            }
+        },
+        findStripId:function(id) {
+            var found = null;
+            this.selectList.each(function(strip) {
+                if (strip.id == id) found = strip;
             });
+            return found;
         },
-        setManager:function(manager) {
-            this.manager = manager;
-            manager.on("StripAdded",_.bind(this.stripAdded,this));
-        },
-        stripAdded:function(strip) {
-            console.log("strip added",strip);
+        stripAdded:function(e,strip) {
             this.selectList.addElement(strip);
             var self = this;
-            strip.on("StripStatusUpdated",function(strip) {
+            $(strip).on("Strip.Connected",_.bind(function() {
+                strip.connection = true;
                 self.selectList.updateElement(strip);
-            });
-            strip.on("NameUpdated",function(strip) {
+            },this));
+            $(strip).on("Strip.Disconnected",_.bind(function() {
+                strip.connection = false;
+                self.selectList.updateElement(strip);
+            },this));
+            $(strip).on("NameUpdated",function(strip) {
                 self.selectList.updateElement(strip);
             });
         },
@@ -68,7 +71,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             }
         },
         selectSingleStrip:function(strip) {
-            this.groupDetails = new GroupDetailsPanel(this.manager,strip);
+            this.groupDetails = new GroupDetailsPanel(this.send,strip);
             this.$el.find(".groupDetails").empty().append(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
@@ -104,7 +107,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             $(selectList).on("change",_.bind(this.stripSelected,this));
         },
         stripElementRenderer:function(strip,$el) {
-            var name = strip.getName();
+            var name = strip.name;
             if (!name) name = "Unknown Strip";
 
             if ($el) {

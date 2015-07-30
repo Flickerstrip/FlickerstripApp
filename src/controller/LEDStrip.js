@@ -1,5 +1,5 @@
 var extend = require("extend");
-var EventEmitter = require("events").EventEmitter;
+var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
 var StripWrapper = require("./StripWrapper");
@@ -38,7 +38,8 @@ extend(This.prototype,{
     },
     receivedPatternMetadata:function(connection,patterns) {
         this.patterns = patterns;
-        this.emit("PatternsUpdated",patterns);
+        console.log("received patterns",patterns);
+        this.emit("Strip.PatternsUpdated",patterns);
     },
     connectionReset:function(connection,error) {
         this.clearConnection();

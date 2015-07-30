@@ -8,11 +8,12 @@ define(["jquery","util.js","text!../tmpl/progressDialog.html"],function($,util,t
             this.$el = $("<div class='progressDialog modal'/>");
 
             this.strip = strip;
-            strip.one("ProgressUpdated",_.bind(this.update,this));
+            $(strip).one("ProgressUpdated",_.bind(this.update,this));
 
             this.$el.append(_.template(template)());
         },
         update:function(e,strip,session) {
+            console.log(arguments);
             if (session == null) {
                 this.$el.modal('hide')
                 $(this).trigger("Complete");

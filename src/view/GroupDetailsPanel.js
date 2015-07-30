@@ -5,16 +5,21 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
     }
 
     $.extend(This.prototype, {
-        init:function(manager,strip) {
-            this.manager = manager;
+        init:function(send,strip) {
+            this.send = send;
             this.$el = $("<div class='panel panel-info flexcol' />");
             this.$el.empty().append(_.template(template)());
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
-            strip.on("PatternsUpdated",_.bind(this.refreshPatterns,this));
+            $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
 
             this.updateValues(strip);
-            strip.on("StripStatusUpdated",_.bind(function() {
+            $(strip).on("Strip.Connected",_.bind(function() {
+                strip.connection = true;
+                this.updateValues(strip);
+            },this));
+            $(strip).on("Strip.Disconnected",_.bind(function() {
+                strip.connection = false;
                 this.updateValues(strip);
             },this));
 
@@ -23,7 +28,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         updateValues:function(strip) {
             var $header = this.$el.find(".stripHeader");
             $header.find(".identifierValue").text(strip.id);
-            var name = strip.getName() || "Unknown Strip";
+            var name = strip.name || "Unknown Strip";
             $header.find(".name").text(name);
 
             $header.find(".name").off("dblclick");
@@ -38,11 +43,11 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
             }
         },
         nameUpdated:function(name) {
-            this.strip.setName(name);
+            this.strip.name = name;
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
-            this.manager.emit("SelectPattern",this.strip.id,pattern.index);
+            this.send("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
             var patternDialog = new LoadPatternDialog();
@@ -51,7 +56,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         savePattern:function(e,name,fps,pattern) {
             var len = pattern.length * pattern[0].length;
-            this.manager.emit("LoadPattern",this.strip.id,name,fps,pattern);
+            this.send("LoadPattern",this.strip.id,name,fps,pattern);
             var progressDialog = new ProgressDialog(this.strip);
             progressDialog.show();
             $(progressDialog).on("Complete",function() {
@@ -60,7 +65,7 @@ define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialo
         },
         forgetPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
-			this.manager.emit("ForgetPattern",this.strip.id,pattern.index);
+			this.send("ForgetPattern",this.strip.id,pattern.index);
         },
         refreshPatterns:function() {
             this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)

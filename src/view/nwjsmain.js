@@ -42,9 +42,28 @@ requirejs(['jquery','Gui.js'],function($,Gui) {
         window.$ = $;
         window.jQuery = $;
         $(document.body).append('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>');
-        
-        var gui = new Gui(window);
-        var manager = new Manager(gui);
+
+        var gui, manager;
+
+        function guiEmit() {
+            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments)));
+            for (var i=0; i<args.length; i++) {
+                delete args[i]._events;
+            }
+            console.log("guiEmit:", args);
+            manager.eventHandler.apply(manager,args);
+        }
+        function managerEmit() {
+            var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments)));
+            for (var i=0; i<args.length; i++) {
+                delete args[i]._events;
+            }
+            console.log("managerEmit:", args);
+            gui.eventHandler.apply(gui,args);
+        }
+
+        gui = new Gui(window,guiEmit);
+        manager = new Manager(managerEmit);
     });
 });
 
