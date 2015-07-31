@@ -1,28 +1,26 @@
 all: nwjs
 
-./build/node_modules: ./build/package.json
+clean:
+	rm -rf ./build
+
+./build/node_modules: ./build/package.json ./build/package.json
 	cd ./build/ && npm install
 
-./build/view:
-	cp -r ./src/view ./build/view
+nwjs_update:
+	rsync --update -ravh ./src/controller ./build/nwjs/
+	rsync --update -ravh ./src/view ./build/nwjs/
+	rsync --update -ravh ./src/nwjs ./build/
+	mv ./build/nwjs/nwjs_package.json ./build/nwjs/package.json
+	cd ./build/nwjs/ && npm install
 
-./build/controller:
-	cp -r ./src/controller ./build/controller
+prepare:
+	mkdir -p ./build/nwjs
+	mkdir -p ./build/cordova
 
-./build:
-	mkdir ./build
+./build/nwjs/nwjs.app:
+	cp -r nwjs/* ./build/nwjs/
 
-./build/package.json: ./src/nwjs_package.json ./build
-	cp ./src/nwjs_package.json ./build/package.json
-
-./build/nwjs.app:
-	cp -r nwjs/* ./build/
-
-nwjs: ./build/node_modules ./src/view ./src/controller ./build/package.json ./build/nwjs.app
-	rm -rf ./build/view
-	rm -rf ./build/controller
-	cp -r ./src/view ./build/view
-	cp -r ./src/controller ./build/controller
+nwjs: prepare nwjs_update ./build/nwjs/nwjs.app
 
 run: nwjs
-	open ./build/nwjs.app
+	open ./build/nwjs/nwjs.app

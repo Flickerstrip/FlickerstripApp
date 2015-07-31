@@ -1,4 +1,4 @@
-define(['jquery','underscore','util.js','tinycolor','ControlsView.js','LEDStripRenderer.js', 'SelectList.js',"GroupDetailsPanel.js","text!../tmpl/stripList.html",'jquery.contextMenu'],
+define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","text!../tmpl/stripList.html",'jquery.contextMenu'],
 function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,template) {
     var This = function(window,send) {
         this.send = send;

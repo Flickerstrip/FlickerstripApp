@@ -1,4 +1,4 @@
-define(["jquery","util.js","text!../tmpl/progressDialog.html"],function($,util,template) {
+define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,util,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }

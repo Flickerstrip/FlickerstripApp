@@ -1,4 +1,4 @@
-define(['jquery',"util.js",'SelectList.js',"LoadPatternDialog.js","ProgressDialog.js","text!../tmpl/groupDetailPanel.html"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
 
     var This = function() {
         this.init.apply(this,arguments);

@@ -1,14 +1,18 @@
 var nw = require('nw.gui');
-var Manager = require("../controller/manager");
+var Manager = require("./controller/manager");
 var fs = require("fs");
-var ShutdownHandler = require("../controller/ShutdownHandler");
+var ShutdownHandler = require("./controller/ShutdownHandler");
 global.ShutdownHandler = ShutdownHandler;
 
 requirejs.config({
     nodeRequire:require,
-    baseUrl: "./lib",
+    baseUrl: "./view/lib",
     "shim": {
         "jquery.contextMenu"  : ["jquery"]
+    },
+    paths: {
+        "view":"..",
+        "tmpl":"../tmpl",
     }
 });
 
@@ -37,7 +41,7 @@ win.on('close',function() {
 
 var $$ = require('jquery');
 
-requirejs(['jquery','Gui.js'],function($,Gui) {
+requirejs(['jquery','./view/Gui.js'],function($,Gui) {
     $$(document).ready(function() {
         window.$ = $;
         window.jQuery = $;

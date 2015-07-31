@@ -2,7 +2,7 @@
   "name": "wifiledcontrol",
   "version": "0.0.1",
   "description": "An application to allow you to interact with your LED strips.",
-  "main": "./view/nwjs.html",
+  "main": "nwjs.html",
   "window": {
     "title": "WiFi LED Control",
     "icon": "icon.png",
@@ -27,7 +27,8 @@
     "tinycolor2": "1.1.2",
     "underscore": "1.8.3",
     "wireless": "0.3.2",
-    "extend": "3.0.0"
+    "extend": "3.0.0",
+    "eventemitter2": "0.4.14"
   },
   "repository": {
     "type": "git",

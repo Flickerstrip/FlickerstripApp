@@ -1,4 +1,4 @@
-define(["jquery","util.js","SelectList.js","patterns.js","LEDStripRenderer.js","ControlsView.js","text!../tmpl/loadPatternDialog.html"],
+define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!../tmpl/loadPatternDialog.html"],
 function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
     var This = function() {
         this.init.apply(this,arguments);
