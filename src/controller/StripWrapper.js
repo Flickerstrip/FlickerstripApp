@@ -15,12 +15,12 @@ var PatternMetadata = new _c.Schema({
 });
 _c.register("PatternMetadata",PatternMetadata);
 
-function bufferFromNumber(number,bytes,be) {
-	var buf = new Buffer(bytes);
+function bufferFromNumber(number,be) {
+	var buf = new Buffer(4);
     if (be) {
-        buf.writeUIntBE(number,0,bytes);
+        buf.writeUInt32BE(number,0);
     } else {
-        buf.writeUIntLE(number,0,bytes);
+        buf.writeUInt32LE(number,0);
     }
 	return buf;
 }
@@ -94,7 +94,7 @@ extend(This.prototype,{
 			}
 		},this));
 
-        //this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
+        this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
     },
     idlePing:function() {
         var now = new Date().getTime();
@@ -121,7 +121,7 @@ extend(This.prototype,{
     sendCommand:function(command,param1,param2,payload) {
         param1 = param1 | 0;
         param2 = param2 | 0;
-        var buffer = Buffer.concat([bufferFromNumber(command,4),bufferFromNumber(param1,4),bufferFromNumber(param2,4)]);
+        var buffer = Buffer.concat([bufferFromNumber(command),bufferFromNumber(param1),bufferFromNumber(param2)]);
         if (payload) {
             buffer = Buffer.concat([buffer,payload]);
         }
@@ -177,7 +177,6 @@ extend(This.prototype,{
             for (var l=0; l<len; l++) {
                 if (offset >= bufferSize) {
                     this.sendCommand(This.packetTypes.PATTERN_BODY,0xff,page,payload);
-                    //this.queueData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
 
                     bufferSize = Math.min(len*frames - (page+sendPages)*0x100,sendPages*0x100);
                     if (bufferSize > 0) {
@@ -194,7 +193,6 @@ extend(This.prototype,{
             }
         }
         this.sendCommand(This.packetTypes.PATTERN_BODY,0xff,page,payload);
-        //this.queueData("bin",Buffer.concat([new Buffer("body\0"),new Buffer([0xff]),bufferFromNumber(page,4),payload]));
         this.endSession();
     },
 
@@ -270,7 +268,7 @@ extend(This.prototype,{
     },
     _prepareBuffer:function(type,data) {
         if (type == "bin") {
-            var buf = Buffer.concat([bufferFromNumber(data.length,4),data]);
+            var buf = Buffer.concat([bufferFromNumber(data.length),data]);
             return buf;
         } else if (type == "str") {
             throw "ERROR, using string!";

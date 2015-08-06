@@ -8,7 +8,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         init:function(send,strip) {
             this.send = send;
             this.$el = $("<div class='panel panel-info flexcol' />");
-            this.$el.empty().append(_.template(template)());
+            this.$el.empty().append(template);
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
             $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));

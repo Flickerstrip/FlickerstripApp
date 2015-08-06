@@ -10,7 +10,7 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
             this.strip = strip;
             $(strip).one("Strip.ProgressUpdated",_.bind(this.update,this));
 
-            this.$el.append(_.template(template)());
+            this.$el.append(template);
         },
         update:function(e,strip,session) {
             if (session == null) {

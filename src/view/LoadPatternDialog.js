@@ -1,4 +1,4 @@
-define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!../tmpl/loadPatternDialog.html"],
+define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialog.html"],
 function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
     var This = function() {
         this.init.apply(this,arguments);
@@ -8,7 +8,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         init:function(strip) {
             this.$el = $("<div class='loadPatternDialog modal'/>");
 
-            this.$el.append(_.template(template)());
+            this.$el.append(template);
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");

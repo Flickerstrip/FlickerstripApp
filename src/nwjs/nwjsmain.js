@@ -3,6 +3,7 @@ var Manager = require("./controller/manager");
 var fs = require("fs");
 var ShutdownHandler = require("./controller/ShutdownHandler");
 global.ShutdownHandler = ShutdownHandler;
+global.log = console.log;
 
 requirejs.config({
     nodeRequire:require,
@@ -40,7 +41,6 @@ win.on('close',function() {
 });
 
 var $$ = require('jquery');
-
 requirejs(['jquery','./view/Gui.js'],function($,Gui) {
     $$(document).ready(function() {
         window.$ = $;
@@ -68,6 +68,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
             gui.eventHandler.apply(gui,args);
         }
 
+        log = console.log;
         gui = new Gui(window,guiEmit);
         manager = new Manager(managerEmit);
     });

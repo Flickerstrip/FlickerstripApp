@@ -85,6 +85,8 @@ extend(This.prototype,{
         this.send("StripAdded",strip);
     },
     saveStrips:function() {
+        //global.log("TODO fix save");
+        return;
         var text = JSON.stringify(this.strips,function(key,value) {
             if (key.indexOf("_") === 0) return false;
             return value;
