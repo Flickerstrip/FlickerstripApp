@@ -1,4 +1,5 @@
 *.swp
+*.swo
 build
 buildcache
 known_strips.json

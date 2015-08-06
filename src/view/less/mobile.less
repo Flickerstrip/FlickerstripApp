@@ -1,0 +1,63 @@
+@import "style.less";
+
+.stripListing, .groupDetails,.loadPatternDialog {
+    position: absolute;
+    -webkit-transition: left .5s;
+    transition: left .5s;
+    width: 95%;
+    margin-left: 2.5%;
+}
+
+////////////// STRIP LISTING//////////////
+.stripListing {
+    left: 0px;
+}
+
+.groupDetailsShowing .stripListing {
+    left: -100%;
+}
+
+.groupDetailsShowing .stripListing {
+    left: -200%;
+}
+////////////// STRIP LISTING//////////////
+
+////////////// GROUP DETAILS//////////////
+.groupDetails {
+    left: 100%;
+}
+
+.groupDetailsShowing .groupDetails {
+    left: 0px;
+}
+
+.loadPatternShowing .groupDetails {
+    left: -100%;
+}
+////////////// GROUP DETAILS//////////////
+
+////////////// LOAD PATTERN //////////////
+.loadPatternDialog {
+    left: 200%;
+}
+
+.groupDetailsShowing .loadPatternDialog {
+    left: 100%;
+}
+
+.loadPatternShowing .loadPatternDialog {
+    left: 0px;
+}
+////////////// LOAD PATTERN //////////////
+
+.showMenuButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10000;
+}
+
+////////////////////////////
+
+
+////////////////////////////

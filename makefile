@@ -25,14 +25,18 @@ nwjs_prepare:
 
 nwjs_update: ./build/nwjs/node_modules
 	rsync --update -ravh ./src/controller ./build/nwjs/
-	rsync --update -ravh ./src/view ./build/nwjs/
+	rsync --update -ravh ./src/view ./build/nwjs/ --exclude less
 	rsync --update -ravh ./src/nwjs ./build/
 	mv ./build/nwjs/nwjs_package.json ./build/nwjs/package.json
 
 ./build/nwjs/nwjs.app:
 	cp -r nwjs/* ./build/nwjs/
 
-nwjs: nwjs_prepare nwjs_update ./build/nwjs/nwjs.app
+./build/nwjs/view/css/style.css: $(LESS_FILES)
+	mkdir -p ./build/nwjs/view/css
+	lessc ./src/view/less/desktop.less > ./build/nwjs/view/css/style.css
+
+nwjs: nwjs_prepare nwjs_update ./build/nwjs/view/css/style.css ./build/nwjs/nwjs.app
 ############ NWJS
 
 
@@ -83,11 +87,10 @@ coreExtensions: ./build/cordova/jxcore-cordova ./build/cordova/jxcore-cordova/sr
 	cd ./build/cordova && cordova platforms add android ios
 
 ./build/cordova/www/view/css/style.css: $(LESS_FILES)
-	lessc ./src/view/less/style.less > ./build/cordova/www/view/css/style.css
+	mkdir -p ./build/cordova/www/view/css/
+	lessc ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
 
-lessRecompile: ./build/cordova/www/view/css/style.css
-
-cordova: cordova_update lessRecompile coreExtensions | ./build/cordova/plugins ./build/cordova/platforms
+cordova: cordova_update ./build/cordova/www/view/css/style.css coreExtensions | ./build/cordova/plugins ./build/cordova/platforms
 
 run_ios: cordova
 	cd ./build/cordova && cordova run ios

@@ -68,7 +68,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
             gui.eventHandler.apply(gui,args);
         }
 
-        log = console.log;
+        platform = "desktop";
         gui = new Gui(window,guiEmit);
         manager = new Manager(managerEmit);
     });

@@ -6,7 +6,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
 
     $.extend(This.prototype, {
         init:function(strip) {
-            this.$el = $("<div class='loadPatternDialog modal'/>");
+            this.$el = $("<div class='loadPatternDialog'/>");
 
             this.$el.append(template);
             this.$choices = this.$el.find(".patternChoices")
@@ -22,10 +22,10 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
 
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
+            this.$el.find(".hideButton").click(_.bind(this.hide,this));
         },
         loadPatternButtonClicked:function(e) {
-            this.$el.hide();
-            this.$el.modal('hide');
+            this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.generatePattern();
@@ -83,8 +83,26 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         },
 
         show:function() {
-            $(document.body).append(this.$el);
-            this.$el.modal('show');
+            var $mainContainer = $(document.body).find(".mainContainer");
+            $mainContainer.append(this.$el);
+            if (platform == "desktop") this.$el.modal('show');
+            setTimeout(function() {
+                $(document.body).addClass("loadPatternShowing");
+            },5);
+        },
+
+        hide:function() {
+            var $body = $(document.body);
+            $body.removeClass("loadPatternShowing");
+
+            if (platform == "desktop") {
+                this.$el.modal('hide');
+                this.$el.remove();
+            } else if (platform == "mobile") {
+                setInterval(function() { //delay until the animation finishes
+                    this.$el.remove();
+                },500);
+            }
         }
     });
 
