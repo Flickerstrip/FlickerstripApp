@@ -1,3 +1,5 @@
+LESS_FILES := $(shell find ./src/view/less -iname '*.less')
+
 all: nwjs
 
 clean:
@@ -44,7 +46,7 @@ cordova_prepare:
 
 cordova_update: cordova_prepare | ./build/cordova/www/jxcore/node_modules
 	rsync --update -ravh ./src/controller ./build/cordova/www/jxcore
-	rsync --update -ravh ./src/view ./build/cordova/www/
+	rsync --update -ravh ./src/view ./build/cordova/www/ --exclude less
 	rsync --update -ravh ./src/cordova/www ./build/cordova/
 	rsync --update -ravh ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
 
@@ -80,7 +82,12 @@ coreExtensions: ./build/cordova/jxcore-cordova ./build/cordova/jxcore-cordova/sr
 ./build/cordova/platforms: | cordova_update
 	cd ./build/cordova && cordova platforms add android ios
 
-cordova: cordova_update coreExtensions | ./build/cordova/plugins ./build/cordova/platforms
+./build/cordova/www/view/css/style.css: $(LESS_FILES)
+	lessc ./src/view/less/style.less > ./build/cordova/www/view/css/style.css
+
+lessRecompile: ./build/cordova/www/view/css/style.css
+
+cordova: cordova_update lessRecompile coreExtensions | ./build/cordova/plugins ./build/cordova/platforms
 
 run_ios: cordova
 	cd ./build/cordova && cordova run ios
