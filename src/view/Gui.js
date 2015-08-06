@@ -25,18 +25,8 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         init:function(document,eventRelay) {
             this.eventRelay = eventRelay;
             this.$el = $(document.body);
-            console.log("foink zoobarniz",1);
-            /*
-            this.$el = $("<div />");
-            $(document.body).append(this.$el);
-            */
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
-
-            $(this).find(".showMenuButton").click(_.bind(function() {
-                this.$el.removeClass("groupDetailsShowing");
-                this.selectList.deselect();
-            },this));
 
             this.render();
         },
@@ -109,6 +99,11 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         render:function() {
             this.$el.empty();
             this.$el.append(template);
+
+            this.$el.find(".showMenuButton").click(_.bind(function() {
+                this.selectList.deselect();
+                this.$el.removeClass("groupDetailsShowing");
+            },this));
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");

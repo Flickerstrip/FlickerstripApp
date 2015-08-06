@@ -94,7 +94,6 @@ define(['jquery'],function($) {
         select:function(index,appendSelection) {
             var selectedMap = {};
             if (index === null || index === undefined) {
-
             } else {
                 if (index < 0) index = 0;
                 if (index >= this.getSize()) index = this.getSize()-1;
@@ -124,7 +123,7 @@ define(['jquery'],function($) {
             $(self).trigger("change",args);
         },
         deselect:function() {
-            select(null);
+            this.select(null);
         },
         getSelected:function() {
             var selectedObjects = [];

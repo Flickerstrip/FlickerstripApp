@@ -75,10 +75,31 @@ body {
     position: absolute;
     top: 10px;
     left: 10px;
+    z-index: 10000;
 }
 
 .groupDetailsShowing {
     border: 1px solid red;
+}
+
+.stripListing, .groupDetails {
+    position: absolute;
+    -webkit-transition: left .5s;
+    transition: left .5s;
+    left: 0px;
+    width: 95%;
+    margin-left: 2.5%;
+}
+.groupDetailsShowing .stripListing {
+    left: -100%;
+}
+
+.groupDetails {
+    left: 100%;
+}
+
+.groupDetailsShowing .groupDetails {
+    left: 0px;
 }
 ///////////////////////////
 
