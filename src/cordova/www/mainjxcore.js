@@ -28,6 +28,10 @@ function jxcore_ready() {
 
     var isGuiReady = false;
 
+    function log() {
+        jxcore("guiLog").call(JSON.stringify(Array.prototype.slice.call(arguments)));
+    }
+
     requirejs(['jquery','view/Gui.js'],function($,Gui) {
         console.log = log;
         gui = new Gui(window,function() {
@@ -37,16 +41,6 @@ function jxcore_ready() {
             });
             jxcore("guiEventReceived").call(args);
         });
-        var $debug = $("<div id='txt'></div>");
-        $debug.css({
-            "position":"fixed",
-            "width":"100%",
-            "bottom":"0px",
-            "background-color":"rgba(0,0,0,.7)",
-            "color":"white",
-            "opacity":".7",
-        });
-        $(document.body).append($debug);
 
         guiReady();
     });

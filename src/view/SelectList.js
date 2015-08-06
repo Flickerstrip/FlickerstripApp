@@ -92,21 +92,26 @@ define(['jquery'],function($) {
             return this.$el.find(".listElement").length;
         },
         select:function(index,appendSelection) {
-            if (index < 0) index = 0;
-            if (index >= this.getSize()) index = this.getSize()-1;
-            this.cursorIndex = index;
+            var selectedMap = {};
+            if (index === null || index === undefined) {
 
-            if (appendSelection) {
-                if (!_.contains(this.selectedIndexes,index)) {
-                    this.selectedIndexes.push(index);
-                }
             } else {
-                this.selectedIndexes = [index];
+                if (index < 0) index = 0;
+                if (index >= this.getSize()) index = this.getSize()-1;
+                this.cursorIndex = index;
+
+                if (appendSelection) {
+                    if (!_.contains(this.selectedIndexes,index)) {
+                        this.selectedIndexes.push(index);
+                    }
+                } else {
+                    this.selectedIndexes = [index];
+                }
+                selectedMap = _.reduce(this.selectedIndexes,function(memo,ind) {
+                    memo[ind] = true;
+                    return memo;
+                },{});
             }
-            var selectedMap = _.reduce(this.selectedIndexes,function(memo,ind) {
-                memo[ind] = true;
-                return memo;
-            },{});
 
             var i = 0;
             var self = this;
@@ -117,6 +122,9 @@ define(['jquery'],function($) {
 
             var args = [this.getSelected(),this.selectedIndexes];
             $(self).trigger("change",args);
+        },
+        deselect:function() {
+            select(null);
         },
         getSelected:function() {
             var selectedObjects = [];

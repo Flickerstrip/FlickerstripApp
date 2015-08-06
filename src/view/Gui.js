@@ -25,12 +25,18 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         init:function(document,eventRelay) {
             this.eventRelay = eventRelay;
             this.$el = $(document.body);
+            console.log("foink zoobarniz",1);
             /*
             this.$el = $("<div />");
             $(document.body).append(this.$el);
             */
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
+
+            $(this).find(".showMenuButton").click(_.bind(function() {
+                this.$el.removeClass("groupDetailsShowing");
+                this.selectList.deselect();
+            },this));
 
             this.render();
         },
@@ -60,7 +66,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             var found = null;
             this.selectList.each(function(strip) {
                 if (strip.id == id) found = strip;
-            });
+           });
             return found;
         },
         stripAdded:function(e,strip) {
@@ -80,6 +86,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
+            if (selectedStrips.length >= 1) this.$el.addClass("groupDetailsShowing");
             if (selectedStrips.length == 1) {
                 this.multipleSelected = false;
                 this.selectSingleStrip(selectedStrips[0]);

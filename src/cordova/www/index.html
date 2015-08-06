@@ -19,18 +19,10 @@
     <script type="text/javascript" charset="utf-8" src="jxcore.js"></script>
 
     <script type="text/javascript" charset="utf-8">
-        function log(x) {
-          var txt = document.getElementById('txt');
-          if (txt)
-            txt.innerHTML += "<BR/>" + x;
-        }
-
         var inter = setInterval(function() {
           if (typeof jxcore == 'undefined') return;
           clearInterval(inter);
           jxcore.isReady(function(){
-            jxcore('log').register(log);
-
             jxcore('app.js').loadMainFile(function (ret, err) {
               if(err) {
                 var msg;
