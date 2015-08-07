@@ -29,6 +29,32 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
 
             this.render();
+
+            if (platform == "mobile") {
+                console.log("creating titlemanager");
+                titleManager = function() {
+                    var titles = [];
+                    this.push = function(name) {
+                        console.log("pushing: "+name);
+                        titles.unshift(name);
+                        this.update();
+                    };
+
+                    this.pop = function() {
+                        console.log("popping: "+titles[0]);
+                        titles.shift();
+                        this.update();
+                    };
+
+                    this.update = function() {
+                        console.log("updating to title: "+titles[0]);
+                        $(document.body).find(".titletext").text(titles[0]);
+                    };
+
+                    return this;
+                }();
+                titleManager.push("LEDControl");
+            }
         },
         eventHandler:function() {
             var preprocessors = {

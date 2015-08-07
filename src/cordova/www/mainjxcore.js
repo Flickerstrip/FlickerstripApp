@@ -35,13 +35,21 @@ function jxcore_ready() {
     requirejs(['jquery','view/Gui.js'],function($,Gui) {
         console.log = log;
         platform = "mobile";
-        gui = new Gui(window,function() {
-            var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
-                if (key && key.indexOf && key.indexOf("_") === 0) return false;
-                return value;
+
+        $(document).on("touchmove", function(evt) { evt.preventDefault() });
+        $(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
+
+        try {
+            gui = new Gui(window,function() {
+                var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
+                    if (key && key.indexOf && key.indexOf("_") === 0) return false;
+                    return value;
+                });
+                jxcore("guiEventReceived").call(args);
             });
-            jxcore("guiEventReceived").call(args);
-        });
+        } catch (e) {
+            log(JSON.stringify(e));
+        }
 
         guiReady();
     });

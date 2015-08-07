@@ -82,6 +82,7 @@ coreExtensions: ./build/cordova/jxcore-cordova ./build/cordova/jxcore-cordova/sr
 
 ./build/cordova/plugins: | ./build/cordova/jxcore-cordova
 	cd ./build/cordova && cordova plugin add jxcore-cordova
+	cd ./build/cordova && cordova plugin add cordova-plugin-statusbar
 
 ./build/cordova/platforms: | cordova_update
 	cd ./build/cordova && cordova platforms add android ios
