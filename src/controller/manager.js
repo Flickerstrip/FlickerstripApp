@@ -64,6 +64,8 @@ extend(This.prototype,{
         this.emit.apply(this,arguments);
     },
     loadStrips:function() {
+        console.log("TODO: implement read/write file");
+    /*
         fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             var strips = JSON.parse(contents);
@@ -80,6 +82,7 @@ extend(This.prototype,{
                 this.stripAdded(lstrip);
             },this));
         },this));
+    */
     },
     stripAdded:function(strip) {
         var self = this;

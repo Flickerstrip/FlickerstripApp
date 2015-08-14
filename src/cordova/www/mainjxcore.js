@@ -51,7 +51,6 @@ function jxcore_ready() {
             log(e.message);
             log(JSON.stringify(e));
         }
-
         guiReady();
     });
 }
