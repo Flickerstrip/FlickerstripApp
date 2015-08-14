@@ -48,6 +48,7 @@ function jxcore_ready() {
                 jxcore("guiEventReceived").call(args);
             });
         } catch (e) {
+            log(e.message);
             log(JSON.stringify(e));
         }
 

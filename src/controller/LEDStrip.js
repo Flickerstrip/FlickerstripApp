@@ -58,6 +58,9 @@ extend(This.prototype,{
         this._connection.sendCommand(StripWrapper.packetTypes.DELETE_PATTERN,index);
 		this.requestPatterns();
     },
+	disconnectStrip:function() {
+        this._connection.sendCommand(StripWrapper.packetTypes.DISCONNECT_NETWORK);
+    },
     setName:function(name) {
         this.name = name;
         this.emit("NameUpdated",this);

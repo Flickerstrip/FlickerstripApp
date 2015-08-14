@@ -42,6 +42,7 @@ This.packetTypes = {
     SELECT_PATTERN: 5,
     SAVE_PATTERN: 6,
     PATTERN_BODY: 7,
+    DISCONNECT_NETWORK: 8,
 }
 
 util.inherits(This,EventEmitter);
@@ -98,8 +99,10 @@ extend(This.prototype,{
     },
     idlePing:function() {
         var now = new Date().getTime();
-        if (now - this.lastReceivedData > 1500) {
+        console.log(now-this.lastReceivedData,now,this.lastReceivedData);
+        if (now - this.lastReceivedData > 2500) {
             this.socket.end();
+            console.log("Disconecting idle connection");
 			this.emit("Disconnect",this);
         }
         if (this.socket && this.sendBuffer.length == 0 && this.status == "ready") {
@@ -224,6 +227,7 @@ extend(This.prototype,{
 	_receivedClientData:function(socket,data) {
         this.lastReceivedData = new Date().getTime();
         stringData = trim(String(data));
+        console.log("StringData: "+stringData);
 		if (stringData.length == 0) return;
 
         var match = stringData.match(/id:(.*)/);

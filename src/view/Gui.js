@@ -30,31 +30,10 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
 
             this.render();
 
-            if (platform == "mobile") {
-                console.log("creating titlemanager");
-                titleManager = function() {
-                    var titles = [];
-                    this.push = function(name) {
-                        console.log("pushing: "+name);
-                        titles.unshift(name);
-                        this.update();
-                    };
-
-                    this.pop = function() {
-                        console.log("popping: "+titles[0]);
-                        titles.shift();
-                        this.update();
-                    };
-
-                    this.update = function() {
-                        console.log("updating to title: "+titles[0]);
-                        $(document.body).find(".titletext").text(titles[0]);
-                    };
-
-                    return this;
-                }();
-                titleManager.push("LEDControl");
-            }
+            this.$el.find(".configureNewStrip").on("click",_.bind(function() {
+                console.log("calling redirect to settings");
+                jxcore("gui_RedirectToSettings").call();
+            },this));
         },
         eventHandler:function() {
             var preprocessors = {
@@ -113,6 +92,11 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         },
         selectSingleStrip:function(strip) {
             this.groupDetails = new GroupDetailsPanel(this.send,strip);
+            $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
+                this.selectList.deselect();
+                this.$el.removeClass("groupDetailsShowing");
+            },this));
+
             this.$el.find(".groupDetails").empty().append(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
@@ -125,11 +109,6 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         render:function() {
             this.$el.empty();
             this.$el.append(template);
-
-            this.$el.find(".showMenuButton").click(_.bind(function() {
-                this.selectList.deselect();
-                this.$el.removeClass("groupDetailsShowing");
-            },this));
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");

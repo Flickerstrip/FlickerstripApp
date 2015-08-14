@@ -22,7 +22,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
 
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
-            $(document.body).find(".hideButton").click(_.bind(this.hide,this));
+            this.$el.find(".hideButton").click(_.bind(this.hide,this));
         },
         loadPatternButtonClicked:function(e) {
             this.hide();
@@ -83,9 +83,6 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         },
 
         show:function() {
-            if (platform == "mobile") {
-                titleManager.push("Load Pattern");
-            }
             var $mainContainer = $(document.body).find(".mainContainer");
             $mainContainer.append(this.$el);
             if (platform == "desktop") this.$el.modal('show');
@@ -95,6 +92,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         },
 
         hide:function() {
+            console.log("hide called.. ");
             var $body = $(document.body);
             $body.removeClass("loadPatternShowing");
             $(document.body).find(".hideButton").unbind("click");
@@ -103,10 +101,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
                 this.$el.modal('hide');
                 this.$el.remove();
             } else if (platform == "mobile") {
-                titleManager.pop();
-                setInterval(function() { //delay until the animation finishes
+                setInterval(_.bind(function() { //delay until the animation finishes
                     this.$el.remove();
-                },500);
+                },this),500);
             }
         }
     });

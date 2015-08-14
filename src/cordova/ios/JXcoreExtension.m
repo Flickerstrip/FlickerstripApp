@@ -19,5 +19,9 @@
     }
     NSLog(@"%@",str);
   } withName:@"Log"];
+
+  [JXcore addNativeBlock:^(NSArray *params, NSString *callbackId) {
+    [[UIApplication sharedApplication] openURL:[NSURL  URLWithString:UIApplicationOpenSettingsURLString]];
+  } withName:@"RedirectToSettings"];
 }
 @end

@@ -51,6 +51,10 @@ extend(This.prototype,{
             this.setStripName(id,newname);
         },this));
 
+        this.on("DisconnectStrip",_.bind(function(id) {
+            this.disconnectStrip(id);
+        },this));
+
         this.on("ForgetStrip",_.bind(function(id) {
             this.forgetStrip(id);
         },this));
@@ -106,6 +110,10 @@ extend(This.prototype,{
         this.strips.splice(index,1);
         this.saveStrips()
         this.send("StripRemoved",id);
+    },
+    disconnectStrip:function(id) {
+        var strip = this.getStrip(id);
+        strip.disconnectStrip();
     },
 ///////////////////////////////////////////////////////////////////////////////
     getStrips:function() {

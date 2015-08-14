@@ -7,11 +7,15 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     $.extend(This.prototype, {
         init:function(send,strip) {
             this.send = send;
-            this.$el = $("<div class='panel panel-info flexcol' />");
+            this.$el = $("<div class='groupDetailsPanel' />");
             this.$el.empty().append(template);
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
             $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
+
+            this.$el.find(".showMenuButton").click(_.bind(function() {
+                $(this).trigger("GroupDetailsDismissed");
+            },this));
 
             this.updateValues(strip);
             $(strip).on("Strip.Connected",_.bind(function() {
@@ -24,6 +28,11 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             },this));
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
+
+            this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
+                console.log("sending strip disconnect");
+                this.send("DisconnectStrip",this.strip.id);
+            },this));
         },
         updateValues:function(strip) {
             var $header = this.$el.find(".stripHeader");

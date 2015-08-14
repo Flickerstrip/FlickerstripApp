@@ -4,6 +4,16 @@ console.log = function() {
     Mobile('Log').callNative(Array.prototype.join.call(arguments," "));
 }
 
+var exposeFunctions = ["RedirectToSettings"];
+for (var i=0; i<exposeFunctions.length; i++) {
+    var fname = exposeFunctions[i];
+    console.log("Registering "+fname);
+    Mobile("gui_"+fname).registerSync(function(args) {
+        console.log(args);
+        Mobile(fname).callNative(args);
+    });
+}
+
 Mobile("guiLog").registerAsync(function(json) {
     var args = JSON.parse(json);
     //var args = Array.prototype.slice.call(arguments); //convert arguments to array

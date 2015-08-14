@@ -1,10 +1,17 @@
-<div class="panel-heading stripHeader">
-    <span class="statusIndicator"></span>
-    <span class="heading name" />
-    <span class="minor"><span class="identifierValue"></span></span>
+<div class="navigationBar stripHeader">
+    <div class="navigationButtons">
+        <button class="showMenuButton btn btn-default navbar-btn"><span class="glyphicon glyphicon-list"></span></button>
+        <button class="backButton hideButton btn btn-default navbar-btn"><span class="glyphicon glyphicon-triangle-left"></span></button>
+    </div>
+    <div class="navigationRemaining">
+        <span class="statusIndicator"></span>
+        <span class="heading name" /> &nbsp;
+        <span class="minor"><span class="identifierValue"></span></span>
+    </div>
+    <button class="disconnectStripButton btn btn-danger navbar-btn"><span class="glyphicon glyphicon-remove"></span></button>
 </div>
 
-<div class="panel-body">
+<div class="storedPatterns">
     <span class="heading">Stored Patterns</span>
     <div class="patterns"></div>
 </div>

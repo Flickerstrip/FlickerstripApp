@@ -6,7 +6,6 @@ body {
     background-image: linear-gradient(to bottom,#e8e8e8,#f5f5f5 100%);
 }
 
-
 .fillwell {
     margin-top: 20px;
     margin-right: 15px;
@@ -21,21 +20,12 @@ body {
 }
 
 .mainContainer {
-    display: flex;
+    .flex;
 }
 
 .stripListing {
     .container;
-    .flex;
     width: 300px !important;
-}
-
-.stripListing .well {
-    .fillwell;
-    .panel;
-    .panel-default;
-    .flexcol;
-    background: white;
 }
 
 #stripList {
@@ -46,23 +36,20 @@ body {
     display: none;
 }
 
-.navigationBar {
-    display: none;
-}
-
 ///////////////////////////////////
 .loadPatternDialog {
     .modal;
 }
 
 .loadPatternDialogContainer {
+    z-index: 1050;
     .modal-dialog;
 
     .content {
         .modal-content;
     }
 
-    .header {
+    .navigationBar {
         .modal-header;
     }
 
@@ -70,7 +57,7 @@ body {
         .modal-body;
     }
 
-    .title {
+    .navigationRemaining {
         .modal-title;
     }
 
