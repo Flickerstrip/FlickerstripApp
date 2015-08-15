@@ -1,159 +1,17 @@
 @import "bootstrap/bootstrap.less";
 
-/* FLEX LAYOUT */
-.flex {
-    display: flex;
-}
-
-.flexcol {
+//////////////////////////////////
+.flexone {
     flex: 1;
 }
-/* FLEX LAYOUT */
 
-
-//////////////////////////////////
+//////////////////////////// Layout /////////////////////////////////
 .mainContainer {
     width: 100%;
-}
-///////////////////////////
-
-.selectPattern {
-    margin-right: 5px;
-}
-
-.forgetPattern {
-    display: none;
-    float:right;
-}
-
-.selected .forgetPattern {
-    display: block;
-}
-
-.patternPreview {
-    width: 100%;
-    height: 200px;
-}
-
-.progress-bar {
-    text-align:left;
-    padding-left: 5px;
-    -webkit-transition: none;
-    -moz-transition: none;
-    -ms-transition: none;
-    -o-transition: none;
-    transition: none;
-}
-
-.select-list {
-	height: 500px;
-	width: 100%;
-}
-
-.heading {
-    font-size: 14px;
-    font-weight: bold;
-    color: #36f;
-}
-
-.loadPatternDialog .modal-dialog {
-    width: 90%;
-}
-
-input.seamless {
-    border: none;
-    padding: 0;
-    margin: 0;
-    display: inline-block;
-}
-
-/*
-.listElement {
-    padding: 2px;
-    border: 1px solid blue;
-    border-radius: 4px;
-    margin: 2px;
-    width: 100%;
-    height: 30px;
-}
-*/
-
-.listElement.selected,.listElement.selected:hover {
-    background-color: #9cf;
-}
-.listElement:hover {
-    background-color: #cff;
-}
-
-.groupDetailsPanel {
-    .panel;
-    .panel-info;
-    .flexcol;
-
-    .stripHeader {
-        .panel-heading;
-    }
-
-    .storedPatterns {
-        .panel-body;
-    }
-}
-
-.statusIndicator {
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    display:inline-block;
-    margin-right: 2px;
-}
-.statusIndicator.connected {
-    background-color: green;
-}
-.statusIndicator.unknown {
-    background-color: grey;
-}
-.statusIndicator.error {
-    background-color: red;
-}
-
-.minor {
-    font-size: 10px;
-    color: #999;
-}
-
-.mode-bubble {
-	width: 200px;
-	border-radius: 5px;
-	padding: 3px 3px;
-	border: #00c;
-	-webkit-box-shadow: 0px 0px 16px 3px rgba(147, 158, 255, 1);
-	-moz-box-shadow:    0px 0px 16px 3px rgba(147, 158, 255, 1);
-	box-shadow:         0px 0px 16px 3px rgba(147, 158, 255, 1);
-	display: inline-block;
-	margin:10px;
-	color: white;
-	background-color:  rgba(147, 158, 255, 1);
-}
-
-.mode-bubble:hover {
-	background-color: rgba(200, 200, 255, 1);
-	-webkit-box-shadow: 0px 0px 16px 3px rgba(200, 200, 255, 1);
-	-moz-box-shadow:    0px 0px 16px 3px rgba(200, 200, 255, 1);
-	box-shadow:         0px 0px 16px 3px rgba(200, 200, 255, 1);
-}
-
-.mode-bubble.selected {
-	background-color: rgba(200, 158, 255, 1);
-	-webkit-box-shadow: 0px 0px 16px 3px rgba(200, 158, 255, 1);
-	-moz-box-shadow:    0px 0px 16px 3px rgba(200, 158, 255, 1);
-	box-shadow:         0px 0px 16px 3px rgba(200, 158, 255, 1);
 }
 
 .navigationBar {
     z-index: 1000;
-}
-
-.navigationBar {
     display: flex;
     flex-wrap: nowrap;
 }
@@ -179,17 +37,118 @@ input.seamless {
     -ms-flex-align: center;
     -webkit-align-items: center;
     align-items: center;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
 }
 
 .navigationRemaining * {
     flex: 0 1 auto;
 }
 
-.flexone {
-    flex: 1;
+input.seamless {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: inline-block;
 }
 
-.groupDetails {
-    display: flex;
-    flex: 1 1 auto;
+//////////////////////////// General Layout /////////////////////////
+
+//////////////////////////// Widgets /////////////////////////
+.statusIndicator {
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    display:inline-block;
+    margin-right: 2px;
+}
+.statusIndicator.connected {
+    background-color: green;
+}
+.statusIndicator.unknown {
+    background-color: grey;
+}
+.statusIndicator.error {
+    background-color: red;
+}
+
+//////////////////
+
+.listElement.selected,.listElement.selected:hover {
+    background-color: #9cf;
+}
+.listElement:hover {
+    background-color: #cff;
+}
+//////////////////////////// Widgets /////////////////////////
+
+//////////////////////////// Group Details /////////////////////////////
+.forgetPattern {
+    display: none;
+    float:right;
+}
+
+.selected .forgetPattern {
+    display: block;
+}
+//////////////////////////// Group Details /////////////////////////////
+
+//////////////////////////// Tweaks /////////////////////////////////
+.selectPattern {
+    margin-right: 5px;
+}
+//////////////////////////// Tweaks /////////////////////////////////
+
+
+///////////////////////////// Color //////////////////////////////////
+.navigationBar {
+    background-color: #211F4C;
+    padding: 0 7px;
+    color: white;
+    font-weight: bold;
+    height: 50px;
+
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+
+    background: rgba(33,31,76,1);
+    background: -moz-linear-gradient(top, rgba(33,31,76,1) 0%, rgba(66,65,135,1) 78%, rgba(91,91,156,1) 90%, rgba(104,104,163,1) 100%);
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(33,31,76,1)), color-stop(78%, rgba(66,65,135,1)), color-stop(90%, rgba(91,91,156,1)), color-stop(100%, rgba(104,104,163,1)));
+    background: -webkit-linear-gradient(top, rgba(33,31,76,1) 0%, rgba(66,65,135,1) 78%, rgba(91,91,156,1) 90%, rgba(104,104,163,1) 100%);
+    background: -o-linear-gradient(top, rgba(33,31,76,1) 0%, rgba(66,65,135,1) 78%, rgba(91,91,156,1) 90%, rgba(104,104,163,1) 100%);
+    background: -ms-linear-gradient(top, rgba(33,31,76,1) 0%, rgba(66,65,135,1) 78%, rgba(91,91,156,1) 90%, rgba(104,104,163,1) 100%);
+    background: linear-gradient(to bottom, rgba(33,31,76,1) 0%, rgba(66,65,135,1) 78%, rgba(91,91,156,1) 90%, rgba(104,104,163,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#211f4c', endColorstr='#6868a3', GradientType=0 );
+
+    //color: #6868a3;
+}
+
+.heading {
+    font-size: 14px;
+    font-weight: bold;
+    color: #36f;
+}
+///////////////////////////// Color //////////////////////////////////
+
+
+///////////////////////////// Misc //////////////////////////////////
+.minor {
+    font-size: 10px;
+    color: #999;
+}
+
+.patternPreview {
+    width: 100%;
+    height: 200px;
+}
+
+.progress-bar {
+    text-align:left;
+    padding-left: 5px;
+    -webkit-transition: none;
+    -moz-transition: none;
+    -ms-transition: none;
+    -o-transition: none;
+    transition: none;
 }

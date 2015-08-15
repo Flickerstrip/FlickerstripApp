@@ -7,7 +7,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     $.extend(This.prototype, {
         init:function(send,strip) {
             this.send = send;
-            this.$el = $("<div class='groupDetailsPanel' />");
+            this.$el = $("<div class='groupDetails' />");
             this.$el.empty().append(template);
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();

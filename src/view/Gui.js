@@ -97,7 +97,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 this.$el.removeClass("groupDetailsShowing");
             },this));
 
-            this.$el.find(".groupDetails").empty().append(this.groupDetails.$el);
+            this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
             var $el = this.$el.find("#activeStrip");

@@ -1,11 +1,81 @@
 @import "style.less";
 
+//////////////LAYOUT////////////////
 body {
     height: 100vh;
     display: flex;
+}
+
+.backButton,
+.showMenuButton {
+    display: none;
+}
+
+body {
     background-image: linear-gradient(to bottom,#e8e8e8,#f5f5f5 100%);
 }
 
+.mainContainer {
+    display: flex;
+    .stripListing {
+        .panel;
+        border: none;
+        margin: 5px;
+        width: 300px !important;
+    }
+    .groupDetails {
+        .panel;
+        border: none;
+        margin: 5px;
+        flex: 1;
+    }
+}
+
+.mainContainer {
+    .body {
+        margin: 5px;
+        padding: 5px;
+    }
+}
+
+.navigationButtons {
+    display: none;
+}
+
+////////////////////////// Load Pattern Dialog ////////////////////////////////
+.loadPatternDialog {
+    .modal;
+}
+
+.loadPatternDialogContainer {
+    z-index: 1050;
+    .modal-dialog;
+
+    .mcontent {
+        .modal-content;
+    }
+
+    .navigationBar {
+        .modal-header;
+    }
+
+    .mbody {
+        .modal-body;
+    }
+
+    .navigationRemaining {
+        .modal-title;
+    }
+
+    .mfooter {
+        .modal-footer;
+    }
+}
+////////////////////////// Load Pattern Dialog ////////////////////////////////
+
+
+
+/*
 .fillwell {
     margin-top: 20px;
     margin-right: 15px;
@@ -20,11 +90,10 @@ body {
 }
 
 .mainContainer {
-    .flex;
+    display: flex;
 }
 
 .stripListing {
-    .container;
     width: 300px !important;
 }
 
@@ -32,37 +101,20 @@ body {
     .panel-body;
 }
 
-.showMenuButton {
-    display: none;
-}
+.groupDetails {
+    .panel;
+    .panel-info;
+    display: flex;
+    flex: 1 1 auto;
 
-///////////////////////////////////
-.loadPatternDialog {
-    .modal;
-}
-
-.loadPatternDialogContainer {
-    z-index: 1050;
-    .modal-dialog;
-
-    .content {
-        .modal-content;
+    .stripHeader {
+        .panel-heading;
     }
 
-    .navigationBar {
-        .modal-header;
-    }
-
-    .body {
-        .modal-body;
-    }
-
-    .navigationRemaining {
-        .modal-title;
-    }
-
-    .footer {
-        .modal-footer;
+    .storedPatterns {
+        .panel-body;
     }
 }
-///////////////////////////////////
+
+*/
+
