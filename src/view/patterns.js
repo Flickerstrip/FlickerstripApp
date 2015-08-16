@@ -21,7 +21,7 @@ define(['tinycolor'],function(tinycolor) {
             g = 288.1221695283 * (Math.pow(g,-0.0755148492));
         }
         if (g < 0) g = 0;
-        if (g > 255) g = 0;
+        if (g > 255) g = 255;
 
         //blue
         if (k >= 66) {
@@ -35,14 +35,14 @@ define(['tinycolor'],function(tinycolor) {
             }
         }
         if (b < 0) b = 0;
-        if (b > 255) b = 0;
+        if (b > 255) b = 255;
         
         return {r:r,g:g,b:b};
     }
     return [
         {
             name:"Temperature Based",
-            leds: 150,
+            leds: 1,
             frames: 1,
             fps: 30,
             controls: [
@@ -59,7 +59,7 @@ define(['tinycolor'],function(tinycolor) {
         },
         {
             name:"Temperature Scale",
-            leds: 150,
+            leds: 1,
             frames: 300,
             fps: 30,
             renderer: function(x,t,args) {
@@ -72,7 +72,7 @@ define(['tinycolor'],function(tinycolor) {
         },
         {
             name:"Color Blink",
-            leds: 150,
+            leds: 1,
             frames: 2,
             fps: 1,
             controls: [
@@ -101,7 +101,7 @@ define(['tinycolor'],function(tinycolor) {
         },
         {
             name:"Solid Color",
-            leds: 150,
+            leds: 1,
             frames: 1,
             fps: 30,
             controls: [
@@ -119,7 +119,7 @@ define(['tinycolor'],function(tinycolor) {
         },
         {
             name:"Rainbow Fade",
-            leds: 150,
+            leds: 1,
             frames: 360,
             fps: 30,
             renderer: function(x,t) {
@@ -129,7 +129,7 @@ define(['tinycolor'],function(tinycolor) {
         },
         {
             name:"Color Pulse",
-            leds: 150,
+            leds: 1,
             frames: 200,
             fps: 30,
             controls: [

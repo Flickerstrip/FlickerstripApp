@@ -19,7 +19,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
     }
 
     $.extend(This.prototype,{
-        init:function() {
+        init:function(stripLength) {
             var canvas = document.createElement("canvas");
             canvas.width = 500;
             canvas.height = 200;
@@ -28,9 +28,10 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.$el = $(this.canvas);
 
             this.start = new Date().getTime();
-            this.metrics = null;
+            this.pattern = null;
+            this.parameters = null;
+            this.stripLength = stripLength;
             this.rendered = null;
-            this.neopixelRenderer = null;
             
             var millis = new Date().getTime();
             var self = this;
@@ -44,19 +45,19 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         paint:function(g) {
             this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
-            if (!(this.metrics && this.rendered && this.neopixelRenderer)) return;
+            if (!(this.pattern && this.rendered)) return;
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
-            var currentFrame = Math.floor((this.metrics.fps*((new Date().getTime() - this.start)/1000)) % this.metrics.animationLength);
+            var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.start)/1000)) % this.pattern.frames);
         
             var padding = {top: 35, right: 20, bottom: 10, left: 20};
             var usableWidth = this.canvas.width - padding.left - padding.right;
-            var separation = usableWidth / this.metrics.stripLength;
+            var separation = usableWidth / this.stripLength;
 
             //render LED strip at current frame
             g.fillStyle = "black";
             g.fillRect(padding.left-5,10-separation/2,this.canvas.width - padding.left - padding.right+7, separation*1.5);
-            for (var i=0; i<this.metrics.stripLength; i++) {
-                var c = this.neopixelRenderer(i,currentFrame);
+            for (var i=0; i<this.stripLength; i++) {
+                var c = this.pattern.renderer(i,currentFrame,this.parameters);
 
                 var offset = 2;
                 g.fillStyle = tinycolor(c.toString()).darken(20).toHexString();
@@ -82,16 +83,16 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             g.fillRect(padding.left,padding.top,this.width-padding.left-padding.right,this.height-padding.top-padding.bottom);
             
             g.fillStyle = "#666";
-            g.fillRect(padding.left,padding.top,this.metrics.animationLength,this.metrics.stripLength);
+            g.fillRect(padding.left,padding.top,this.pattern.frames,this.stripLength);
             
-            var duration = this.metrics.animationLength/this.metrics.fps;
+            var duration = this.pattern.frames/this.pattern.fps;
             var tickLength = 3;
             var labelFrequency = 5;
             g.fillStyle = "black";
             g.textAlign = 'center';
             g.font = "10px Monaco";
             for (var i=0; i<=duration; i++) {
-                var x = padding.left + i*this.metrics.fps;
+                var x = padding.left + i*this.pattern.fps;
                 drawLine(g,x,padding.top-tickLength,x,padding.top);
                 if (i % labelFrequency == 0) {
                     g.fillText(i+"s",x,padding.top-tickLength-10);
@@ -99,41 +100,40 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             }
             g.drawImage(this.rendered, padding.left, padding.top);
             g.fillStyle = "white";
-            drawLine(g,padding.left+currentFrame,padding.top,padding.left+currentFrame,padding.top+this.metrics.stripLength);
+            drawLine(g,padding.left+currentFrame,padding.top,padding.left+currentFrame,padding.top+this.stripLength);
         },
-        setMetrics:function(stripLength,length,fps) {
-            this.metrics = {stripLength:stripLength,animationLength:length,fps:fps};
-            this.start = new Date().getTime();
+        setPattern:function(pattern) {
+            this.pattern = pattern;
+            this.updatePatternCache();
         },
-        setRenderer:function(renderer) {
+        setParameters:function(params) {
+            console.log("setting params",params);
+            this.parameters = params;
+            this.updatePatternCache();
+        },
+        setPatternAndParameters(pattern,params) {
+            console.log("setting pat and pamar",pattern,params);
+            this.pattern = pattern;
+            this.parameters = params;
+            this.updatePatternCache();
+        },
+        updatePatternCache:function() {
             this.start = new Date().getTime();
-            this.neopixelRenderer = renderer;
             
-            var self = this;
-            this.rendered = renderToCanvas(this.metrics.animationLength,this.metrics.stripLength,function(g) {
-                for (var x = 0; x<self.metrics.animationLength; x++) {
-                    for (var y = 0; y<self.metrics.stripLength; y++) {
-                        var c = renderer(y,x);
+            this.rendered = renderToCanvas(this.pattern.frames,this.stripLength,_.bind(function(g) {
+                for (var x = 0; x<this.pattern.frames; x++) {
+                    for (var y = 0; y<this.stripLength; y++) {
+                        var i = y % this.pattern.leds;
+                        var c = this.pattern.renderer(i,x,this.parameters);
                         g.fillStyle = c.toHexString();
                         g.fillRect(x,y,1,1);
                     }
                 }	
-            });
+            },this));
+
         },
         getRenderer:function() {
             return this.neopixelRenderer;
-        },
-        getCurrentStripState:function() {
-            var leds = [];
-            var currentFrame = (this.metrics.fps*((new Date().getTime() - this.start)/1000)) % this.metrics.animationLength;
-            for (var i=0; i<this.metrics.stripLength; i++) {
-                var c = this.neopixelRenderer(i,currentFrame).toRgb();
-                //TODO fix me
-                leds.push(Math.floor(c.g/10));
-                leds.push(Math.floor(c.r/10));
-                leds.push(Math.floor(c.b/10));
-            }
-            return leds;
         }
     });
 

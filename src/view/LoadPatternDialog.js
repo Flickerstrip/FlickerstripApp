@@ -16,7 +16,8 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             this.patternOptions = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
             this.$choices.empty().append(this.patternOptions.$el);
 
-            this.stripRenderer = new LEDStripRenderer();
+            var ledCount = 150;
+            this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
 
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
@@ -33,12 +34,12 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             },this),5);
         },
         generatePattern:function() {
-            var renderer = this.stripRenderer.getRenderer();
+            var renderer = this.activePattern.renderer;
             var pixelValues = [];
             for (var t=0;t<this.activePattern.frames; t++) {
                 var timeSlice = [];
                 for (var x=0;x<this.activePattern.leds; x++) {
-                    var c = renderer(x,t).toRgb();
+                    var c = renderer(x,t,this.controlView ? this.controlView.getValues() : null).toRgb();
                     timeSlice.push(c.r,c.g,c.b);
                 }
                 pixelValues[t] = timeSlice;
@@ -49,7 +50,6 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             var pattern = selectedObjects[0];
             this.activePattern = pattern;
 
-            this.stripRenderer.setMetrics(pattern.leds,pattern.frames,pattern.fps); //TODO rewrite this
             this.$config.empty();
 
             if (pattern.controls) {
@@ -57,19 +57,15 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
                 var controlValues = this.controlView.getValues();
                 $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
                 this.$config.append(this.controlView.el);
-                this.stripRenderer.setRenderer(function(x,t) {
-                    return pattern.renderer(x,t,controlValues);
-                });
+                this.stripRenderer.setPatternAndParameters(pattern,controlValues);
             } else {
-                this.stripRenderer.setRenderer(pattern.renderer);
+                this.stripRenderer.setPattern(pattern);
             }
         },
         controlsUpdated:function(e,$el) {
             var controlValues = this.controlView.getValues();
             var pattern = this.activePattern;
-            this.stripRenderer.setRenderer(function(x,t) {
-                return pattern.renderer(x,t,controlValues);
-            });
+            this.stripRenderer.setParameters(controlValues);
         },
 
         patternOptionRenderer:function(pattern,$el) {
