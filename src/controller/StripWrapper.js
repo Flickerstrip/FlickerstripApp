@@ -43,6 +43,7 @@ This.packetTypes = {
     SAVE_PATTERN: 6,
     PATTERN_BODY: 7,
     DISCONNECT_NETWORK: 8,
+    AVAILABLE_BLOCKS: 9,
 }
 
 util.inherits(This,EventEmitter);
@@ -259,6 +260,15 @@ extend(This.prototype,{
             });
 			this.patterns = patternData;
             this.emit("ReceivedPatternMetadata",this,patternData);
+            return;
+        }
+
+        if (stringData.startsWith("available")) {
+            var lines = stringData.split("\n");
+            var fields = lines[0].split(",");
+            var available = parseInt(fields[1]);
+            var total = parseInt(fields[2]);
+            this.emit("ReceivedAvailableBlocks",this,available,total);
             return;
         }
 

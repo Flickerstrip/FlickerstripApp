@@ -11,7 +11,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.$el.empty().append(template);
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
+            if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.available,strip.memory.total);
             $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
+
 
             this.$el.find(".showMenuButton").click(_.bind(function() {
                 $(this).trigger("GroupDetailsDismissed");
@@ -27,12 +29,20 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.updateValues(strip);
             },this));
 
+            $(strip).on("Strip.AvailableBlocks",_.bind(function(strip,available,total) {
+                this.updateAvailableIndicator(available,total);
+            },this));
+
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
 
             this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
                 console.log("sending strip disconnect");
                 this.send("DisconnectStrip",this.strip.id);
             },this));
+        },
+        updateAvailableIndicator:function(available,total) {
+            var percent = Math.floor(100*available/total);
+            this.$el.find(".spaceAvailableIndicator").css("width",percent+"%").text(percent+"% used");
         },
         updateValues:function(strip) {
             var $header = this.$el.find(".stripHeader");

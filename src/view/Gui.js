@@ -46,6 +46,12 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 "Strip.PatternsUpdated":function(strip,patterns) {
                     strip.patterns = patterns;
                 },
+                "Strip.AvailableBlocks":function(strip,available,total) {
+                    strip.memory = {
+                        available:available,
+                        total:total
+                    };
+                },
             };
             if (arguments[0].indexOf("Strip.") === 0) {
                 var strip = this.findStripId(arguments[1]);
