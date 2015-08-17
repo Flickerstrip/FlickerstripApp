@@ -5,10 +5,11 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
 
     $.extend(This.prototype, {
         init:function(strip) {
-            this.$el = $("<div class='progressDialog modal'/>");
+            this.$el = $("<div class='progressDialog'/>");
 
             this.strip = strip;
             $(strip).one("Strip.ProgressUpdated",_.bind(this.update,this));
+            $(strip).one("Strip.Disconnect",_.bind(this.error,this));
 
             this.$el.append(template);
         },
@@ -22,8 +23,19 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
                 $(this.strip).one("Strip.ProgressUpdated",_.bind(this.update,this));
             }
         },
+        error:function(e,strip,session) {
+            this.$el.find(".progress-bar").addClass("progress-bar-danger");
+            this.$el.find(".mtitle").text("Upload Failed");
+            setTimeout(_.bind(function() {
+                this.$el.modal('hide')
+                $(this).trigger("Complete");
+            },this),500);
+        },
         show:function() {
             $(document.body).append(this.$el);
+            this.$el.modal({
+                "backdrop":"static"
+            });
             this.$el.modal('show');
         }
     });

@@ -32,7 +32,29 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
 
             this.$el.find(".configureNewStrip").on("click",_.bind(function() {
                 console.log("calling redirect to settings");
-                jxcore("gui_RedirectToSettings").call();
+                var $div = $("<div />");
+                $div.css({
+                    "position":"absolute",
+                    "width":"500px",
+                    "height":"500px",
+                    "top":"100px",
+                    "left":"100px"
+                });
+                $(document.body).append($div);
+                var i = 0;
+                var a = setInterval(function() {
+                    if (i % 2 == 0) {
+                        $div.css({"background-color":"white"});
+                    } else {
+                        $div.css({"background-color":"black"});
+                    }
+                    i++;
+                    if (i > 100) {
+                        $div.remove();
+                        clearInterval(a);
+                    }
+                },100);
+                //jxcore("gui_RedirectToSettings").call();
             },this));
         },
         eventHandler:function() {
