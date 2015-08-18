@@ -100,7 +100,7 @@ extend(This.prototype,{
     },
     idlePing:function() {
         var now = new Date().getTime();
-        console.log(now-this.lastReceivedData,now,this.lastReceivedData);
+        //console.log(now-this.lastReceivedData,now,this.lastReceivedData);
         if (now - this.lastReceivedData > 2500) {
             this.socket.end();
             console.log("Disconecting idle connection");
@@ -228,7 +228,7 @@ extend(This.prototype,{
 	_receivedClientData:function(socket,data) {
         this.lastReceivedData = new Date().getTime();
         stringData = trim(String(data));
-        console.log("StringData: "+stringData);
+        //console.log("StringData: "+stringData);
 		if (stringData.length == 0) return;
 
         var match = stringData.match(/id:(.*)/);
