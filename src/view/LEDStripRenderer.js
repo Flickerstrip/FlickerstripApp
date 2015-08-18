@@ -111,8 +111,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.parameters = params;
             this.updatePatternCache();
         },
-        setPatternAndParameters(pattern,params) {
-            console.log("setting pat and pamar",pattern,params);
+        setPatternAndParameters:function(pattern,params) {
             this.pattern = pattern;
             this.parameters = params;
             this.updatePatternCache();

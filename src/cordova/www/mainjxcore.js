@@ -32,26 +32,46 @@ function jxcore_ready() {
         jxcore("guiLog").call(JSON.stringify(Array.prototype.slice.call(arguments)));
     }
 
-    requirejs(['jquery','view/Gui.js'],function($,Gui) {
-        console.log = log;
-        platform = "mobile";
+    window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+        log("Error occured: " + errorMsg+ " "+url+":"+lineNumber)
+        return false;
+    }
 
-        $(document).on("touchmove", function(evt) { evt.preventDefault() });
-        $(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
+    function init() {
+        requirejs(['jquery','view/Gui.js'],function($,Gui) {
+            console.log = log;
+            platform = "mobile";
 
-        try {
-            gui = new Gui(window,function() {
-                var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
-                    if (key && key.indexOf && key.indexOf("_") === 0) return false;
-                    return value;
+            $(document).on("touchmove", function(evt) { evt.preventDefault() });
+            $(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
+
+            try {
+                gui = new Gui(window,function() {
+                    var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
+                        if (key && key.indexOf && key.indexOf("_") === 0) return false;
+                        return value;
+                    });
+                    jxcore("guiEventReceived").call(args);
                 });
-                jxcore("guiEventReceived").call(args);
-            });
-        } catch (e) {
-            log(e.message);
-            log(JSON.stringify(e));
+            } catch (e) {
+                log(e.message);
+                log(JSON.stringify(e));
+            }
+            guiReady();
+        });
+    }
+
+    var instant = true; //set this to true to debug initialization
+    if (instant) {
+        init();
+    } else {
+        var a = document.createElement("a");
+        a.innerText = "Initialize";
+        document.body.appendChild(a);
+        a.onclick = function() {
+            init();
+            return false;
         }
-        guiReady();
-    });
+    }
 }
 

@@ -15,25 +15,34 @@ html, body, .scrollable {
     overflow-y: scroll;
 }
 
-.stripListing, .groupDetails,.loadPatternDialog {
+.stripListing, .groupDetails, .patternSelectionPanel, .patternConfigPanel {
     position: absolute;
     -webkit-transition: left .5s;
     transition: left .5s;
-    width: 95%;
-    margin-left: 2.5%;
+    width: 100%;
+
+    transform: translateX(0);
+    -webkit-transform: translateX(0);
+}
+
+.navigationBar {
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+}
+
+.body {
+    padding: 5px;
 }
 
 ////////////// STRIP LISTING//////////////
 .stripListing {
-    left: 0px;
+    left: 0;
 }
 
-.groupDetailsShowing .stripListing {
+.groupDetailsShowing .stripListing,
+.loadPatternShowing .stripListing,
+.configurePatternShowing .stripListing {
     left: -100%;
-}
-
-.groupDetailsShowing .stripListing {
-    left: -200%;
 }
 ////////////// STRIP LISTING//////////////
 
@@ -43,24 +52,38 @@ html, body, .scrollable {
 }
 
 .groupDetailsShowing .groupDetails {
-    left: 0px;
+    left: 0%;
 }
 
-.loadPatternShowing .groupDetails {
+.loadPatternShowing .groupDetails,
+.configurePatternShowing .groupDetails {
     left: -100%;
 }
 ////////////// GROUP DETAILS//////////////
 
 ////////////// LOAD PATTERN //////////////
-.loadPatternDialog {
-    left: 200%;
-}
-
-.groupDetailsShowing .loadPatternDialog {
+.patternSelectionPanel,
+.groupDetailsShowing .patternSelectionPanel {
     left: 100%;
 }
 
-.loadPatternShowing .loadPatternDialog {
+.loadPatternShowing .patternSelectionPanel {
+    left: 0px;
+}
+
+.configurePatternShowing .patternSelectionPanel {
+    left: -100%;
+}
+////////////// LOAD PATTERN //////////////
+
+////////////// CONFIGURE PATTERN //////////////
+.patternConfigPanel,
+.groupDetailsShowing .patternConfigPanel,
+.loadPatternShowing .patternConfigPanel {
+    left: 100%;
+}
+
+.configurePatternShowing .patternConfigPanel {
     left: 0px;
 }
 ////////////// LOAD PATTERN //////////////

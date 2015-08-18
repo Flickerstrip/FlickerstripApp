@@ -58,7 +58,6 @@ extend(This.prototype,{
 	    this._connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
 	},
 	requestAvailable:function() {
-        console.log("getting available blocks");
 	    this._connection.sendCommand(StripWrapper.packetTypes.AVAILABLE_BLOCKS);
 	},
     loadPattern:function(name,fps,data) {

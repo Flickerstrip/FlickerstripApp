@@ -109,13 +109,18 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
-            if (selectedStrips.length >= 1) this.$el.addClass("groupDetailsShowing");
             if (selectedStrips.length == 1) {
                 this.multipleSelected = false;
                 this.selectSingleStrip(selectedStrips[0]);
             } else if (selectedStrips.length > 1) {
                 this.multipleSelected = true;
                 this.selectMultipleStrips(selectedStrips);
+            }
+
+            if (selectedStrips.length >= 1) {
+                setTimeout(_.bind(function() {
+                    this.$el.addClass("groupDetailsShowing");
+                },this),5);
             }
         },
         selectSingleStrip:function(strip) {

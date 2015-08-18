@@ -71,6 +71,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.send("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
+            console.log("load pattern clicked");
             var patternDialog = new LoadPatternDialog();
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();

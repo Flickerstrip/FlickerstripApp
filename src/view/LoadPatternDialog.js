@@ -1,5 +1,5 @@
-define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialog.html"],
-function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
+define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
+function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_template,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -8,7 +8,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         init:function(strip) {
             this.$el = $("<div class='loadPatternDialog'/>");
 
-            this.$el.append(template);
+            this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");
@@ -24,6 +24,10 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
 
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
+            this.$el.find(".backButton").click(_.bind(function() {
+                this.patternOptions.deselect();
+                $(document.body).removeClass("configurePatternShowing");
+            },this));
         },
         loadPatternButtonClicked:function(e) {
             this.hide();
@@ -47,6 +51,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
             return pixelValues;
         },
         patternSelected:function(e,selectedObjects,selectedIndexes) {
+            if (selectedObjects.length == 0) return;
+
+            $(document.body).addClass("configurePatternShowing");
             var pattern = selectedObjects[0];
             this.activePattern = pattern;
 
@@ -79,8 +86,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         },
 
         show:function() {
+            console.log("showing load pattern dialog");
             var $mainContainer = $(document.body).find(".mainContainer");
-            $mainContainer.append(this.$el);
+            $mainContainer.append(this.$el.children());
             if (platform == "desktop") this.$el.modal('show');
             setTimeout(function() {
                 $(document.body).addClass("loadPatternShowing");
@@ -88,9 +96,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
         },
 
         hide:function() {
-            console.log("hide called.. ");
             var $body = $(document.body);
-            $body.removeClass("loadPatternShowing");
+            $(document.body).removeClass("loadPatternShowing");
+            $(document.body).removeClass("configurePatternShowing");
             $(document.body).find(".hideButton").unbind("click");
 
             if (platform == "desktop") {
@@ -98,7 +106,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
                 this.$el.remove();
             } else if (platform == "mobile") {
                 setInterval(_.bind(function() { //delay until the animation finishes
-                    this.$el.remove();
+                    this.$el.children().remove();
                 },this),500);
             }
         }
