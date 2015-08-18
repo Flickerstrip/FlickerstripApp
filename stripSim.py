@@ -48,7 +48,9 @@ packetTypes = {
         "DELETE_PATTERN": 4,
         "SELECT_PATTERN": 5,
         "SAVE_PATTERN": 6,
-        "PATTERN_BODY": 7
+        "PATTERN_BODY": 7,
+        "DISCONNECT_NETWORK": 8,
+        "AVAILABLE_BLOCKS": 9
 }
 
 packetTypesByNumber = {}
@@ -59,20 +61,26 @@ lastPing = 0;
 
 def receivedTcpPacket(info):
     global packetTypesByNumber, lastPing;
-    print("got tcp",info);
-    unpacked = struct.unpack('iiii',info);
+    print("info",info);
+    unpacked = struct.unpack('iiii',info[:16]);
     bytesTotal = unpacked[0];
     command = unpacked[1];
     param1 = unpacked[2];
     param2 = unpacked[3];
-    print(packetTypesByNumber[command],unpacked);
-    if (command == 1):
+    cmdName = packetTypesByNumber[command];
+    print(cmdName,unpacked);
+    if (cmdName == "PING"):
         lastPing = time.time();
         tcp_socket.send("ready\n\n");
         return;
 
-    if (command == 2):
+    if (cmdName == "GET_PATTERNS"):
         dummyPattern = "patterns\n0,dummypattern,768,2,2,0,1\n\nready\n\n";
+        tcp_socket.send(dummyPattern);
+        return;
+
+    if (cmdName == "AVAILABLE_BLOCKS"):
+        dummyPattern = "available,1000,4096\n\nready\n\n";
         tcp_socket.send(dummyPattern);
         return;
 

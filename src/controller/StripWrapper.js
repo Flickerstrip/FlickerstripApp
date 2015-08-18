@@ -207,7 +207,7 @@ extend(This.prototype,{
 		this._manageQueue();
     },
 	_manageQueue:function() {
-		if (this.sendBuffer.length != 0) {
+		if (this.status == "ready" && this.sendBuffer.length != 0) {
 			this.status = "busy";
 			var next = this.sendBuffer.shift();
             var buf = null;
