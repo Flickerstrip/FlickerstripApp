@@ -61,7 +61,6 @@ lastPing = 0;
 
 def receivedTcpPacket(info):
     global packetTypesByNumber, lastPing;
-    print("info",info);
     unpacked = struct.unpack('iiii',info[:16]);
     bytesTotal = unpacked[0];
     command = unpacked[1];
@@ -83,6 +82,8 @@ def receivedTcpPacket(info):
         dummyPattern = "available,1000,4096\n\nready\n\n";
         tcp_socket.send(dummyPattern);
         return;
+
+    tcp_socket.send("ready\n\n");
 
 def tick(dt):
     global tcp_connected, lastPing;

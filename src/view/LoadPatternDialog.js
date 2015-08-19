@@ -9,6 +9,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             this.$el = $("<div class='loadPatternDialog'/>");
 
             this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
+            this.$el = this.$el.children();
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");
@@ -88,7 +89,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
         show:function() {
             console.log("showing load pattern dialog");
             var $mainContainer = $(document.body).find(".mainContainer");
-            $mainContainer.append(this.$el.children());
+            $mainContainer.append(this.$el);
             if (platform == "desktop") this.$el.modal('show');
             setTimeout(function() {
                 $(document.body).addClass("loadPatternShowing");
@@ -106,7 +107,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
                 this.$el.remove();
             } else if (platform == "mobile") {
                 setInterval(_.bind(function() { //delay until the animation finishes
-                    this.$el.children().remove();
+                    this.$el.remove();
                 },this),500);
             }
         }

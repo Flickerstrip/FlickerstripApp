@@ -7,8 +7,18 @@ html, body, .scrollable {
     -webkit-overflow-scrolling: touch;
 }
 
+/////////////////// Font Size Adjustments /////////////////
+body {
+    font-size: 200%;
+}
+
+.progress-bar {
+    font-weight: bold;
+}
+/////////////////// Font Size Adjustments /////////////////
+
 .mobileHide {
-    display: none;
+    display: none !important;
 }
 
 .scrollable {
@@ -28,6 +38,11 @@ html, body, .scrollable {
 .navigationBar {
     border-top-right-radius: 0;
     border-top-left-radius: 0;
+
+    .navigationButtons button {
+        color: white;
+        background-color: transparent;
+    }
 }
 
 .body {
@@ -88,30 +103,42 @@ html, body, .scrollable {
 }
 ////////////// LOAD PATTERN //////////////
 
-.showMenuButton {
-    display: none;
-    position: absolute;
-    top: 0px;
-    left: 5px;
-}
-
-.groupDetailsShowing .showMenuButton {
-    display: block;
-}
-
-.backButton {
-    display: none;
-    position: absolute;
-    top: 0px;
-    left: 5px;
-}
-
-.loadPatternShowing .backButton {
-    display: block;
-}
-
 ////////////////////////////
 .navigationBar {
     height: @navbarheight;
 }
 ////////////////////////////
+
+/////////////////////////////////////////////////////////////
+.forgetPattern,
+.selectPattern {
+    display: none;
+}
+
+.forgetPattern {
+    font-weight: bold;
+    position: relative;
+    -webkit-transition: left .5s;
+    transition: left .5s;
+}
+
+.forgetPattern {
+    left: 200px;
+}
+
+.forgetPattern {
+    display: block !important;
+}
+
+.showDeleteButton {
+    background-color: blue;
+}
+
+.showDeleteButton .forgetPattern {
+    left: 0;
+}
+
+.listElement:hover {
+    background-color: inherit;
+}
+/////////////////////////////////////////////////////////////

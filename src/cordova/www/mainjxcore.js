@@ -9,7 +9,8 @@ function jxcore_ready() {
     requirejs.config({
         baseUrl: "./view/lib",
         "shim": {
-            "jquery.contextMenu"  : ["jquery"]
+            "jquery.contextMenu"  : ["jquery"],
+            "jquery.touchwipe.min"  : ["jquery"]
         },
         paths: {
             "view":"..",

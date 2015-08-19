@@ -1,4 +1,4 @@
-define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -14,8 +14,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.available,strip.memory.total);
             $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
 
-
-            this.$el.find(".showMenuButton").click(_.bind(function() {
+            this.$el.find(".backButton").click(_.bind(function() {
                 $(this).trigger("GroupDetailsDismissed");
             },this));
 
@@ -91,18 +90,44 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         },
         refreshPatterns:function() {
             this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)
+            $(this.patternList).change(_.bind(this.patternSelected,this));
             this.$el.find(".patterns").empty().append(this.patternList.$el);
+        },
+        patternSelected:function(e,selectedItems,selectedIndexes) {
+            if (selectedItems.length == 0) return;
+            this.$el.find(".listElement").removeClass("showDeleteButton");
+            var selectedPattern = selectedItems[0]
+            this.send("SelectPattern",this.strip.id,selectedPattern.index);
         },
         patternListRenderer:function(pattern,$el) {
             if ($el) {
                 $el.find(".name").text(pattern.name);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
-                var $select = $("<button class='selectPattern btn btn-success btn-xs'><span class='glyphicon glyphicon-play'></span></button>");
-                var $forget = $("<button class='forgetPattern btn btn-danger btn-xs'><span class='glyphicon glyphicon-minus'></span></button>");
+                var $select = $("<button class='selectPattern btn btn-success'><span class='glyphicon glyphicon-play'></span></button>");
+                var $forget = $("<button class='forgetPattern btn btn-danger'><span class='mobileOnly'>Forget</span><span class='mobileHide glyphicon glyphicon-minus'></span></button>");
 
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
                 $select.on("click",_.bind(this.selectPatternClicked,this));
+
+                if (platform == "mobile") {
+                    $el.touchwipe({
+                         wipeRight: _.bind(function() {
+                            if ($el.hasClass("showDeleteButton")) {
+                                $el.removeClass("showDeleteButton");
+                            } else {
+                                this.$el.find(".listElement").removeClass("showDeleteButton");
+                                $el.addClass("showDeleteButton");
+                            }
+                         },this),
+                         wipeLeft: _.bind(function() {
+                            $el.removeClass("showDeleteButton");
+                         },this),
+                         min_move_x: 20,
+                         min_move_y: 20,
+                         preventDefaultEvents: true
+                    });
+                }
                 $el.append($select);
                 $el.append($("<span class='name'></span>").text(pattern.name));
                 $el.append($forget);

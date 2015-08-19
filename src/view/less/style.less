@@ -2,7 +2,9 @@
 
 //////////////////////////////////
 .flexone {
-    flex: 1;
+    -webkit-flex: 1 0 auto;
+    -ms-flex: 1 0 auto;
+    flex: 1 0 auto;
 }
 
 //////////////////////////// Layout /////////////////////////////////
@@ -37,7 +39,7 @@
     z-index: 1001;
 }
 
-.navigationRemaining {
+.centeredInline {
     -webkit-flex: 1 0 auto;
     -ms-flex: 1 0 auto;
     flex: 1 0 auto;
@@ -51,16 +53,33 @@
     -ms-flex-align: center;
     -webkit-align-items: center;
     align-items: center;
+}
+
+.centeredInline * {
+    -webkit-flex: 0 1 auto;
+    -ms-flex: 0 1 auto;
+    flex: 0 1 auto;
+}
+
+.navigationRemaining {
+    .centeredInline;
+
     -webkit-justify-content: center;
     -ms-flex-pack: center;
     justify-content: center;
 }
 
-.navigationRemaining * {
-    -webkit-flex: 0 1 auto;
-    -ms-flex: 0 1 auto;
-    flex: 0 1 auto;
+.listElement {
+    padding: 0 10px;
+    height: 50px;
+    .centeredInline;
+    overflow: hidden;
+
+    .name {
+        .flexone;
+    }
 }
+
 
 input.seamless {
     border: none;
