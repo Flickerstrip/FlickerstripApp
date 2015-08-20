@@ -87,6 +87,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         forgetPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
 			this.send("ForgetPattern",this.strip.id,pattern.index);
+
+            e.preventDefault();
+            e.stopPropagation();
+            return true;
         },
         refreshPatterns:function() {
             this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)

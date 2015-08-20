@@ -72,21 +72,31 @@ define(['jquery'],function($) {
         keyDown:function(e) { //todo: handle ctrl-a, ctrl-c
             if (this.focused) {
                 if (e.keyCode == 40) { //down
+                    e.preventDefault();
                     if (this.selectedIndexes.length == 0) {
                         this.select(0);
                     } else if (this.selectedIndexes.length >= 1) {
                         this.select(this.cursorIndex+1,e.shiftKey);
                     }
+                    this.scrollToIndex(this.cursorIndex);
                     return true;
                 } else if (e.keyCode == 38) { //up
+                    e.preventDefault();
                     if (this.selectedIndexes.length == 0) {
                         this.select(this.getSize()-1);
                     } else if (this.selectedIndexes.length >= 1) {
                         this.select(this.cursorIndex-1,e.shiftKey);
                     }
+                    this.scrollToIndex(this.cursorIndex);
                     return true;
                 }
             }
+        },
+        scrollToIndex:function(index) {
+            //TODO implement me gracefully
+            var elOffset = this.$el.children(".listElement").eq(index).offset().top - this.$el.offset().top;
+            console.log("scrollto debug",elOffset);
+            //this.$el.scrollTop(elOffset);
         },
         getSize:function() {
             return this.$el.find(".listElement").length;

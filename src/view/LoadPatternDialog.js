@@ -60,15 +60,17 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
 
             this.$config.empty();
 
-            if (pattern.controls) {
-                this.controlView = new ControlsView(this.window,pattern.controls,{});
-                var controlValues = this.controlView.getValues();
-                $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
-                this.$config.append(this.controlView.el);
-                this.stripRenderer.setPatternAndParameters(pattern,controlValues);
-            } else {
-                this.stripRenderer.setPattern(pattern);
-            }
+            setTimeout(_.bind(function() {
+                if (pattern.controls) {
+                    this.controlView = new ControlsView(this.window,pattern.controls,{});
+                    var controlValues = this.controlView.getValues();
+                    $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
+                    this.$config.append(this.controlView.el);
+                    this.stripRenderer.setPatternAndParameters(pattern,controlValues);
+                } else {
+                    this.stripRenderer.setPattern(pattern);
+                }
+            },this),5);
         },
         controlsUpdated:function(e,$el) {
             var controlValues = this.controlView.getValues();
@@ -87,9 +89,14 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
         },
 
         show:function() {
-            var $mainContainer = $(document.body).find(".mainContainer");
-            $mainContainer.append(this.$el);
-            if (platform == "desktop") this.$el.modal('show');
+            if (platform == "mobile") {
+                var $mainContainer = $(document.body).find(".mainContainer");
+                $mainContainer.append(this.$el);
+            } else {
+                $(document.body).append(this.$el);
+                this.$el.modal('show');
+            }
+            
             setTimeout(function() {
                 $(document.body).addClass("loadPatternShowing");
             },5);

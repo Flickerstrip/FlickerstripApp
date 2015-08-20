@@ -3,7 +3,6 @@
 //////////////LAYOUT////////////////
 body {
     height: 100vh;
-    display: flex;
 }
 
 .backButton,
@@ -20,7 +19,8 @@ body {
 }
 
 .mainContainer {
-    display: flex;
+height: 100%;
+    .flex-display;
     .stripListing {
         .panel;
         border: none;
@@ -31,7 +31,7 @@ body {
         .panel;
         border: none;
         margin: 5px;
-        flex: 1;
+        .flex(1);
     }
 }
 
@@ -47,16 +47,65 @@ body {
 }
 
 ////////////////////////// Load Pattern Dialog ////////////////////////////////
+.flexExpandContent {
+    .flex-display;
+    > * {
+        .flex(1 1 auto);
+    }
+}
+
 .loadPatternDialog {
     .modal;
 }
 
 .loadPatternDialogContainer {
-    z-index: 1050;
-    .modal-dialog;
+    .modal;
+    .flexExpandContent;
+
+    .mdialog {
+        z-index: 1060;
+        .modal-dialog;
+        .flexExpandContent;
+    }
 
     .mcontent {
         .modal-content;
+        .flex-display;
+        .flex-direction(column);
+        .flex-wrap(no-wrap);
+        .align-items(stretch);
+
+        .navigationBar {
+            .flex(0 0 auto);
+        }
+
+        .mbody {
+            .flex(1 1 auto);
+            .flex-display;
+            .flex-direction(row);
+            .flex-wrap(no-wrap);
+            .align-items(stretch);
+            padding: 0;
+
+            .left {
+                width: 250px;
+                padding: 10px;
+                .flexExpandContent;
+
+                .list-group {
+                    overflow-y: scroll;
+                }
+            }
+
+            .right {
+                .flex(1 1 auto);
+                padding: 10px;
+            }
+        }
+
+        .mfooter {
+            .flex(0 0 auto);
+        }
     }
 
     .mbody {
