@@ -130,10 +130,6 @@ body {
     display: block !important;
 }
 
-.showDeleteButton {
-    background-color: blue;
-}
-
 .showDeleteButton .forgetPattern {
     left: 0;
 }
@@ -142,3 +138,76 @@ body {
     background-color: inherit;
 }
 /////////////////////////////////////////////////////////////
+
+.progressDialog {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+
+    -webkit-flex-align: center;
+    -ms-flex-align: center;
+    -webkit-align-items: center;
+    align-items: center;
+
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+
+    .mdialog {
+        border-radius: 10px;
+        background-color: rgba(0,0,0,.7);
+        width: 200px;
+        height: 200px;
+    }
+
+    .mheader {
+        display: none;
+    }
+
+    .mbody {
+        padding: 0 10px;
+        height: 100%;
+
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+
+        -webkit-flex-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
+
+        -webkit-justify-content: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+    }
+
+    .mcontent {
+        height: 100%;
+        width: 100%;
+        padding: 0;
+    }
+
+    .progress {
+        -webkit-flex: 1 0 auto;
+        -ms-flex: 1 0 auto;
+        flex: 1 0 auto;
+
+        background-color: rgba(0,0,0,.5);
+
+        .progress-bar {
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        border-radius: 10px;
+    }
+}

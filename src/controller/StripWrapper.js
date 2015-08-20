@@ -193,7 +193,7 @@ extend(This.prototype,{
                     offset = 0;
                 }
                 if (payload == null) console.log("ERROR: payload null",i,l,offset);
-                payload.writeUIntLE(data[i][l],offset++,1);
+                payload.writeUInt8(data[i][l],offset++);
             }
         }
         this.sendCommand(This.packetTypes.PATTERN_BODY,0xff,page,payload);
@@ -228,8 +228,12 @@ extend(This.prototype,{
 	_receivedClientData:function(socket,data) {
         this.lastReceivedData = new Date().getTime();
         stringData = trim(String(data));
-        //console.log("StringData: "+stringData);
+
 		if (stringData.length == 0) return;
+
+        if (!stringData.match(/ready/)) {
+            //console.log("StringData: "+stringData);
+        }
 
         var match = stringData.match(/id:(.*)/);
         if (match) {
@@ -286,8 +290,6 @@ extend(This.prototype,{
             return buf;
         } else if (type == "str") {
             throw "ERROR, using string!";
-            //var dataBuffer = new Buffer(data+"\n\n");
-            //return Buffer.concat([new Buffer([1]),dataBuffer]);
         }
     },
 });

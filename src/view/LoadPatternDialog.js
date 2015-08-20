@@ -87,7 +87,6 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
         },
 
         show:function() {
-            console.log("showing load pattern dialog");
             var $mainContainer = $(document.body).find(".mainContainer");
             $mainContainer.append(this.$el);
             if (platform == "desktop") this.$el.modal('show');

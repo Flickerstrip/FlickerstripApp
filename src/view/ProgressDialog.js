@@ -15,7 +15,7 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
         },
         update:function(e,strip,session) {
             if (session == null) {
-                this.$el.modal('hide')
+                this.hide();
                 $(this).trigger("Complete");
             } else {
                 var percent = Math.floor(100*(session.size-session.buffers.length)/session.size);
@@ -27,16 +27,26 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
             this.$el.find(".progress-bar").addClass("progress-bar-danger");
             this.$el.find(".mtitle").text("Upload Failed");
             setTimeout(_.bind(function() {
-                this.$el.modal('hide')
+                this.hide();
                 $(this).trigger("Complete");
             },this),500);
         },
         show:function() {
             $(document.body).append(this.$el);
-            this.$el.modal({
-                "backdrop":"static"
-            });
-            this.$el.modal('show');
+            if (platform == "desktop") {
+                this.$el.modal({
+                    "backdrop":"static"
+                });
+                this.$el.modal('show');
+            }
+        },
+        hide:function() {
+            if (platform == "desktop") {
+                this.$el.modal('hide');
+                this.$el.remove();
+            } else {
+                this.$el.remove();
+            }
         }
     });
 
