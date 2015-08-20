@@ -51,6 +51,10 @@ extend(This.prototype,{
             this.setStripName(id,newname);
         },this));
 
+        this.on("SetBrightness",_.bind(function(id,value) {
+            this.setBrightness(id,value);
+        },this));
+
         this.on("DisconnectStrip",_.bind(function(id) {
             this.disconnectStrip(id);
         },this));
@@ -107,6 +111,10 @@ extend(This.prototype,{
         var strip = this.getStrip(id);
         strip.name = name;
         this.saveStrips();
+    },
+    setBrightness:function(id,value) {
+        var strip = this.getStrip(id);
+        strip.setBrightness(value);
     },
     forgetStrip:function(id) {
         var index = this.getStripIndex(id);

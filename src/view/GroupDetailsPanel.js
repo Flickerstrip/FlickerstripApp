@@ -12,6 +12,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
             if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.available,strip.memory.total);
+            if (strip && strip.brightness) this.$el.find(".brightnessField").val(strip.brightness);
             $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
 
             this.$el.find(".backButton").click(_.bind(function() {
@@ -32,12 +33,22 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.updateAvailableIndicator(available,total);
             },this));
 
+            $(strip).on("Strip.AvailableBlocks",_.bind(function(strip,brightness) {
+                this.$el.find(".brightnessField").val(brightness);
+            },this));
+
+            this.$el.find(".brightnessField").on("change",_.bind(this.brightnessUpdated,this));
+
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
 
             this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
                 console.log("sending strip disconnect");
                 this.send("DisconnectStrip",this.strip.id);
             },this));
+        },
+        brightnessUpdated:function() {
+            var brightness = this.$el.find(".brightnessField").val();
+            this.send("SetBrightness",this.strip.id,brightness);
         },
         updateAvailableIndicator:function(available,total) {
             var percent = Math.floor(100*available/total);
@@ -70,7 +81,6 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.send("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-            console.log("load pattern clicked");
             var patternDialog = new LoadPatternDialog();
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();

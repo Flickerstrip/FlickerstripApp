@@ -31,7 +31,6 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             this.render();
 
             this.$el.find(".configureNewStrip").on("click",_.bind(function() {
-                console.log("calling redirect to settings");
                 var $div = $("<div />");
                 $div.css({
                     "position":"absolute",
@@ -73,6 +72,9 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                         available:available,
                         total:total
                     };
+                },
+                "Strip.Brightness":function(strip,brightness) {
+                    strip.brightness = brightness;
                 },
             };
             if (arguments[0].indexOf("Strip.") === 0) {

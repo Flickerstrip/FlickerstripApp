@@ -25,11 +25,11 @@ extend(This.prototype,{
 
 		connection.on("ReceivedPatternMetadata",_.bind(this.receivedPatternMetadata,this));
 		connection.on("ReceivedAvailableBlocks",_.bind(this.receivedAvailableBlocks,this));
+		connection.on("ReceivedBrightness",_.bind(this.receivedBrightness,this));
 		connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
 		connection.on("Disconnect",_.bind(this.connectionReset,this));
 
-        this.requestPatterns();
-        this.requestAvailable();
+        this.requestStatus();
     },
     clearConnection:function() {
         if (this._connection) this._connection.destroy();
@@ -50,9 +50,17 @@ extend(This.prototype,{
         }
         this.emit("Strip.AvailableBlocks",available,total);
     },
+    receivedBrightness:function(connection,brightness) {
+        this.emit("Strip.Brightness",brightness);
+    },
     connectionReset:function(connection,error) {
         this.clearConnection();
         this.emit("Disconnect",this);
+    },
+    requestStatus:function() {
+        this.requestPatterns();
+        this.requestAvailable();
+	    this._connection.sendCommand(StripWrapper.packetTypes.GET_BRIGHTNESS);
     },
 	requestPatterns:function() {
 	    this._connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
@@ -60,18 +68,21 @@ extend(This.prototype,{
 	requestAvailable:function() {
 	    this._connection.sendCommand(StripWrapper.packetTypes.AVAILABLE_BLOCKS);
 	},
+	setBrightness:function(brightness) {
+        if (brightness < 0) brightness = 0;
+        if (brightness > 100) brightness = 100;
+	    this._connection.sendCommand(StripWrapper.packetTypes.SET_BRIGHTNESS,brightness);
+	},
     loadPattern:function(name,fps,data) {
         this._connection.sendPattern(name,fps,data);
-        this.requestPatterns();
-        this.requestAvailable();
+        this.requestStatus();
     },
     selectPattern:function(index) {
         this._connection.sendCommand(StripWrapper.packetTypes.SELECT_PATTERN,index);
     },
 	forgetPattern:function(index) {
         this._connection.sendCommand(StripWrapper.packetTypes.DELETE_PATTERN,index);
-		this.requestPatterns();
-        this.requestAvailable();
+        this.requestStatus();
     },
 	disconnectStrip:function() {
         this._connection.sendCommand(StripWrapper.packetTypes.DISCONNECT_NETWORK);

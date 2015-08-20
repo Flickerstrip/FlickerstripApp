@@ -44,6 +44,8 @@ This.packetTypes = {
     PATTERN_BODY: 7,
     DISCONNECT_NETWORK: 8,
     AVAILABLE_BLOCKS: 9,
+    SET_BRIGHTNESS: 10,
+    GET_BRIGHTNESS: 11,
 }
 
 util.inherits(This,EventEmitter);
@@ -273,6 +275,14 @@ extend(This.prototype,{
             var available = parseInt(fields[1]);
             var total = parseInt(fields[2]);
             this.emit("ReceivedAvailableBlocks",this,available,total);
+            return;
+        }
+
+        if (stringData.startsWith("brightness")) {
+            var lines = stringData.split("\n");
+            var fields = lines[0].split(":");
+            var brightness = parseInt(fields[1]);
+            this.emit("ReceivedBrightness",this,brightness);
             return;
         }
 
