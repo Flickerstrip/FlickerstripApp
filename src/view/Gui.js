@@ -64,17 +64,10 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 "Strip.Disconnected":function(strip) {
                     strip.connected = false;
                 },
-                "Strip.PatternsUpdated":function(strip,patterns) {
-                    strip.patterns = patterns;
-                },
-                "Strip.AvailableBlocks":function(strip,available,total) {
-                    strip.memory = {
-                        available:available,
-                        total:total
-                    };
-                },
-                "Strip.Brightness":function(strip,brightness) {
-                    strip.brightness = brightness;
+                "Strip.StatusUpdated":function(strip,stripStatus) {
+                    strip.patterns = stripStatus.patterns;
+                    strip.memory = stripStatus.memory;
+                    strip.brightness = stripStatus.brightness;
                 },
             };
             if (arguments[0].indexOf("Strip.") === 0) {

@@ -36,16 +36,14 @@ var This = function() {
 This.packetTypes = {
     UNUSED: 0,
     PING: 1,
-    GET_PATTERNS: 2,
+    GET_STATUS: 2,
     CLEAR_PATTERNS: 3,
     DELETE_PATTERN: 4,
     SELECT_PATTERN: 5,
     SAVE_PATTERN: 6,
     PATTERN_BODY: 7,
     DISCONNECT_NETWORK: 8,
-    AVAILABLE_BLOCKS: 9,
-    SET_BRIGHTNESS: 10,
-    GET_BRIGHTNESS: 11,
+    SET_BRIGHTNESS: 9,
 }
 
 util.inherits(This,EventEmitter);
@@ -248,41 +246,9 @@ extend(This.prototype,{
             return;
         }
 
-        if (stringData.startsWith("patterns")) {
-            var lines = stringData.split("\n");
-            lines.splice(0,1);
-            var patternData = [];
-            _.each(lines,function(line) {
-                var tokens = line.split(",");
-                patternData.push({
-                    index: parseInt(tokens[0]),
-                    name: tokens[1],
-                    address: parseInt(tokens[2]),
-                    len: parseInt(tokens[3]),
-                    frames: parseInt(tokens[4]),
-                    flags: parseInt(tokens[5]),
-                    fps: parseInt(tokens[6])
-                });
-            });
-			this.patterns = patternData;
-            this.emit("ReceivedPatternMetadata",this,patternData);
-            return;
-        }
-
-        if (stringData.startsWith("available")) {
-            var lines = stringData.split("\n");
-            var fields = lines[0].split(",");
-            var available = parseInt(fields[1]);
-            var total = parseInt(fields[2]);
-            this.emit("ReceivedAvailableBlocks",this,available,total);
-            return;
-        }
-
-        if (stringData.startsWith("brightness")) {
-            var lines = stringData.split("\n");
-            var fields = lines[0].split(":");
-            var brightness = parseInt(fields[1]);
-            this.emit("ReceivedBrightness",this,brightness);
+        if (stringData.startsWith("{")) { //TODO come up with a better way of doing this
+            var stripStatus = JSON.parse(stringData);
+            this.emit("ReceivedStatus",this,stripStatus);
             return;
         }
 

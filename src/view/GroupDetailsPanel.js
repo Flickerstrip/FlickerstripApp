@@ -11,9 +11,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.$el.empty().append(template);
             this.strip = strip;
             if (strip && strip.patterns) this.refreshPatterns();
-            if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.available,strip.memory.total);
+            if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.used,strip.memory.total);
             if (strip && strip.brightness) this.$el.find(".brightnessField").val(strip.brightness);
-            $(strip).on("Strip.PatternsUpdated",_.bind(this.refreshPatterns,this));
+
+            $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
 
             this.$el.find(".backButton").click(_.bind(function() {
                 $(this).trigger("GroupDetailsDismissed");
@@ -29,14 +30,6 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.updateValues(strip);
             },this));
 
-            $(strip).on("Strip.AvailableBlocks",_.bind(function(strip,available,total) {
-                this.updateAvailableIndicator(available,total);
-            },this));
-
-            $(strip).on("Strip.AvailableBlocks",_.bind(function(strip,brightness) {
-                this.$el.find(".brightnessField").val(brightness);
-            },this));
-
             this.$el.find(".brightnessField").on("change",_.bind(this.brightnessUpdated,this));
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
@@ -46,12 +39,17 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.send("DisconnectStrip",this.strip.id);
             },this));
         },
+        statusUpdated:function() {
+            this.updateAvailableIndicator(this.strip.memory.used,this.strip.memory.total);
+            this.$el.find(".brightnessField").val(this.strip.brightness);
+            this.refreshPatterns();
+        },
         brightnessUpdated:function() {
             var brightness = this.$el.find(".brightnessField").val();
             this.send("SetBrightness",this.strip.id,brightness);
         },
-        updateAvailableIndicator:function(available,total) {
-            var percent = Math.floor(100*available/total);
+        updateAvailableIndicator:function(used,total) {
+            var percent = Math.floor(100*used/total);
             this.$el.find(".spaceAvailableIndicator").css("width",percent+"%").text(percent+"% used");
         },
         updateValues:function(strip) {

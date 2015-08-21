@@ -23,9 +23,7 @@ extend(This.prototype,{
         if (this.id == null) this.id = this._connection.id;
         if (this.id != this._connection.id) throw "Error, connection ID mismatch: "+this.id+" =/= "+this._connection.id;
 
-		connection.on("ReceivedPatternMetadata",_.bind(this.receivedPatternMetadata,this));
-		connection.on("ReceivedAvailableBlocks",_.bind(this.receivedAvailableBlocks,this));
-		connection.on("ReceivedBrightness",_.bind(this.receivedBrightness,this));
+		connection.on("ReceivedStatus",_.bind(this.receivedStatus,this));
 		connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
 		connection.on("Disconnect",_.bind(this.connectionReset,this));
 
@@ -39,35 +37,19 @@ extend(This.prototype,{
         var session = connection.getCurrentSession();
         this.emit("Strip.ProgressUpdated",this,session);
     },
-    receivedPatternMetadata:function(connection,patterns) {
-        this.patterns = patterns;
-        this.emit("Strip.PatternsUpdated",patterns);
-    },
-    receivedAvailableBlocks:function(connection,available,total) {
-        this.memory = {
-            available:available,
-            total:total
-        }
-        this.emit("Strip.AvailableBlocks",available,total);
-    },
-    receivedBrightness:function(connection,brightness) {
-        this.emit("Strip.Brightness",brightness);
+    receivedStatus:function(connection,stripStatus) {
+        this.patterns = stripStatus.patterns;
+        this.memory = stripStatus.memory;
+        this.brightness = stripStatus.brightness;
+        this.emit("Strip.StatusUpdated",stripStatus);
     },
     connectionReset:function(connection,error) {
         this.clearConnection();
         this.emit("Disconnect",this);
     },
     requestStatus:function() {
-        this.requestPatterns();
-        this.requestAvailable();
-	    this._connection.sendCommand(StripWrapper.packetTypes.GET_BRIGHTNESS);
+	    this._connection.sendCommand(StripWrapper.packetTypes.GET_STATUS);
     },
-	requestPatterns:function() {
-	    this._connection.sendCommand(StripWrapper.packetTypes.GET_PATTERNS);
-	},
-	requestAvailable:function() {
-	    this._connection.sendCommand(StripWrapper.packetTypes.AVAILABLE_BLOCKS);
-	},
 	setBrightness:function(brightness) {
         if (brightness < 0) brightness = 0;
         if (brightness > 100) brightness = 100;
