@@ -102,6 +102,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         },
         refreshPatterns:function() {
             this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)
+            if (this.strip.selectedPattern !== undefined) this.patternList.select(this.strip.selectedPattern); //TODO is index okay?
             $(this.patternList).change(_.bind(this.patternSelected,this));
             this.$el.find(".patterns").empty().append(this.patternList.$el);
         },
@@ -116,11 +117,11 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 $el.find(".name").text(pattern.name);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
-                var $select = $("<button class='selectPattern btn btn-success'><span class='glyphicon glyphicon-play'></span></button>");
+                //var $select = $("<button class='selectPattern btn btn-success'><span class='glyphicon glyphicon-play'></span></button>");
                 var $forget = $("<button class='forgetPattern btn btn-danger'><span class='mobileOnly'>Forget</span><span class='mobileHide glyphicon glyphicon-minus'></span></button>");
 
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
-                $select.on("click",_.bind(this.selectPatternClicked,this));
+                //$select.on("click",_.bind(this.selectPatternClicked,this));
 
                 if (platform == "mobile") {
                     $el.touchwipe({
@@ -140,7 +141,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                          preventDefaultEvents: true
                     });
                 }
-                $el.append($select);
+                //$el.append($select);
                 $el.append($("<span class='name'></span>").text(pattern.name));
                 $el.append($forget);
             }

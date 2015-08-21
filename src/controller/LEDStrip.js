@@ -41,6 +41,7 @@ extend(This.prototype,{
         this.patterns = stripStatus.patterns;
         this.memory = stripStatus.memory;
         this.brightness = stripStatus.brightness;
+        this.selectedPattern = stripStatus.selectedPattern;
         this.emit("Strip.StatusUpdated",stripStatus);
     },
     connectionReset:function(connection,error) {

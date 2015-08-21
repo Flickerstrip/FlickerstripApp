@@ -68,6 +68,8 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                     strip.patterns = stripStatus.patterns;
                     strip.memory = stripStatus.memory;
                     strip.brightness = stripStatus.brightness;
+                    strip.selectedPattern = stripStatus.selectedPattern;
+                    console.log(stripStatus);
                 },
             };
             if (arguments[0].indexOf("Strip.") === 0) {

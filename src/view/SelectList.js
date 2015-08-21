@@ -124,7 +124,7 @@ define(['jquery'],function($) {
 
             var i = 0;
             var self = this;
-            this.$el.children().each(function() {
+            this.$el.children(".listElement").each(function() {
                 $(this).toggleClass("selected",selectedMap[i] == true);
                 i++;
             });
