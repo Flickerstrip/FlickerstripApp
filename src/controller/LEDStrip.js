@@ -56,6 +56,9 @@ extend(This.prototype,{
         if (brightness > 100) brightness = 100;
 	    this._connection.sendCommand(StripWrapper.packetTypes.SET_BRIGHTNESS,brightness);
 	},
+    toggle:function(value) {
+        this._connection.sendCommand(StripWrapper.packetTypes.TOGGLE_POWER,value);
+    },
     loadPattern:function(name,fps,data) {
         this._connection.sendPattern(name,fps,data);
         this.requestStatus();

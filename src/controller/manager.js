@@ -55,6 +55,11 @@ extend(This.prototype,{
             this.setBrightness(id,value);
         },this));
 
+        this.on("ToggleStrip",_.bind(function(id,value) {
+		    var strip = this.getStrip(id);
+            strip.toggle(value);
+        },this));
+
         this.on("DisconnectStrip",_.bind(function(id) {
             this.disconnectStrip(id);
         },this));
@@ -151,7 +156,7 @@ extend(This.prototype,{
         var strip = this.getStrip(connection.id);
         if (strip) {
             strip.setConnection(connection);
-            this.send("Strip.StatusUpdated",strip.id);
+            this.send("Strip.Connected",strip.id);
         } else {
             strip = new LEDStrip(connection);
             this.strips.push(strip);
@@ -167,7 +172,6 @@ extend(This.prototype,{
         this.send("Strip.Connected",strip.id);
 	},
 	clientDisconnected:function(strip) {
-        this.send("Strip.StatusUpdated",strip.id);
 		this.send("Strip.Disconnected",strip.id);
 	},
 });

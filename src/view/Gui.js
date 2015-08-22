@@ -65,11 +65,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                     strip.connected = false;
                 },
                 "Strip.StatusUpdated":function(strip,stripStatus) {
-                    strip.patterns = stripStatus.patterns;
-                    strip.memory = stripStatus.memory;
-                    strip.brightness = stripStatus.brightness;
-                    strip.selectedPattern = stripStatus.selectedPattern;
-                    console.log(stripStatus);
+                    $.extend(strip,stripStatus);
                 },
             };
             if (arguments[0].indexOf("Strip.") === 0) {
@@ -142,7 +138,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");
-            var selectList = new SelectList([],this.stripElementRenderer);
+            var selectList = new SelectList([],this.stripElementRenderer,this);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
 
@@ -166,14 +162,32 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             if (!name) name = "Unknown Strip";
 
             if ($el) {
-                $el.find(".stripName").text(name);
+                $el.find(".name").text(name);
                 var statusClass = strip._connection ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
                 var statusClass = strip._connection ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
-                $el.append($("<span class='stripName'></span>").text(name));
+                $el.append($("<span class='name'></span>").text(name));
+                var $onoff = $("<button class='powerButton'><span class='glyphicon glyphicon-off'></span></button>");
+                $onoff.toggleClass("on",strip.power == 1);
+                $(strip).on("Strip.StatusUpdated",function() {
+                    $onoff.toggleClass("on",strip.power == 1);
+                });
+                $onoff.click(_.bind(function(e) {
+                    if ($onoff.hasClass("on")) {
+                        this.send("ToggleStrip",strip.id,0);
+                        $onoff.toggleClass("on",false);
+                    } else {
+                        this.send("ToggleStrip",strip.id,1);
+                        $onoff.toggleClass("on",true);
+                    }
+                    e.stopPropagation();
+                    return false;
+                },this));
+                $el.append($onoff);
+
             }
             return $el;
         },

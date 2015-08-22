@@ -44,6 +44,7 @@ This.packetTypes = {
     PATTERN_BODY: 7,
     DISCONNECT_NETWORK: 8,
     SET_BRIGHTNESS: 9,
+    TOGGLE_POWER: 10,
 }
 
 util.inherits(This,EventEmitter);
@@ -247,14 +248,17 @@ extend(This.prototype,{
         }
 
         if (stringData.startsWith("{")) { //TODO come up with a better way of doing this
-            var stripStatus = JSON.parse(stringData);
-            this.emit("ReceivedStatus",this,stripStatus);
-            return;
-        }
-
-        match = stringData.match(/ready/);
-        if (match) {
-			this._stripReady();
+            try {
+                var json = JSON.parse(stringData);
+            } catch(e) {
+                console.log("failed to parse json: "+stringData);
+            }
+            var type = json.type;
+            if (type == "ready") {
+                this._stripReady();
+            } else if (type == "status") {
+                this.emit("ReceivedStatus",this,json);
+            }
             return;
         }
 
