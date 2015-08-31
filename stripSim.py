@@ -50,7 +50,8 @@ packetTypes = {
         "SAVE_PATTERN": 6,
         "PATTERN_BODY": 7,
         "DISCONNECT_NETWORK": 8,
-        "AVAILABLE_BLOCKS": 9
+        "AVAILABLE_BLOCKS": 9,
+        "TOGGLE_POWER": 10,
 }
 
 packetTypesByNumber = {}
@@ -68,22 +69,20 @@ def receivedTcpPacket(info):
     param2 = unpacked[3];
     cmdName = packetTypesByNumber[command];
     print(cmdName,unpacked);
+
     if (cmdName == "PING"):
         lastPing = time.time();
-        tcp_socket.send("ready\n\n");
+        print("send ping")
+        tcp_socket.send('{"type":"ready"}\n\n');
         return;
 
     if (cmdName == "GET_PATTERNS"):
-        dummyPattern = "patterns\n0,dummypattern,768,2,2,0,1\n\nready\n\n";
-        tcp_socket.send(dummyPattern);
+        json = '{"type":"status","patterns":[{"name":"Strip name","address":768,"length":2,"frame":2,"flags":0,"fps":1}],"selectedPattern":5,"brightness":50,"memory":{"used":100,"free":100,"total":100}}\n\n';
+        tcp_socket.send(json);
+        tcp_socket.send('{"type":"ready"}\n\n');
         return;
 
-    if (cmdName == "AVAILABLE_BLOCKS"):
-        dummyPattern = "available,1000,4096\n\nready\n\n";
-        tcp_socket.send(dummyPattern);
-        return;
-
-    tcp_socket.send("ready\n\n");
+    tcp_socket.send('{"type":"ready"}\n\n');
 
 def tick(dt):
     global tcp_connected, lastPing;

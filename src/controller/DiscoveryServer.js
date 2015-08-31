@@ -39,6 +39,7 @@ extend(This.prototype,{
     startServer:function(port) {
         var server = net.createServer(_.bind(function (socket) {
             socket.name = socket.remoteAddress + ":" + socket.remotePort;
+            console.log("got client");
 
             this.emit("ClientConnected",socket);
         },this)).listen(port);

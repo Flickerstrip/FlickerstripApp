@@ -33,6 +33,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.$el.find(".brightnessField").on("change",_.bind(this.brightnessUpdated,this));
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
+            this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
 
             this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
                 console.log("sending strip disconnect");
@@ -83,9 +84,13 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();
         },
-        savePattern:function(e,name,fps,pattern) {
+        uploadFirmwareClicked:function(e) {
+            var filepath = prompt("Firmware path");
+            this.send("UploadFirmware",this.strip.id,filepath);
+        },
+        savePattern:function(e,name,fps,pattern,isPreview) {
             var len = pattern.length * pattern[0].length;
-            this.send("LoadPattern",this.strip.id,name,fps,pattern);
+            this.send("LoadPattern",this.strip.id,name,fps,pattern,isPreview);
             var progressDialog = new ProgressDialog(this.strip);
             progressDialog.show();
             $(progressDialog).on("Complete",function() {

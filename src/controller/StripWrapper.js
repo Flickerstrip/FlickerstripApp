@@ -45,6 +45,8 @@ This.packetTypes = {
     DISCONNECT_NETWORK: 8,
     SET_BRIGHTNESS: 9,
     TOGGLE_POWER: 10,
+    SAVE_TEST_PATTERN: 11,
+    UPLOAD_FIRMWARE: 12,
 }
 
 util.inherits(This,EventEmitter);
@@ -53,6 +55,7 @@ extend(This.prototype,{
 	sendBuffer:[],
     session:null,
 	socket:null,
+    ignoreData:false,
 	init:function(socket) {
         if (socket) {
             this.connect(socket);
@@ -63,6 +66,8 @@ extend(This.prototype,{
 
 		var buffer = "";
 		socket.on('data', _.bind(function(data) {
+            this.lastReceivedData = new Date().getTime();
+            if (this.ignoreData) return;
                 /*
             var bytes = [];
             for (var i = 0; i < buffer.length; ++i) {
@@ -99,6 +104,12 @@ extend(This.prototype,{
 
         this.idlePingTimer = setInterval(_.bind(this.idlePing,this),1000);
     },
+    pauseDataHandler:function() {
+        this.ignoreData = true;
+    },
+    resumeDataHandler:function() {
+        this.ignoreData = false;
+    },
     idlePing:function() {
         var now = new Date().getTime();
         //console.log(now-this.lastReceivedData,now,this.lastReceivedData);
@@ -123,14 +134,22 @@ extend(This.prototype,{
 	getSocket:function() {
 		return this.socket;
 	},
-    sendCommand:function(command,param1,param2,payload) {
+    _prepareCommand:function(command,param1,param2,payload) {
         param1 = param1 | 0;
         param2 = param2 | 0;
         var buffer = Buffer.concat([bufferFromNumber(command),bufferFromNumber(param1),bufferFromNumber(param2)]);
         if (payload) {
             buffer = Buffer.concat([buffer,payload]);
         }
+        return buffer;
+    },
+    sendCommand:function(command,param1,param2,payload) {
+        var buffer = this._prepareCommand(command,param1,param2,payload);
         this.queueData("bin",buffer);
+    },
+    sendCustom:function(fn) {
+        this.sendBuffer.push(fn);
+        this._manageQueue()
     },
     queueData:function(type,data) {
         var buf = this._prepareBuffer(type,data);
@@ -158,7 +177,7 @@ extend(This.prototype,{
         this.session = null;
         this._manageQueue();
     },
-	sendPattern:function(name,fps,data) {
+	sendPattern:function(name,fps,data,isPreview) {
         var frames = data.length;
         var len = data[0].length;
         var metadata = _c.packSync("PatternMetadata",{
@@ -176,7 +195,11 @@ extend(This.prototype,{
         var offset = 0;
 
         this.startSession();
-        this.sendCommand(This.packetTypes.SAVE_PATTERN,0,0,metadata);
+        if (isPreview) {
+            this.sendCommand(This.packetTypes.SAVE_TEST_PATTERN,0,0,metadata);
+        } else {
+            this.sendCommand(This.packetTypes.SAVE_PATTERN,0,0,metadata);
+        }
         //this.queueData("bin",Buffer.concat([new Buffer("save\0"),metadata]));
         for (var i=0; i<frames; i++) {
             for (var l=0; l<len; l++) {
@@ -212,7 +235,11 @@ extend(This.prototype,{
 			this.status = "busy";
 			var next = this.sendBuffer.shift();
             var buf = null;
-            if (next.buffers) {
+            if (typeof(next) === "function") {
+                if (!next(this.socket)) {
+                    this.sendBuffer.unshift(next);
+                }
+            } else if (next.buffers) {
                 buf = next.buffers.shift();
                 if (next.buffers.length != 0) {
                     this.sendBuffer.unshift(next);
@@ -227,7 +254,6 @@ extend(This.prototype,{
 		}
 	},
 	_receivedClientData:function(socket,data) {
-        this.lastReceivedData = new Date().getTime();
         stringData = trim(String(data));
 
 		if (stringData.length == 0) return;
@@ -254,6 +280,7 @@ extend(This.prototype,{
                 console.log("failed to parse json: "+stringData);
             }
             var type = json.type;
+            //console.log("type",type);
             if (type == "ready") {
                 this._stripReady();
             } else if (type == "status") {

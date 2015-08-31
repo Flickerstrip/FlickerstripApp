@@ -71,64 +71,6 @@ define(['tinycolor'],function(tinycolor) {
                 }
         },
         {
-            name:"A Color Blink",
-            leds: 1,
-            frames: 2,
-            fps: 1,
-            controls: [
-                {
-                    name: "Color1",
-                    id: "color1",
-                    type: "color",
-                    default: "#f00"
-                },
-                {
-                    name: "Color2",
-                    id: "color2",
-                    type: "color",
-                    default: "#0f0"
-                }
-            ],
-            renderer: function(x,t,args) {
-                    var color;
-                    if (t == 0) {
-                        color = tinycolor(args.color1).toRgb();
-                    } else {
-                        color = tinycolor(args.color2).toRgb();
-                    }
-                    return new tinycolor({r:color.r,g:color.g,b:color.b});
-                }
-        },
-        {
-            name:"B Color Blink",
-            leds: 1,
-            frames: 2,
-            fps: 1,
-            controls: [
-                {
-                    name: "Color1",
-                    id: "color1",
-                    type: "color",
-                    default: "#f00"
-                },
-                {
-                    name: "Color2",
-                    id: "color2",
-                    type: "color",
-                    default: "#0f0"
-                }
-            ],
-            renderer: function(x,t,args) {
-                    var color;
-                    if (t == 0) {
-                        color = tinycolor(args.color1).toRgb();
-                    } else {
-                        color = tinycolor(args.color2).toRgb();
-                    }
-                    return new tinycolor({r:color.r,g:color.g,b:color.b});
-                }
-        },
-        {
             name:"Color Blink",
             leds: 1,
             frames: 2,
@@ -218,6 +160,52 @@ define(['tinycolor'],function(tinycolor) {
                     var c = new tinycolor({h:360*(((t+x)%150)/150),s:100,v:100});
                     return c;
                 }
+        },
+        {
+            name:"Rainbow Solid",
+            leds: 150,
+            frames: 1,
+            fps: 1,
+            controls: [
+                {
+                    name: "Start Index",
+                    id: "start",
+                    type: "number",
+                    default: "0"
+                },
+                {
+                    name: "End Index",
+                    id: "end",
+                    type: "number",
+                    default: "150"
+                }
+            ],
+            renderer: function(x,t,args) {
+                    var size = args.end - args.start;
+                    if (x < args.start || x > args.end) return new tinycolor(0,0,0);
+                    var index = x - args.start;
+                    var hue = 360*((index%size)/size);
+                    var c = new tinycolor({h:hue,s:100,v:100});
+                    return c;
+                }
+        },
+        {
+            name:"Custom",
+            leds: 150,
+            frames: 1,
+            fps: 1,
+            controls: [
+                {
+                    name: "Function",
+                    id: "f",
+                    type: "text",
+                    default: "function(x,t) {\n\tvar c = new tinycolor({r:255,g:0,b:0});\n\treturn c;\n}"
+                }
+            ],
+            renderer: function(x,t,args) {
+                    var val = eval("("+args.f+")")(x,t);
+                    return val;
+            }
         }
     ];
 });

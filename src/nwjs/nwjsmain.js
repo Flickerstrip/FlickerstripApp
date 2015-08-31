@@ -18,6 +18,13 @@ requirejs.config({
 });
 
 var win = nw.Window.get();
+var nativeMenuBar = new nw.Menu({ type: "menubar" });
+try {
+    nativeMenuBar.createMacBuiltin("My App");
+    win.menu = nativeMenuBar;
+} catch (ex) {
+    console.log(ex.message);
+}
 
 var debugMode = true;
 if (debugMode) {

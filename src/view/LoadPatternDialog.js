@@ -24,6 +24,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
 
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
+            this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
             this.$el.find(".backButton").click(_.bind(function() {
                 this.patternOptions.deselect();
@@ -36,6 +37,12 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.generatePattern();
                 $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern]);
+            },this),5);
+        },
+        previewPatternButtonClicked:function(e) {
+            setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
+                var pattern = this.generatePattern();
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern,true]);
             },this),5);
         },
         generatePattern:function() {

@@ -3,6 +3,7 @@ var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
 var StripWrapper = require("./StripWrapper");
+var fs = require("fs");
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -48,6 +49,58 @@ extend(This.prototype,{
         this.clearConnection();
         this.emit("Disconnect",this);
     },
+    uploadFirmware:function(path) {
+        var stream = fs.createReadStream(path);
+        var stats = fs.statSync(path)
+        var hexSize = stats["size"];
+        console.log("bytes",hexSize);
+
+        var setup = false;
+        var done = false;
+        var frameSize = 1000;
+        var bytesSent = 0;
+        stream.on("readable",_.bind(function() {
+            this._connection.sendCustom(_.bind(function(socket) {
+                if (!setup) {
+                    setup = true;
+                    this._connection.pauseDataHandler();
+                    var buf = this._connection._prepareCommand(StripWrapper.packetTypes.UPLOAD_FIRMWARE,hexSize);
+                    socket.write(this._connection._prepareBuffer("bin",buf));
+                    function dataHandler() {
+                        if (done) return;
+
+                        var buf = stream.read(frameSize);
+                        if (!buf) {
+                            console.log("loading remaining..");
+                            buf = stream.read();
+                            if (buf) console.log("got remaining: "+buf.length);
+                        }
+
+                        if (buf) { 
+                            bytesSent += buf.length;
+                            socket.write(buf);
+                            console.log("sending: "+bytesSent+" of "+hexSize);
+                        } else {
+                            console.log("done sending!");
+                            socket.removeListener("data",_.bind(dataHandler,this));
+                            setTimeout(_.bind(function() {
+                                done = true;
+                                this._connection.status = "ready";
+                                this._connection._manageQueue();
+                            },this),5);
+                        }
+                    }
+                    socket.on("data",_.bind(dataHandler,this));
+                    dataHandler.call(this);
+                    return false;
+                } else if (done) {
+                    console.log("returning true from f call");
+                    this._connection.resumeDataHandler();
+                    return true;
+                }
+            },this));
+        },this));
+    },
     requestStatus:function() {
 	    this._connection.sendCommand(StripWrapper.packetTypes.GET_STATUS);
     },
@@ -59,9 +112,9 @@ extend(This.prototype,{
     toggle:function(value) {
         this._connection.sendCommand(StripWrapper.packetTypes.TOGGLE_POWER,value);
     },
-    loadPattern:function(name,fps,data) {
-        this._connection.sendPattern(name,fps,data);
-        this.requestStatus();
+    loadPattern:function(name,fps,data,isPreview) {
+        this._connection.sendPattern(name,fps,data,isPreview);
+        if (!isPreview) this.requestStatus();
     },
     selectPattern:function(index) {
         this._connection.sendCommand(StripWrapper.packetTypes.SELECT_PATTERN,index);

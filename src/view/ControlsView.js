@@ -34,6 +34,14 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                         $(self).trigger("Change",[$(this)]);
                     });
 
+                } else if (type == "text") {
+                    var $el = $("<textarea />");
+                    $el.attr("name",control.id);
+                    $el.val(control.default);
+                    $form.append($el);
+                    $el.change(function() {
+                        $(self).trigger("Change",[$(this)]);
+                    });
                 } else {
                     var $el = $("<input />");
                     $el.attr("type",type);

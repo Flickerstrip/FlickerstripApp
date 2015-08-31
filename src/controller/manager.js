@@ -35,10 +35,16 @@ extend(This.prototype,{
             strip.selectPattern(index);
         },this));
 		
-        this.on("LoadPattern",_.bind(function(id,name,fps,data) {
+        this.on("LoadPattern",_.bind(function(id,name,fps,data,isPreview) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
-            strip.loadPattern(name,fps,data);
+            strip.loadPattern(name,fps,data,isPreview);
+        },this));
+
+        this.on("UploadFirmware",_.bind(function(id,path) {
+		    var strip = this.getStrip(id);
+            if (!strip) return;
+            strip.uploadFirmware(path);
         },this));
 
 		this.on("ForgetPattern",_.bind(function(id,index) {
