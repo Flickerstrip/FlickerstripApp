@@ -6,6 +6,8 @@ var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
 var LEDStrip = require("./LEDStrip")
 var fs = require("fs");
+var request = require("request")
+
 //var USBCommunication = require("./USBCommunication");
 //var WirelessManager = require("./WirelessManager");
 
@@ -17,6 +19,7 @@ util.inherits(This,EventEmitter);
 extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
     strips:[],
+    firmwareReleases:[],
     init:function(send) {
         this.send = send;
         this.discovery = new DiscoveryServer();
@@ -24,6 +27,7 @@ extend(This.prototype,{
         //this.wifi = new WirelessManager();
         //this.usb = new USBCommunication();
 
+        this.loadFirmwareReleaseInfo();
         this.loadStrips();
 
         this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
@@ -74,6 +78,31 @@ extend(This.prototype,{
             this.forgetStrip(id);
         },this));
         ///////////////////////////////////////// Strip actions
+    },
+    loadFirmwareReleaseInfo:function() {
+        function symanticToNumeric(symantic) {
+            if (symantic[0] == "v") symantic = symantic.substring(1);
+            var parts = symantic.split(".");
+            var step = 1000;
+            var numeric = parseInt(parts[0])*step*step + parseInt(parts[1])*step + parseInt(parts[2]);
+            console.log("sym",symantic,numeric);
+            return numeric;
+        }
+        request({
+            url:"https://api.github.com/repos/julianh2o/ESPLEDStrip/releases",
+            json:true,
+            headers: {
+                "User-Agent":"Flickerstrip-Dashboard",
+            }
+        },function(error,response,releases) {
+            releases.sort(function(a,b) {
+                return symanticToNumeric(a["tag_name"]) - symanticToNumeric(b["tag_name"]);
+            });
+            this.firmwareReleases = releases;
+            var latest = releases[0];
+            console.log("latest release: ",latest["tag_name"]);
+        });
+        //download url: https://github.com/julianh2o/ESPLEDStrip/releases/download/v0.0.1/v0.0.1.bin
     },
     eventHandler:function() {
         this.emit.apply(this,arguments);

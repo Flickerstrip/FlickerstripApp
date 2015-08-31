@@ -96,7 +96,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 strip._connection = false;
                 self.selectList.updateElement(strip);
             },this));
-            $(strip).on("NameUpdated",function() {
+            $(strip).on("NameUpdated Strip.StatusUpdated",function() {
                 self.selectList.updateElement(strip);
             });
         },
@@ -162,7 +162,9 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             if (!name) name = "Unknown Strip";
 
             if ($el) {
+                console.log("el updated",strip.firmware);
                 $el.find(".name").text(name);
+                $el.find(".version").text(strip.firmware);
                 var statusClass = strip._connection ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
@@ -170,6 +172,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 var statusClass = strip._connection ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
+                $el.append($("<span class='version'></span>").text(strip.firmware));
                 var $onoff = $("<button class='powerButton'><span class='glyphicon glyphicon-off'></span></button>");
                 $onoff.toggleClass("on",strip.power == 1);
                 $(strip).on("Strip.StatusUpdated",function() {
