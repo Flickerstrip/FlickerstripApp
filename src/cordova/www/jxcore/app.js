@@ -1,4 +1,6 @@
 var Manager = require("./controller/manager.js");
+var Configuration = require("./controller/configuration.js");
+var path = require("path");
 
 console.log = function() {
     Mobile('Log').callNative(Array.prototype.join.call(arguments," "));
@@ -19,8 +21,10 @@ Mobile("guiLog").registerAsync(function(json) {
 
 var manager;
 Mobile("guiReady").registerAsync(function(json) {
+    //require('os').tmpdir()
+    var config = new Configuration(path.join(process.userPath,"config.json"),path.join(process.userPath,"firmwareVersions"));
     try {
-        manager = new Manager(function() {
+        manager = new Manager(config,function() {
             var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
                 if (key.indexOf("_") === 0) return false;
                 return value;

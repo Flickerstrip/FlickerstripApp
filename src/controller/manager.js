@@ -19,11 +19,10 @@ var This = function() {
 
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
-    knownStripsFile:"./known_strips.json",
-    firmwareDirectory:"./firmwareVersions",
     strips:[],
     firmwareReleases:[],
-    init:function(send) {
+    init:function(config,send) {
+        this.config = config;
         this.send = send;
         this.discovery = new DiscoveryServer();
 
@@ -118,10 +117,10 @@ extend(This.prototype,{
         },this));
     },
     downloadFirmware:function(release,cb) {
-         if (!fs.existsSync(this.firmwareDirectory)){
-            fs.mkdirSync(this.firmwareDirectory);
+         if (!fs.existsSync(this.config.firmwareFolder)){
+            fs.mkdirSync(this.config.firmwareFolder);
         }
-        var binPath = path.join(this.firmwareDirectory,release+".bin");
+        var binPath = path.join(this.config.firmwareFolder,release+".bin");
         if (fs.existsSync(binPath)) {
             if (cb) cb(false);
             return;
@@ -137,9 +136,7 @@ extend(This.prototype,{
         this.emit.apply(this,arguments);
     },
     loadStrips:function() {
-        console.log("TODO: implement read/write file");
-    /*
-        fs.readFile(this.knownStripsFile, "ascii", _.bind(function(err,contents) {
+        fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             var strips = JSON.parse(contents);
             this.strips = [];
@@ -155,7 +152,6 @@ extend(This.prototype,{
                 this.stripAdded(lstrip);
             },this));
         },this));
-    */
     },
     stripAdded:function(strip) {
         var self = this;
@@ -165,13 +161,11 @@ extend(This.prototype,{
         this.send("StripAdded",strip);
     },
     saveStrips:function() {
-        //global.log("TODO fix save");
-        return;
         var text = JSON.stringify(this.strips,function(key,value) {
             if (key.indexOf("_") === 0) return false;
             return value;
         });
-        fs.writeFile(this.knownStripsFile,text,function(err) {
+        fs.writeFile(this.config.configLocation,text,function(err) {
             if (err) console.err("Failed to write strip data",err);
         });
     },

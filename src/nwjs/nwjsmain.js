@@ -2,6 +2,8 @@ var nw = require('nw.gui');
 var Manager = require("./controller/manager");
 var fs = require("fs");
 var ShutdownHandler = require("./controller/ShutdownHandler");
+var Configuration = require("./controller/configuration.js");
+var path = require("path");
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
 
@@ -77,7 +79,8 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
 
         platform = "desktop";
         gui = new Gui(window,guiEmit);
-        manager = new Manager(managerEmit);
+        var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"));
+        manager = new Manager(config,managerEmit);
     });
 });
 
