@@ -6,7 +6,9 @@ var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
 var LEDStrip = require("./LEDStrip")
 var fs = require("fs");
-var request = require("request")
+var request = require("request");
+var https = require("https");
+var path = require("path");
 
 //var USBCommunication = require("./USBCommunication");
 //var WirelessManager = require("./WirelessManager");
@@ -18,6 +20,7 @@ var This = function() {
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
     knownStripsFile:"./known_strips.json",
+    firmwareDirectory:"./firmwareVersions",
     strips:[],
     firmwareReleases:[],
     init:function(send) {
@@ -45,10 +48,14 @@ extend(This.prototype,{
             strip.loadPattern(name,fps,data,isPreview);
         },this));
 
-        this.on("UploadFirmware",_.bind(function(id,path) {
+        this.on("UploadFirmware",_.bind(function(id) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
-            strip.uploadFirmware(path);
+            var releaseTag = this.firmwareReleases[0]["tag_name"];
+            console.log("uploading firmware: ",releaseTag);
+            this.downloadFirmware(releaseTag,_.bind(function() {
+                strip.uploadFirmware(path.join(this.firmwareDirectory,releaseTag+".bin"));
+            },this));
         },this));
 
 		this.on("ForgetPattern",_.bind(function(id,index) {
@@ -94,14 +101,36 @@ extend(This.prototype,{
             headers: {
                 "User-Agent":"Flickerstrip-Dashboard",
             }
-        },function(error,response,releases) {
+        },_.bind(function(error,response,releases) {
             releases.sort(function(a,b) {
                 return symanticToNumeric(a["tag_name"]) - symanticToNumeric(b["tag_name"]);
             });
             this.firmwareReleases = releases;
             var latest = releases[0];
-            console.log("latest release: ",latest["tag_name"]);
-        });
+            this.send("LatestReleaseUpdated",latest["tag_name"]);
+            this.downloadFirmware(latest["tag_name"],function(downloaded) {
+                if (downloaded) {
+                    console.log("downloaded firmware: ",latest["tag_name"]);
+                } else {
+                    console.log("already downloaded firmware: ",latest["tag_name"]);
+                }
+            });
+        },this));
+    },
+    downloadFirmware:function(release,cb) {
+         if (!fs.existsSync(this.firmwareDirectory)){
+            fs.mkdirSync(this.firmwareDirectory);
+        }
+        var binPath = path.join(this.firmwareDirectory,release+".bin");
+        if (fs.existsSync(binPath)) {
+            if (cb) cb(false);
+            return;
+        }
+        var f = fs.createWriteStream(binPath);
+        request("https://github.com/julianh2o/ESPLEDStrip/releases/download/"+release+"/"+release+".bin")
+            .on("response",function() {
+                    if (cb) cb(true);
+            }).pipe(f);
         //download url: https://github.com/julianh2o/ESPLEDStrip/releases/download/v0.0.1/v0.0.1.bin
     },
     eventHandler:function() {

@@ -53,7 +53,7 @@ extend(This.prototype,{
         var stream = fs.createReadStream(path);
         var stats = fs.statSync(path)
         var hexSize = stats["size"];
-        console.log("bytes",hexSize);
+        console.log("Uploading Firmware: ",path,hexSize);
 
         var setup = false;
         var done = false;

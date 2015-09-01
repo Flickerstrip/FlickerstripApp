@@ -77,7 +77,7 @@ def receivedTcpPacket(info):
         return;
 
     if (cmdName == "GET_PATTERNS"):
-        json = '{"type":"status","patterns":[{"name":"Strip name","address":768,"length":2,"frame":2,"flags":0,"fps":1}],"selectedPattern":5,"brightness":50,"memory":{"used":100,"free":100,"total":100}}\n\n';
+        json = '{"type":"status","power":0,"firmware":"v0.0.0","patterns":[{"name":"Strip name","address":768,"length":2,"frame":2,"flags":0,"fps":1}],"selectedPattern":5,"brightness":50,"memory":{"used":100,"free":100,"total":100}}\n\n';
         tcp_socket.send(json);
         tcp_socket.send('{"type":"ready"}\n\n');
         return;

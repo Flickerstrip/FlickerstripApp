@@ -5,7 +5,8 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     }
 
     $.extend(This.prototype, {
-        init:function(send,strip) {
+        init:function(send,strip,gui) {
+            this.gui = gui;
             this.send = send;
             this.$el = $("<div class='groupDetails' />");
             this.$el.empty().append(template);
@@ -15,6 +16,8 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             if (strip && strip.brightness) this.$el.find(".brightnessField").val(strip.brightness);
 
             $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
+
+            $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
 
             this.$el.find(".backButton").click(_.bind(function() {
                 $(this).trigger("GroupDetailsDismissed");
@@ -41,6 +44,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             },this));
         },
         statusUpdated:function() {
+            $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
             this.updateAvailableIndicator(this.strip.memory.used,this.strip.memory.total);
             this.$el.find(".brightnessField").val(this.strip.brightness);
             this.refreshPatterns();
@@ -85,8 +89,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             patternDialog.show();
         },
         uploadFirmwareClicked:function(e) {
-            var filepath = prompt("Firmware path");
-            this.send("UploadFirmware",this.strip.id,filepath);
+            this.send("UploadFirmware",this.strip.id);
         },
         savePattern:function(e,name,fps,pattern,isPreview) {
             var len = pattern.length * pattern[0].length;

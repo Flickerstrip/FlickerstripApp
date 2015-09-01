@@ -27,6 +27,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             this.$el = $(document.body);
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
+            $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
 
             this.render();
 
@@ -55,6 +56,9 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 },100);
                 //jxcore("gui_RedirectToSettings").call();
             },this));
+        },
+        releaseUpdated:function(e,release) {
+            this.latestRelease = release;
         },
         eventHandler:function() {
             var preprocessors = {
@@ -117,7 +121,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             }
         },
         selectSingleStrip:function(strip) {
-            this.groupDetails = new GroupDetailsPanel(this.send,strip);
+            this.groupDetails = new GroupDetailsPanel(this.send,strip,this);
             $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
                 this.selectList.deselect();
                 this.$el.removeClass("groupDetailsShowing");
@@ -165,6 +169,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 console.log("el updated",strip.firmware);
                 $el.find(".name").text(name);
                 $el.find(".version").text(strip.firmware);
+                $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
                 var statusClass = strip._connection ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
@@ -173,11 +178,18 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
                 $el.append($("<span class='version'></span>").text(strip.firmware));
+
+                $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
+                $(strip).on("LatestReleaseUpdated",_.bind(function() {
+                    $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
+                },this));
+
                 var $onoff = $("<button class='powerButton'><span class='glyphicon glyphicon-off'></span></button>");
                 $onoff.toggleClass("on",strip.power == 1);
                 $(strip).on("Strip.StatusUpdated",function() {
                     $onoff.toggleClass("on",strip.power == 1);
                 });
+
                 $onoff.click(_.bind(function(e) {
                     if ($onoff.hasClass("on")) {
                         this.send("ToggleStrip",strip.id,0);
