@@ -217,3 +217,64 @@ input.seamless {
     box-shadow: 0 1px 1px rgba(0,0,0,.05);
 }
 
+
+/////////////////////////////////////////////////////
+.groupDetails {
+    .flex-display;
+    .flex-direction(column);
+    .align-items(stretch);
+
+    .navigationBar {
+        .flex(0 0 auto);
+    }
+
+    .groupDetailsPanel {
+        .flex(1 1 auto);
+    }
+}
+
+.groupDetailsPanel {
+    position: relative;
+}
+
+.brightnessControl {
+    position: absolute;
+    right: 5px;
+    top: 40px;
+    bottom: 10px;
+    width: 20px;
+
+    .indicator {
+        height: 0;
+        position: absolute;
+        left: -15px;
+
+        span {
+            top: -7px;
+        }
+    }
+}
+
+
+.brightnessBar {
+    position:absolute;
+    top: 0;
+    bottom: 0px;
+    right: 0;
+    left: 0;
+
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+0,000000+100 */
+    background: #ffffff; /* Old browsers */
+    background: -moz-linear-gradient(top, #ffffff 0%, #000000 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#000000)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top, #ffffff 0%,#000000 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #ffffff 0%,#000000 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #ffffff 0%,#000000 100%); /* IE10+ */
+    background: linear-gradient(to bottom, #ffffff 0%,#000000 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#000000',GradientType=0 ); /* IE6-9 */
+}

@@ -1,4 +1,4 @@
-define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -33,7 +33,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.updateValues(strip);
             },this));
 
-            this.$el.find(".brightnessField").on("change",_.bind(this.brightnessUpdated,this));
+            this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,strip);
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
             this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
@@ -46,12 +46,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         statusUpdated:function() {
             $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
             this.updateAvailableIndicator(this.strip.memory.used,this.strip.memory.total);
-            this.$el.find(".brightnessField").val(this.strip.brightness);
             this.refreshPatterns();
-        },
-        brightnessUpdated:function() {
-            var brightness = this.$el.find(".brightnessField").val();
-            this.send("SetBrightness",this.strip.id,brightness);
         },
         updateAvailableIndicator:function(used,total) {
             var percent = Math.floor(100*used/total);

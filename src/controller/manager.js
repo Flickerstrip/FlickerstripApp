@@ -101,6 +101,10 @@ extend(This.prototype,{
                 "User-Agent":"Flickerstrip-Dashboard",
             }
         },_.bind(function(error,response,releases) {
+            if (error) {
+                console.log(error);
+                return;
+            }
             releases.sort(function(a,b) {
                 return symanticToNumeric(a["tag_name"]) - symanticToNumeric(b["tag_name"]);
             });
