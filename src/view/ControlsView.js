@@ -19,39 +19,52 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             },this));
             return data;
         },
+        wrapWithLabel:function(id,label,element) {
+            var $el = $("<div class='form-group'><label></label></div>");
+            $el.find("label").text(label).attr("for",id);
+            $el.append(element);
+            return $el;
+        },
         generateForm:function(form) {
             var self = this;
-            var $form = $("<div class='controlsView' />");
+            var $form = $("<form class='controlsView' />");
             _.each(form,function(control) {
                 var type = control.type;
+                var $el;
                 if (type == "color") {
-                    var $el = $("<input />");
+                    $el = $("<input />");
                     $el.attr("type",type);
+                    $el.attr("id",control.id);
+                    if (control.style) $el.attr("style",control.style);
                     $el.attr("name",control.id);
                     $el.val(tinycolor(control.default).toHexString());
-                    $form.append($el);
                     $el.change(function() {
                         $(self).trigger("Change",[$(this)]);
                     });
 
                 } else if (type == "text") {
-                    var $el = $("<textarea />");
+                    $el = $("<textarea />");
                     $el.attr("name",control.id);
+                    $el.attr("id",control.id);
+                    if (control.style) $el.attr("style",control.style);
                     $el.val(control.default);
-                    $form.append($el);
                     $el.change(function() {
                         $(self).trigger("Change",[$(this)]);
                     });
                 } else {
-                    var $el = $("<input />");
+                    $el = $("<input />");
                     $el.attr("type",type);
                     $el.attr("name",control.id);
+                    $el.attr("id",control.id);
+                    if (control.style) $el.attr("style",control.style);
                     $el.val(control.default);
-                    $form.append($el);
                     $el.change(function() {
                         $(self).trigger("Change",[$(this)]);
                     });
                 }
+
+                $el.addClass("form-control");
+                $form.append(self.wrapWithLabel(control.id,control.name,$el));
             });
             return $form;
         },

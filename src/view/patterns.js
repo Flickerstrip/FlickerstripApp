@@ -42,9 +42,6 @@ define(['tinycolor'],function(tinycolor) {
     return [
         {
             name:"Temperature Based",
-            leds: 1,
-            frames: 1,
-            fps: 30,
             controls: [
                 {
                     name: "Temperature",
@@ -53,28 +50,34 @@ define(['tinycolor'],function(tinycolor) {
                     default: "6500"
                 }
             ],
-            renderer: function(x,t,args) {
-                    return new tinycolor(temperature(args.temp));
+            pattern: function(args) {
+                return {
+                    leds: 1,
+                    frames: 1,
+                    fps: 30,
+                    renderer: function(x,t) {
+                        return new tinycolor(temperature(args.temp));
+                    }
                 }
+            }
         },
         {
             name:"Temperature Scale",
-            leds: 1,
-            frames: 300,
-            fps: 30,
-            renderer: function(x,t,args) {
+            pattern: {
+                leds: 1,
+                frames: 300,
+                fps: 30,
+                renderer: function(x,t) {
                     var low = 1500;
                     var high = 15000;
                     var delta = (high-low)/300;
                     var k = low + t*delta;
                     return new tinycolor(temperature(k));
                 }
+            }
         },
         {
             name:"Color Blink",
-            leds: 1,
-            frames: 2,
-            fps: 1,
             controls: [
                 {
                     name: "Color1",
@@ -89,21 +92,25 @@ define(['tinycolor'],function(tinycolor) {
                     default: "#0f0"
                 }
             ],
-            renderer: function(x,t,args) {
-                    var color;
-                    if (t == 0) {
-                        color = tinycolor(args.color1).toRgb();
-                    } else {
-                        color = tinycolor(args.color2).toRgb();
+            pattern:function(args) {
+                return {
+                    leds: 1,
+                    frames: 2,
+                    fps: 1,
+                    renderer: function(x,t) {
+                        var color;
+                        if (t == 0) {
+                            color = tinycolor(args.color1).toRgb();
+                        } else {
+                            color = tinycolor(args.color2).toRgb();
+                        }
+                        return new tinycolor({r:color.r,g:color.g,b:color.b});
                     }
-                    return new tinycolor({r:color.r,g:color.g,b:color.b});
                 }
+            }
         },
         {
             name:"Solid Color",
-            leds: 1,
-            frames: 1,
-            fps: 30,
             controls: [
                 {
                     name: "Color",
@@ -112,26 +119,32 @@ define(['tinycolor'],function(tinycolor) {
                     default: "#00f"
                 }
             ],
-            renderer: function(x,t,args) {
-                    var color = tinycolor(args.color).toRgb();
-                    return new tinycolor({r:color.r,g:color.g,b:color.b});
+            pattern:function(args) {
+                return {
+                    leds: 1,
+                    frames: 1,
+                    fps: 30,
+                    renderer: function(x,t) {
+                        var color = tinycolor(args.color).toRgb();
+                        return new tinycolor({r:color.r,g:color.g,b:color.b});
+                    }
                 }
+            }
         },
         {
             name:"Rainbow Fade",
-            leds: 1,
-            frames: 360,
-            fps: 30,
-            renderer: function(x,t) {
+            pattern: {
+                leds: 1,
+                frames: 360,
+                fps: 30,
+                renderer: function(x,t) {
                     var c = new tinycolor({h:t%360,s:100,v:100});
                     return c;
                 }
+            }
         },
         {
             name:"Color Pulse",
-            leds: 1,
-            frames: 200,
-            fps: 30,
             controls: [
                 {
                     name: "Color",
@@ -140,32 +153,37 @@ define(['tinycolor'],function(tinycolor) {
                     default: "#00f"
                 }
             ],
-            renderer: function(x,t,args) {
-                t = t > 100 ? (100-(t-100)) : t;
-                var color = tinycolor(args.color).toRgb();
-                var r = color.r/2.0 + (color.r/2.0)*(t/100);
-                var g = color.g/2.0 + (color.g/2.0)*(t/100);
-                var b = color.b/2.0 + (color.b/2.0)*(t/100);
-                var c = new tinycolor({r:r,g:g,b:b});
-                //var c = new tinycolor({r:args.color.r,g:args.color.g,b:args.color.b});
-                return c;
+            pattern:function(args) {
+                return {
+                    leds: 1,
+                    frames: 200,
+                    fps: 30,
+                    renderer: function(x,t) {
+                        t = t > 100 ? (100-(t-100)) : t;
+                        var color = tinycolor(args.color).toRgb();
+                        var r = color.r/2.0 + (color.r/2.0)*(t/100);
+                        var g = color.g/2.0 + (color.g/2.0)*(t/100);
+                        var b = color.b/2.0 + (color.b/2.0)*(t/100);
+                        var c = new tinycolor({r:r,g:g,b:b});
+                        return c;
+                    }
+                }
             }
         },
         {
             name:"Rainbow Chase",
-            leds: 150,
-            frames: 150,
-            fps: 30,
-            renderer: function(x,t) {
+            pattern: {
+                leds: 150,
+                frames: 150,
+                fps: 30,
+                renderer: function(x,t) {
                     var c = new tinycolor({h:360*(((t+x)%150)/150),s:100,v:100});
                     return c;
                 }
+            }
         },
         {
             name:"Rainbow Solid",
-            leds: 150,
-            frames: 1,
-            fps: 1,
             controls: [
                 {
                     name: "Start Index",
@@ -180,31 +198,35 @@ define(['tinycolor'],function(tinycolor) {
                     default: "150"
                 }
             ],
-            renderer: function(x,t,args) {
-                    var size = args.end - args.start;
-                    if (x < args.start || x > args.end) return new tinycolor(0,0,0);
-                    var index = x - args.start;
-                    var hue = 360*((index%size)/size);
-                    var c = new tinycolor({h:hue,s:100,v:100});
-                    return c;
+            pattern:function(args) {
+                return {
+                    leds: 150,
+                    frames: 1,
+                    fps: 1,
+                    renderer: function(x,t) {
+                        var size = args.end - args.start;
+                        if (x < args.start || x > args.end) return new tinycolor(0,0,0);
+                        var index = x - args.start;
+                        var hue = 360*((index%size)/size);
+                        var c = new tinycolor({h:hue,s:100,v:100});
+                        return c;
+                    }
                 }
+            }
         },
         {
             name:"Custom",
-            leds: 150,
-            frames: 1,
-            fps: 1,
             controls: [
                 {
-                    name: "Function",
+                    name: "Pattern",
                     id: "f",
                     type: "text",
-                    default: "function(x,t) {\n\tvar c = new tinycolor({r:255,g:0,b:0});\n\treturn c;\n}"
+                    style: "height: 200px;",
+                    default: "{\n\tleds: 150,\n\tframes: 1,\n\tfps: 1,\n\trenderer: function(x,t) {\n\t\tvar c = new tinycolor({r:255,g:0,b:0});\n\t\treturn c;\n\t}\n}"
                 }
             ],
-            renderer: function(x,t,args) {
-                    var val = eval("("+args.f+")")(x,t);
-                    return val;
+            pattern: function(args) {
+                return eval("("+args.f+")");
             }
         }
     ];

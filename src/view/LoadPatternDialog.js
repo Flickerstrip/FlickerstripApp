@@ -20,6 +20,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
+            setTimeout(_.bind(function() {
+                this.stripRenderer.resizeToParent();
+            },this),5);
 
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
 
@@ -36,22 +39,27 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern]);
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern]);
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,this.activePattern.fps,pattern,true]);
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern,true]);
             },this),5);
         },
+        getPattern:function(patternSpec) {
+            if (typeof(patternSpec.pattern) === "function") return patternSpec.pattern(this.controlView ? this.controlView.getValues() : null);
+            return patternSpec.pattern;
+        },
         generatePattern:function() {
-            var renderer = this.activePattern.renderer;
+            var pattern = this.getPattern(this.activePattern);
+            var renderer = pattern.renderer;
             var pixelValues = [];
             for (var t=0;t<this.activePattern.frames; t++) {
                 var timeSlice = [];
                 for (var x=0;x<this.activePattern.leds; x++) {
-                    var c = renderer(x,t,this.controlView ? this.controlView.getValues() : null).toRgb();
+                    var c = renderer(x,t).toRgb();
                     timeSlice.push(c.r,c.g,c.b);
                 }
                 pixelValues[t] = timeSlice;
@@ -61,28 +69,45 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             if (selectedObjects.length == 0) return;
 
-            $(document.body).addClass("configurePatternShowing");
-            var pattern = selectedObjects[0];
-            this.activePattern = pattern;
+            $(document.body).addClass("configurePatternShowing"); //for mobile
+
+            var patternSpec = selectedObjects[0];
+
+            if (patternSpec.controls) {
+                this.controlView = new ControlsView(this.window,patternSpec.controls,{});
+                $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
+            } else {
+                this.controlView = null;
+            }
+
+            var pattern = this.getPattern(selectedObjects[0]);
+            this.activePattern = patternSpec;
+
+            this.stripRenderer.setPattern(pattern);
+
+            //update titlebar
+            var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
+            this.$el.find(".patternTitle").text(patternSpec.name+ " ("+frameInfo+")");
 
             this.$config.empty();
-
             setTimeout(_.bind(function() {
-                if (pattern.controls) {
-                    this.controlView = new ControlsView(this.window,pattern.controls,{});
-                    var controlValues = this.controlView.getValues();
-                    $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
+                if (this.controlView) {
                     this.$config.append(this.controlView.el);
-                    this.stripRenderer.setPatternAndParameters(pattern,controlValues);
+                    this.$config.removeClass("nocontrols");
                 } else {
-                    this.stripRenderer.setPattern(pattern);
+                    this.$config.addClass("nocontrols");
+                    this.$config.text("No controls for this pattern");
                 }
             },this),5);
         },
         controlsUpdated:function(e,$el) {
             var controlValues = this.controlView.getValues();
-            var pattern = this.activePattern;
-            this.stripRenderer.setParameters(controlValues);
+            var patternSpec = this.activePattern;
+            var pattern = this.getPattern(patternSpec);
+            this.stripRenderer.setPattern(pattern);
+
+            var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
+            this.$el.find(".patternTitle").text(patternSpec.name+ " ("+frameInfo+")");
         },
 
         patternOptionRenderer:function(pattern,$el) {

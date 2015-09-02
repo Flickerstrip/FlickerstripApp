@@ -100,7 +100,26 @@ height: 100%;
             .right {
                 .flex(1 1 auto);
                 padding: 10px;
+
+                .flex-display;
+                .flex-direction(column);
+
+                * {
+                    .flex(0 0 auto);
+
+                    &:last-child {
+                        .flex(1 1 auto);
+                    }
+                }
             }
+        }
+
+        .patternConfiguration {
+            .panel-body;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+            box-shadow: 0 1px 1px rgba(0,0,0,.05);
         }
 
         .mfooter {

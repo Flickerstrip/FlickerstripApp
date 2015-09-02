@@ -22,20 +22,23 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         init:function(stripLength) {
             var canvas = document.createElement("canvas");
             canvas.width = 500;
-            canvas.height = 200;
+            canvas.height = 80;
 
             this.canvas = canvas;
             this.$el = $(this.canvas);
 
             this.start = new Date().getTime();
             this.pattern = null;
-            this.parameters = null;
             this.stripLength = stripLength;
             this.rendered = null;
             
             var millis = new Date().getTime();
             var self = this;
 
+            this.repaint();
+        },
+        resizeToParent:function() {
+            this.canvas.width = this.$el.parent().width();
             this.repaint();
         },
         repaint:function() {
@@ -49,43 +52,42 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
             var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.start)/1000)) % this.pattern.frames);
         
-            var padding = {top: 35, right: 20, bottom: 10, left: 20};
+            var padding = {top: 20, right: 20, bottom: 10, left: 20};
             var usableWidth = this.canvas.width - padding.left - padding.right;
             var separation = usableWidth / this.stripLength;
 
             //render LED strip at current frame
-            g.fillStyle = "black";
-            g.fillRect(padding.left-5,10-separation/2,this.canvas.width - padding.left - padding.right+7, separation*1.5);
+            var ledHeight = 6;
+            //g.fillStyle = "black";
+            //g.fillRect(padding.left-1,10-1,this.canvas.width - padding.left - padding.right+1, ledHeight+2);
             for (var i=0; i<this.stripLength; i++) {
-                var c = this.pattern.renderer(i,currentFrame,this.parameters);
+                var c = this.pattern.renderer(i,currentFrame);
 
-                var offset = 2;
-                g.fillStyle = tinycolor(c.toString()).darken(20).toHexString();
-                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-
-                offset --;
-                g.fillStyle = tinycolor(c.toString()).darken(15).toHexString();
-                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-
-                offset --;
-                g.fillStyle = tinycolor(c.toString()).darken(10).toHexString();
-                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-
-                offset --;
+                var offset = 1;
                 g.fillStyle = tinycolor(c.toString()).toHexString();
-                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+                g.fillRect(padding.left+i*separation,10,2,ledHeight);
+
+//                g.fillStyle = tinycolor(c.toString()).darken(20).toHexString();
+//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+//
+//                offset --;
+//                g.fillStyle = tinycolor(c.toString()).darken(15).toHexString();
+//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+//
+//                offset --;
+//                g.fillStyle = tinycolor(c.toString()).darken(10).toHexString();
+//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
+//
+//                offset --;
+//                g.fillStyle = tinycolor(c.toString()).toHexString();
+//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
 
                 //g.fillStyle = "#ccc";
                 //g.strokeRect(padding.left+i*separation,10,separation/2,separation/2);
             }
 
-            g.fillStyle = "lightGray";
-            g.fillRect(padding.left,padding.top,this.width-padding.left-padding.right,this.height-padding.top-padding.bottom);
-            
-            g.fillStyle = "#666";
-            g.fillRect(padding.left,padding.top,this.pattern.frames,this.stripLength);
-            
-            var duration = this.pattern.frames/this.pattern.fps;
+            //draw the numbers
+            /*
             var tickLength = 3;
             var labelFrequency = 5;
             g.fillStyle = "black";
@@ -98,22 +100,32 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                     g.fillText(i+"s",x,padding.top-tickLength-10);
                 }
             }
-            g.drawImage(this.rendered, padding.left, padding.top);
-            g.fillStyle = "white";
-            drawLine(g,padding.left+currentFrame,padding.top,padding.left+currentFrame,padding.top+this.stripLength);
+            */
+
+            //Draw the full color square
+            var patternDuration = this.pattern.frames/this.pattern.fps;
+            var renderDuration = patternDuration;
+
+            var loc = {x:padding.left,y:padding.top,width:usableWidth,height:50};
+            g.fillStyle = "#000";
+            g.fillRect(loc.x-1,loc.y-1,loc.width+2,loc.height+2);
+
+            var imgctx = this.rendered.getContext("2d");
+            var durationPerX = renderDuration / loc.width;
+            for (var x=0; x<loc.width; x++) {
+                var ctime = durationPerX * x;
+                var patternTime = ctime % patternDuration;
+                var frame = patternTime * this.pattern.fps;
+                g.drawImage(this.rendered, Math.floor(frame), 0, 1, this.rendered.height, loc.x+x, loc.y, 1, loc.height);
+            }
+
+            //draw currently frame line
+            g.fillStyle = "#fff";
+            var framePositionX = loc.x + (currentFrame/this.pattern.frames)*loc.width;
+            drawLine(g,framePositionX,loc.y,framePositionX,loc.y+loc.height);
         },
         setPattern:function(pattern) {
             this.pattern = pattern;
-            this.updatePatternCache();
-        },
-        setParameters:function(params) {
-            console.log("setting params",params);
-            this.parameters = params;
-            this.updatePatternCache();
-        },
-        setPatternAndParameters:function(pattern,params) {
-            this.pattern = pattern;
-            this.parameters = params;
             this.updatePatternCache();
         },
         updatePatternCache:function() {
@@ -123,7 +135,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                 for (var x = 0; x<this.pattern.frames; x++) {
                     for (var y = 0; y<this.stripLength; y++) {
                         var i = y % this.pattern.leds;
-                        var c = this.pattern.renderer(i,x,this.parameters);
+                        var c = this.pattern.renderer(i,x);
                         g.fillStyle = c.toHexString();
                         g.fillRect(x,y,1,1);
                     }
