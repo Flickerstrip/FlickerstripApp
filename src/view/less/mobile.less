@@ -175,10 +175,7 @@ body {
         padding: 0 10px;
         height: 100%;
 
-        display: -webkit-box;
-        display: -moz-box;
-        display: -ms-flexbox;
-        display: -webkit-flex;
+        .flex-display;
 
         -webkit-flex-align: center;
         -ms-flex-align: center;
@@ -209,5 +206,31 @@ body {
         }
 
         border-radius: 10px;
+    }
+}
+
+///////////////////////////////////////////
+
+.patternConfigPanel {
+    .flex-display;
+    .flex-direction(column);
+    .align-items(stretch);
+
+    height: 100vh;
+
+    * {
+        .flex(0 0 auto);
+    }
+
+    .patternConfiguration {
+        .flex(1 1 auto);
+    }
+
+    .patternConfiguration, .loadPatternButton {
+        margin: 10px;
+    }
+
+    .loadPatternButton {
+        font-weight: bold;
     }
 }
