@@ -143,22 +143,44 @@ extend(This.prototype,{
         }
         return buffer;
     },
+    updateCommand:function(command,param1,param2,payload) {
+        var found = null;
+        _.each(this.sendBuffer,function(item) {
+            if (item.info == command) {
+                //found command, update it
+                found = item;
+            }
+        });
+        if (found == null) {
+            this.sendCommand(command,param1,param2,payload);
+        } else {
+            var data = this._prepareCommand(command,param1,param2,payload);
+            var buf = this._prepareBuffer("bin",data);
+            found.payload = buf;
+        }
+    },
     sendCommand:function(command,param1,param2,payload) {
         var buffer = this._prepareCommand(command,param1,param2,payload);
-        this.queueData("bin",buffer);
+        this.queueData("bin",buffer,command);
     },
-    sendCustom:function(fn) {
-        this.sendBuffer.push(fn);
+    sendCustom:function(fn,info) {
+        this.sendBuffer.push({"payload":fn,"info":info});
         this._manageQueue()
     },
-    queueData:function(type,data) {
+    queueData:function(type,data,info) {
         var buf = this._prepareBuffer(type,data);
 
         if (this.session) {
-            this.session.buffers.push(buf);
+            this.session.buffers.push({
+                payload:buf,
+                info:info,
+            });
             this.session.size ++;
         } else {
-            this.sendBuffer.push(buf);
+            this.sendBuffer.push({
+                payload:buf,
+                info:info,
+            });
         }
         this._manageQueue()
     },
@@ -235,8 +257,10 @@ extend(This.prototype,{
 			this.status = "busy";
 			var next = this.sendBuffer.shift();
             var buf = null;
-            if (typeof(next) === "function") {
-                if (!next(this.socket)) {
+            var payload = next.payload;
+            var info = next.info;
+            if (typeof(payload) === "function") {
+                if (!payload(this.socket)) {
                     this.sendBuffer.unshift(next);
                 }
             } else if (next.buffers) {
@@ -245,7 +269,7 @@ extend(This.prototype,{
                     this.sendBuffer.unshift(next);
                 }
             } else {
-                buf = next;
+                buf = payload;
             }
 			if (buf != null) {
                 this.socket.write(buf);

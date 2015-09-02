@@ -23,14 +23,35 @@ define(['jquery',"view/util.js"],function($,util) {
                 this.setBrightness(strip.brightness/100);
             },this));
 
-            $(this.$bar).click(_.bind(this.barClicked,this));
+            $(this.$el).click(_.bind(this.barClicked,this));
+
+            this.dragging = false;
+            this.$el.on("mousedown",_.bind(function() {
+                this.dragging = true;
+            },this));
+            $(window).on("mouseup",_.bind(function() {
+                this.dragging = false;
+            },this));
+            $(window).on("mousemove",_.bind(function(e) {
+                if (this.dragging) {
+                    this.barClicked(e);
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            },this));
         },
         barClicked:function(e) {
             var posY = $(this.$bar).offset().top;
             var value = 1-((e.pageY - posY) / $(this.$bar).height());
-            this.setBrightness(value);
 
-            this.send("SetBrightness",this.strip.id,Math.floor(value*100));
+            var intval = Math.floor(value*100);
+            if (intval != Math.floor(this.brightness*100)) {
+                setTimeout(_.bind(function() {
+                    this.send("SetBrightness",this.strip.id,intval);
+                },this),5);
+            }
+
+            this.setBrightness(value);
         },
         setBrightness:function(value) {
             this.brightness = value;

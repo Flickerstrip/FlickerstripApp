@@ -39,6 +39,7 @@ extend(This.prototype,{
         this.emit("Strip.ProgressUpdated",this,session);
     },
     receivedStatus:function(connection,stripStatus) {
+        //console.log(stripStatus);
         this.patterns = stripStatus.patterns;
         this.memory = stripStatus.memory;
         this.brightness = stripStatus.brightness;
@@ -71,9 +72,7 @@ extend(This.prototype,{
 
                         var buf = stream.read(frameSize);
                         if (!buf) {
-                            console.log("loading remaining..");
                             buf = stream.read();
-                            if (buf) console.log("got remaining: "+buf.length);
                         }
 
                         if (buf) { 
@@ -81,7 +80,6 @@ extend(This.prototype,{
                             socket.write(buf);
                             console.log("sending: "+bytesSent+" of "+hexSize);
                         } else {
-                            console.log("done sending!");
                             socket.removeListener("data",_.bind(dataHandler,this));
                             setTimeout(_.bind(function() {
                                 done = true;
@@ -94,7 +92,6 @@ extend(This.prototype,{
                     dataHandler.call(this);
                     return false;
                 } else if (done) {
-                    console.log("returning true from f call");
                     this._connection.resumeDataHandler();
                     return true;
                 }
@@ -107,7 +104,7 @@ extend(This.prototype,{
 	setBrightness:function(brightness) {
         if (brightness < 0) brightness = 0;
         if (brightness > 100) brightness = 100;
-	    this._connection.sendCommand(StripWrapper.packetTypes.SET_BRIGHTNESS,brightness);
+	    this._connection.updateCommand(StripWrapper.packetTypes.SET_BRIGHTNESS,brightness);
 	},
     toggle:function(value) {
         this._connection.sendCommand(StripWrapper.packetTypes.TOGGLE_POWER,value);
