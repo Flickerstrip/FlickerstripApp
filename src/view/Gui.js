@@ -166,7 +166,6 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             if (!name) name = "Unknown Strip";
 
             if ($el) {
-                console.log("el updated",strip.firmware);
                 $el.find(".name").text(name);
                 $el.find(".version").text(strip.firmware);
                 $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);

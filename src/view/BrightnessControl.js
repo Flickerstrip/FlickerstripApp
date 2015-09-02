@@ -1,5 +1,4 @@
 define(['jquery',"view/util.js"],function($,util) {
-
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -33,11 +32,11 @@ define(['jquery',"view/util.js"],function($,util) {
 
             this.send("SetBrightness",this.strip.id,Math.floor(value*100));
         },
-        setBrightness(value) {
+        setBrightness:function(value) {
             this.brightness = value;
-            var percent = Math.floor(100*(1-value));
-            this.$indicator.css("top",percent+"%");
-            this.$text.text(percent);
+            var percent = Math.floor(100*value);
+            this.$indicator.css("top",(100-percent)+"%");
+            this.$text.text(percent+"%");
         }
     });
 
