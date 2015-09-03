@@ -11,7 +11,8 @@ requirejs.config({
     nodeRequire:require,
     baseUrl: "./view/lib",
     "shim": {
-        "jquery.contextMenu"  : ["jquery"]
+        "jquery.contextMenu"  : ["jquery"],
+        "jquery.spectrum"  : ["jquery"]
     },
     paths: {
         "view":"..",

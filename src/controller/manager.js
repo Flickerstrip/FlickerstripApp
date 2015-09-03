@@ -140,6 +140,7 @@ extend(This.prototype,{
         this.emit.apply(this,arguments);
     },
     loadStrips:function() {
+        if (!fs.existsSync(this.config.configLocation)) return;
         fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             var strips = JSON.parse(contents);
@@ -215,6 +216,7 @@ extend(This.prototype,{
         connection.on("Connect",_.bind(this.clientIdentified,this));
     },
 	clientIdentified:function(connection) {
+        console.log("client identified");
         var strip = this.getStrip(connection.id);
         if (strip) {
             strip.setConnection(connection);

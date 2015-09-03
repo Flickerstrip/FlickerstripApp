@@ -192,6 +192,11 @@ input.seamless {
     background-color: #eee;
 }
 
+.groupDetailsPanel .progress {
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
 .progress-bar {
     text-align:left;
     padding-left: 5px;
@@ -230,6 +235,16 @@ input.seamless {
 
     .groupDetailsPanel {
         .flex(1 1 auto);
+        .flex-display;
+        .flex-direction(column);
+        .align-items(stretch);
+
+        >* {
+            .flex(0 0 auto);
+            &.storedPatterns {
+                .flex(1 1 auto);
+            }
+        }
     }
 }
 
@@ -241,7 +256,7 @@ input.seamless {
     position: absolute;
     right: 5px;
     top: 50px;
-    bottom: 10px;
+    bottom: 5px;
     width: 20px;
 
     .indicator {

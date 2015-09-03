@@ -26,13 +26,13 @@ define(['jquery',"view/util.js"],function($,util) {
             $(this.$el).click(_.bind(this.barClicked,this));
 
             this.dragging = false;
-            this.$el.on("mousedown",_.bind(function() {
+            this.$el.on("mousedown touchstart",_.bind(function() {
                 this.dragging = true;
             },this));
-            $(window).on("mouseup",_.bind(function() {
+            $(window).on("mouseup toucheend",_.bind(function() {
                 this.dragging = false;
             },this));
-            $(window).on("mousemove",_.bind(function(e) {
+            $(window).on("mousemove touchmove",_.bind(function(e) {
                 if (this.dragging) {
                     this.barClicked(e);
                     e.preventDefault();

@@ -1,4 +1,4 @@
-define(['jquery','tinycolor'],function($,tinycolor) {
+define(['jquery','tinycolor','jquery.spectrum'],function($,tinycolor) {
     var This = function(window,form,data) {
         this.window = window;
         this.init(form,data);
@@ -32,20 +32,27 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                 var type = control.type;
                 var $el;
                 if (type == "color") {
-                    $el = $("<input />");
-                    $el.attr("type",type);
-                    $el.attr("id",control.id);
-                    if (control.style) $el.attr("style",control.style);
-                    $el.attr("name",control.id);
-                    $el.val(tinycolor(control.default).toHexString());
-                    $el.change(function() {
-                        $(self).trigger("Change",[$(this)]);
-                    });
+                    $el = $("<div />")
+                    var $input = $("<input />");
+                    $el.append($input);
+                    $input.attr("type","text");
+                    $input.attr("id",control.id);
+                    if (control.style) $input.attr("style",control.style);
+                    $input.attr("name",control.id);
+                    setTimeout(_.bind(function() {
+                        $input.spectrum({
+                            color: control.default,
+                            change: function(color) {
+                                $(self).trigger("Change",[$(this)]);
+                            }
+                        });
+                    },this),5);
 
                 } else if (type == "text") {
                     $el = $("<textarea />");
                     $el.attr("name",control.id);
                     $el.attr("id",control.id);
+                    $el.addClass("form-control");
                     if (control.style) $el.attr("style",control.style);
                     $el.val(control.default);
                     $el.change(function() {
@@ -54,6 +61,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                 } else {
                     $el = $("<input />");
                     $el.attr("type",type);
+                    $el.addClass("form-control");
                     $el.attr("name",control.id);
                     $el.attr("id",control.id);
                     if (control.style) $el.attr("style",control.style);
@@ -63,7 +71,6 @@ define(['jquery','tinycolor'],function($,tinycolor) {
                     });
                 }
 
-                $el.addClass("form-control");
                 $form.append(self.wrapWithLabel(control.id,control.name,$el));
             });
             return $form;
