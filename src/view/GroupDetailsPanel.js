@@ -1,4 +1,4 @@
-define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -19,8 +19,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
 
-            this.$el.find(".backButton").click(_.bind(function() {
+            this.$el.find(".backButton").click(_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
+                e.stopPropagation();
             },this));
 
             this.updateValues(strip);
@@ -33,6 +34,8 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.updateValues(strip);
             },this));
 
+            this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
+
             this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,strip);
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
@@ -42,6 +45,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 console.log("sending strip disconnect");
                 this.send("DisconnectStrip",this.strip.id);
             },this));
+        },
+        showDetailsClicked:function() {
+            this.detailsDialog = new StripDetailsDialog(this.send,this.strip);
+            this.detailsDialog.show();
         },
         statusUpdated:function() {
             $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);

@@ -24,15 +24,13 @@ extend(This.prototype,{
     init:function(config,send) {
         this.config = config;
         this.send = send;
-        this.discovery = new DiscoveryServer();
 
-        //this.wifi = new WirelessManager();
-        //this.usb = new USBCommunication();
+        this.loadStrips(_.bind(function() {
+            this.discovery = new DiscoveryServer();
+            this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
+        },this));
 
         this.loadFirmwareReleaseInfo();
-        this.loadStrips();
-
-        this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
 
         ///////////////////////////////////////// Strip actions
         this.on("SelectPattern",_.bind(function(id,index) {
@@ -139,8 +137,11 @@ extend(This.prototype,{
     eventHandler:function() {
         this.emit.apply(this,arguments);
     },
-    loadStrips:function() {
-        if (!fs.existsSync(this.config.configLocation)) return;
+    loadStrips:function(cb) {
+        if (!fs.existsSync(this.config.configLocation)) {
+            if (cb) cb();
+            return;
+        }
         fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             var strips = JSON.parse(contents);
@@ -156,6 +157,7 @@ extend(This.prototype,{
                 this.strips.push(lstrip);
                 this.stripAdded(lstrip);
             },this));
+            if (cb) cb();
         },this));
     },
     stripAdded:function(strip) {

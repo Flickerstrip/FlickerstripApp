@@ -15,7 +15,9 @@ extend(This.prototype,{
     name:null,
     connection:null,
     patterns:[],
-    memory:null,
+    memory:{user:null,free:null,total:null},
+    brightness:null,
+    firmware:null,
 	init:function(connection) {
         if (connection) this.setConnection(connection);
 	},
