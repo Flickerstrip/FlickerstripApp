@@ -264,7 +264,7 @@ extend(This.prototype,{
                     this.sendBuffer.unshift(next);
                 }
             } else if (next.buffers) {
-                buf = next.buffers.shift();
+                buf = next.buffers.shift().payload;
                 if (next.buffers.length != 0) {
                     this.sendBuffer.unshift(next);
                 }

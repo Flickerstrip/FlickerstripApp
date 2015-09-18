@@ -14,7 +14,7 @@ define(['jquery','tinycolor','jquery.spectrum'],function($,tinycolor) {
             _.each(this.form,_.bind(function(control) {
                 var $el = this.el.find("[name='"+control.id+"']");
                 var value = control.default;
-                if ($el.length) value = $el.val();
+                if ($el.length && $el.val() != "") value = $el.val();
                 data[control.id] = value;
             },this));
             return data;

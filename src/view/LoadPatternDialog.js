@@ -38,14 +38,16 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                var pattern = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern]);
+                var pattern = getPattern(this.activePattern)
+                var pixelData = this.generatePattern();
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern.fps,pixelData,false]);
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                var pattern = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern,true]);
+                var pattern = this.getPattern(this.activePattern)
+                var pixelData = this.generatePattern();
+                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern.fps,pixelData,true]);
             },this),5);
         },
         getPattern:function(patternSpec) {
@@ -56,9 +58,9 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             var pattern = this.getPattern(this.activePattern);
             var renderer = pattern.renderer;
             var pixelValues = [];
-            for (var t=0;t<this.activePattern.frames; t++) {
+            for (var t=0;t<pattern.frames; t++) {
                 var timeSlice = [];
-                for (var x=0;x<this.activePattern.leds; x++) {
+                for (var x=0;x<pattern.leds; x++) {
                     var c = renderer(x,t).toRgb();
                     timeSlice.push(c.r,c.g,c.b);
                 }
@@ -80,7 +82,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
                 this.controlView = null;
             }
 
-            var pattern = this.getPattern(selectedObjects[0]);
+            var pattern = this.getPattern(patternSpec);
             this.activePattern = patternSpec;
 
             this.stripRenderer.setPattern(pattern);

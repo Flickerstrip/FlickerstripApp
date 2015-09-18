@@ -25,6 +25,7 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         init:function(document,eventRelay) {
             this.eventRelay = eventRelay;
             this.$el = $(document.body);
+            this.$el.addClass("theme1");
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
             $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
@@ -90,7 +91,6 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
             return found;
         },
         stripAdded:function(e,strip) {
-            console.log("Strip Added: ",strip);
             this.selectList.addElement(strip);
             var self = this;
             $(strip).on("Strip.Connected",_.bind(function() {

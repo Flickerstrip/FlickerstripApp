@@ -10,10 +10,6 @@ body {
     display: none;
 }
 
-body {
-    background-image: linear-gradient(to bottom,#e8e8e8,#f5f5f5 100%);
-}
-
 .mobileOnly {
     display: none !important;
 }
@@ -22,13 +18,16 @@ body {
 height: 100%;
     .flex-display;
     .stripListing {
-        .panel;
         border: none;
         margin: 5px;
         width: 300px !important;
+        .flex-display;
+        .flex-direction(column);
+        .body {
+            .flex(1 1 auto);
+        }
     }
     .groupDetails {
-        .panel;
         border: none;
         margin: 5px;
         .flex(1);
@@ -161,10 +160,19 @@ height: 100%;
     }
 }
 
-.storedPatterns {
-    margin-right: 45px;
-}
+.groupDetails .nextToBrightnessBar {
+    .flex(1 1 auto);
+    .flex-display;
+    .flex-direction(column);
+    margin-right: 25px;
 
+    >* {
+        .flex(0 0 auto);
+        &.storedPatterns {
+            .flex(1 1 auto);
+        }
+    }
+}
 
 .forgetPattern,
 .selectPattern {
