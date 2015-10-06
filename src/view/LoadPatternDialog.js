@@ -38,7 +38,7 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
             this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                var pattern = getPattern(this.activePattern)
+                var pattern = this.getPattern(this.activePattern)
                 var pixelData = this.generatePattern();
                 $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern.fps,pixelData,false]);
             },this),5);
