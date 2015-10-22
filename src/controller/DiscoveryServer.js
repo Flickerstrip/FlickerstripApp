@@ -4,6 +4,7 @@ var _ = require("underscore")._;
 var util = require("util");
 var dgram = require('dgram'); 
 var net = require('net');
+var Client = require('node-ssdp').Client;
 
 var This = function() {
     this.init();
@@ -12,40 +13,23 @@ var This = function() {
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
     init:function() {
-        var tcpport = 3836;
-        var message = "announce\0"+tcpport+"\0\0";
-        //-->                                                     message,freq,multicast addr   ,sprt,dprt
-        this.announcementServer = this.startAnnouncementBroadcast(message,3000,"255.255.255.255",1836,2836);
-        this.startServer(tcpport);
+        this.ssdp = new Client();
+
+        //handle the ssdp response when the roku is found
+        this.ssdp.on('response',_.bind(this.handleResponse,this));
+
+        setInterval(_.bind(this.doSearch,this),1000);
+        this.doSearch()
     },
-    startAnnouncementBroadcast:function(message,frequency,ip,sport,dport) {
-        var server = dgram.createSocket("udp4"); 
-
-        server.bind(sport,function() {
-            server.setBroadcast(true)
-            server.setMulticastTTL(128);
-        });
-
-        var sendBroadcast = function() {
-            var buf = Buffer(message);
-            server.send(buf, 0, buf.length, dport, ip);
+    handleResponse:function (headers, statusCode, rinfo) {
+        if (headers.SERVER.indexOf("Flickerstrip") != -1) {
+            this.emit("DiscoveredClient",rinfo.address);
         }
-
-        sendBroadcast();
-        setInterval(sendBroadcast, frequency);
-
-        return server;
     },
-    startServer:function(port) {
-        var server = net.createServer(_.bind(function (socket) {
-            socket.name = socket.remoteAddress + ":" + socket.remotePort;
-            console.log("got client");
-
-            this.emit("ClientConnected",socket);
-        },this)).listen(port);
-
-        return server;
-    }
+    doSearch:function() {
+        //ssdp.search("upnp:rootdevice")
+        this.ssdp.search("ssdp:all")
+    },
 });
 
 module.exports = This;

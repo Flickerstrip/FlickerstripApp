@@ -96,11 +96,13 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         savePattern:function(e,name,fps,pattern,isPreview) {
             var len = pattern.length * pattern[0].length;
             this.send("LoadPattern",this.strip.id,name,fps,pattern,isPreview);
-            var progressDialog = new ProgressDialog(this.strip);
+            /*
+               var progressDialog = new ProgressDialog(this.strip);
             progressDialog.show();
             $(progressDialog).on("Complete",function() {
                 //console.log("Complete!");
             });
+            */
         },
         forgetPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");

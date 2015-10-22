@@ -25,10 +25,10 @@ extend(This.prototype,{
         this.config = config;
         this.send = send;
 
-        this.loadStrips(_.bind(function() {
+        //this.loadStrips(_.bind(function() {
             this.discovery = new DiscoveryServer();
-            this.discovery.on("ClientConnected",_.bind(this.clientConnected,this));
-        },this));
+            this.discovery.on("DiscoveredClient",_.bind(this.clientDiscovered,this));
+        //},this));
 
         this.loadFirmwareReleaseInfo();
 
@@ -165,6 +165,10 @@ extend(This.prototype,{
         strip.onAny(function() {
             self.send.apply(self,[this.event,strip.id].concat(Array.prototype.slice.call(arguments)));
         });
+
+        strip.on("Strip.PatternsUpdated",_.bind(this.saveStrips,this));
+        strip.on("NameUpdated",_.bind(this.saveStrips,this));
+
         this.send("StripAdded",strip);
     },
     saveStrips:function() {
@@ -213,33 +217,37 @@ extend(This.prototype,{
         if (index != null) return this.strips[index];
         return null;
     },
-    clientConnected:function(socket) {
-        var connection = new StripWrapper(socket);
-        connection.on("Connect",_.bind(this.clientIdentified,this));
+    clientDiscovered:function(ip) {
+        var found = null;
+        _.each(this.strips,function(strip,index) {
+            if (strip.ip == ip) found = strip;
+        });
+        if (found != null) {
+            found.setVisible(true);
+            return;
+        }
+
+        request("http://"+ip+"/status",_.bind(function(error, response, body) {
+            var status = JSON.parse(body);
+            this.clientIdentified(ip,status);
+        },this));
     },
-	clientIdentified:function(connection) {
-        console.log("client identified");
-        var strip = this.getStrip(connection.id);
-        if (strip) {
-            strip.setConnection(connection);
-            this.send("Strip.Connected",strip.id);
-        } else {
-            strip = new LEDStrip(connection);
+	clientIdentified:function(ip,status) {
+        console.log("client identified",ip,status);
+        var strip = this.getStrip(status.mac);
+        if (!strip) {
+            strip = new LEDStrip(status.mac,ip);
             this.strips.push(strip);
+            strip.receivedStatus(status);
+            strip.setVisible(true);
             this.saveStrips();
             this.stripAdded(strip);
+        } else {
+            strip.ip = ip;
+            strip.receivedStatus(status);
+            strip.setVisible(true);
         }
-        strip.lastSeen = new Date();
-
-        strip.on("Strip.PatternsUpdated",_.bind(this.saveStrips,this));
-        strip.on("NameUpdated",_.bind(this.saveStrips,this));
-        strip.on("Disconnect",_.bind(this.clientDisconnected,this));
-
-        this.send("Strip.Connected",strip.id);
-	},
-	clientDisconnected:function(strip) {
-		this.send("Strip.Disconnected",strip.id);
-	},
+	}
 });
 
 module.exports = This;

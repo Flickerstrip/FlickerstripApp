@@ -63,12 +63,6 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         },
         eventHandler:function() {
             var preprocessors = {
-                "Strip.Connected":function(strip) {
-                    strip.connected = true;
-                },
-                "Strip.Disconnected":function(strip) {
-                    strip.connected = false;
-                },
                 "Strip.StatusUpdated":function(strip,stripStatus) {
                     $.extend(strip,stripStatus);
                 },
@@ -93,17 +87,9 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
         stripAdded:function(e,strip) {
             this.selectList.addElement(strip);
             var self = this;
-            $(strip).on("Strip.Connected",_.bind(function() {
-                strip._connection = true;
+            $(strip).on("Strip.StatusUpdated",_.bind(function() {
                 self.selectList.updateElement(strip);
             },this));
-            $(strip).on("Strip.Disconnected",_.bind(function() {
-                strip._connection = false;
-                self.selectList.updateElement(strip);
-            },this));
-            $(strip).on("NameUpdated Strip.StatusUpdated",function() {
-                self.selectList.updateElement(strip);
-            });
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
@@ -170,11 +156,11 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 $el.find(".name").text(name);
                 $el.find(".version").text(strip.firmware);
                 $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
-                var statusClass = strip._connection ? "connected" : "error";
+                var statusClass = strip.visible ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
-                var statusClass = strip._connection ? "connected" : "error";
+                var statusClass = strip.visble ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
                 $el.append($("<span class='version'></span>").text(strip.firmware));

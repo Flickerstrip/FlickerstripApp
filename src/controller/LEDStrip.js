@@ -1,9 +1,22 @@
 var extend = require("extend");
+var request = require("request");
 var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
 var StripWrapper = require("./StripWrapper");
 var fs = require("fs");
+var streamifier = require("streamifier");
+
+var _c = require("c-struct");
+var PatternMetadata = new _c.Schema({
+    name: _c.type.string(16),
+    address: _c.type.uint32,
+    len: _c.type.uint32,
+    frames: _c.type.uint16,
+    flags: _c.type.uint8,
+    fps: _c.type.uint8,
+});
+_c.register("PatternMetadata",PatternMetadata);
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -11,46 +24,41 @@ var This = function() {
 
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
-	id:null,
-    name:null,
-    connection:null,
-    patterns:[],
-    memory:{user:null,free:null,total:null},
-    brightness:null,
-    firmware:null,
-	init:function(connection) {
-        if (connection) this.setConnection(connection);
+	init:function(id,ip) {
+        this.id = id;
+        this.ip = ip;
+        this.visibleTimeout = 9000;
+
+		//connection.on("ReceivedStatus",_.bind(this.receivedStatus,this));
+		//connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
+		//connection.on("Disconnect",_.bind(this.connectionReset,this));
 	},
-    setConnection:function(connection) {
-        this._connection = connection;
-        if (this.id == null) this.id = this._connection.id;
-        if (this.id != this._connection.id) throw "Error, connection ID mismatch: "+this.id+" =/= "+this._connection.id;
+    setVisible:function(visible) {
+        var updated = visible != this.visible;
+        this.visible = visible;
 
-		connection.on("ReceivedStatus",_.bind(this.receivedStatus,this));
-		connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
-		connection.on("Disconnect",_.bind(this.connectionReset,this));
+        if (visible) {
+            this.lastSeen = new Date().getTime()
+            if (!this._timer) {
+                this._timer = setInterval(_.bind(function() {
+                    this.requestStatus();
+                },this),this.visibleTimeout*.3);
+            }
+        } else {
+            if (this._timer) {
+                clearInterval(this._timer);
+                this._timer = null;
+            }
+        }
 
-        this.requestStatus();
-    },
-    clearConnection:function() {
-        if (this._connection) this._connection.destroy();
-        this._connection = null;
+        if (updated) {
+            console.log("emitting status",this.visible);
+            this.emit("Strip.StatusUpdated");
+        }
     },
     progressUpdate:function(connection) {
         var session = connection.getCurrentSession();
         this.emit("Strip.ProgressUpdated",this,session);
-    },
-    receivedStatus:function(connection,stripStatus) {
-        //console.log(stripStatus);
-        this.patterns = stripStatus.patterns;
-        this.memory = stripStatus.memory;
-        this.brightness = stripStatus.brightness;
-        this.selectedPattern = stripStatus.selectedPattern;
-        this.emit("Strip.StatusUpdated",stripStatus);
-    },
-    connectionReset:function(connection,error) {
-        this.clearConnection();
-        this.emit("Disconnect",this);
     },
     uploadFirmware:function(path) {
         var stream = fs.createReadStream(path);
@@ -100,30 +108,86 @@ extend(This.prototype,{
             },this));
         },this));
     },
+    receivedStatus:function(status) {
+        extend(this,status);
+        this.setVisible(true);
+        status.visible = this.visible;
+        this.emit("Strip.StatusUpdated",status);
+    },
+    sendCommand:function(command,cb,data) {
+        if (data) {
+            request({"timeout":2000,uri:"http://"+this.ip+"/"+command,body:data},_.bind(function(error, response, body) {
+                if (error) {
+                    console.log("error!",error);
+                    this.setVisible(false);
+                    return;
+                }
+                var json = JSON.parse(body);
+                if (cb) cb(json);
+            },this));
+        } else {
+            request({"timeout":2000,uri:"http://"+this.ip+"/"+command},_.bind(function(error, response, body) {
+                if (error) {
+                    console.log("error!",error);
+                    this.setVisible(false);
+                    return;
+                }
+                var json = JSON.parse(body);
+                if (cb) cb(json);
+            },this));
+        }
+    },
     requestStatus:function() {
-	    this._connection.sendCommand(StripWrapper.packetTypes.GET_STATUS);
+        this.sendCommand("status",_.bind(this.receivedStatus,this));
     },
 	setBrightness:function(brightness) {
         if (brightness < 0) brightness = 0;
         if (brightness > 100) brightness = 100;
-	    this._connection.updateCommand(StripWrapper.packetTypes.SET_BRIGHTNESS,brightness);
+        this.sendCommand("brightness?value="+brightness);
 	},
     toggle:function(value) {
-        this._connection.sendCommand(StripWrapper.packetTypes.TOGGLE_POWER,value);
+        this.sendCommand(value ? "power/on" : "power/off");
     },
     loadPattern:function(name,fps,data,isPreview) {
-        this._connection.sendPattern(name,fps,data,isPreview);
+        var frames = data.length;
+        var len = data[0].length;
+        var metadata = _c.packSync("PatternMetadata",{
+            name:name,
+            address: 0,
+            len: len*frames, //payload total size
+            frames: frames,
+            flags: 0x0000,
+            fps: fps,
+        });
+        var page = 0;
+        var bufferSize = Math.min(len*frames);
+        var payload = new Buffer(bufferSize);
+
+        var offset = 0;
+        for (var i=0; i<frames; i++) {
+            for (var l=0; l<len; l++) {
+                payload.writeUInt8(data[i][l],offset++);
+            }
+        }
+
+        var concatted = Buffer.concat([metadata,payload]);
+        console.log(concatted);
+
+        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",false,concatted);
+
+
+        //this._connection.sendPattern(name,fps,data,isPreview);
         if (!isPreview) this.requestStatus();
     },
     selectPattern:function(index) {
-        this._connection.sendCommand(StripWrapper.packetTypes.SELECT_PATTERN,index);
+        this.sendCommand("pattern/select?index="+index);
     },
 	forgetPattern:function(index) {
-        this._connection.sendCommand(StripWrapper.packetTypes.DELETE_PATTERN,index);
+        this.sendCommand("pattern/forget?index="+index);
         this.requestStatus();
     },
 	disconnectStrip:function() {
-        this._connection.sendCommand(StripWrapper.packetTypes.DISCONNECT_NETWORK);
+        this.sendCommand("disconnect");
     },
     setName:function(name) {
         this.name = name;

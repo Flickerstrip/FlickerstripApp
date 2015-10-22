@@ -3,8 +3,8 @@ var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
 var net = require('net');
-var _c = require("c-struct");
 
+var _c = require("c-struct");
 var PatternMetadata = new _c.Schema({
     name: _c.type.string(16),
     address: _c.type.uint32,
