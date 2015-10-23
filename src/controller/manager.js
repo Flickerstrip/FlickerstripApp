@@ -1,7 +1,7 @@
 var extend = require("extend");
 var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
-var util = require("util");
+var nutil = require("util");
 var DiscoveryServer = require("./DiscoveryServer")
 var StripWrapper = require("./StripWrapper")
 var LEDStrip = require("./LEDStrip")
@@ -9,6 +9,7 @@ var fs = require("fs");
 var request = require("request");
 var https = require("https");
 var path = require("path");
+var util = require("../shared/util");
 
 //var USBCommunication = require("./USBCommunication");
 //var WirelessManager = require("./WirelessManager");
@@ -17,7 +18,7 @@ var This = function() {
     this.init.apply(this,arguments);
 };
 
-util.inherits(This,EventEmitter);
+nutil.inherits(This,EventEmitter);
 extend(This.prototype,{
     strips:[],
     firmwareReleases:[],
@@ -51,7 +52,8 @@ extend(This.prototype,{
             var releaseTag = this.firmwareReleases[0]["tag_name"];
             console.log("uploading firmware: ",releaseTag);
             this.downloadFirmware(releaseTag,_.bind(function() {
-                strip.uploadFirmware(path.join(this.firmwareDirectory,releaseTag+".bin"));
+                console.log(this.config.firmwareFolder,releaseTag);
+                strip.uploadFirmware(path.join(this.config.firmwareFolder,releaseTag+".bin"));
             },this));
         },this));
 
@@ -84,14 +86,6 @@ extend(This.prototype,{
         ///////////////////////////////////////// Strip actions
     },
     loadFirmwareReleaseInfo:function() {
-        function symanticToNumeric(symantic) {
-            if (symantic[0] == "v") symantic = symantic.substring(1);
-            var parts = symantic.split(".");
-            var step = 1000;
-            var numeric = parseInt(parts[0])*step*step + parseInt(parts[1])*step + parseInt(parts[2]);
-            console.log("sym",symantic,numeric);
-            return numeric;
-        }
         request({
             url:"https://api.github.com/repos/julianh2o/ESPLEDStrip/releases",
             json:true,
@@ -103,8 +97,8 @@ extend(This.prototype,{
                 console.log(error);
                 return;
             }
-            releases.sort(function(a,b) {
-                return symanticToNumeric(a["tag_name"]) - symanticToNumeric(b["tag_name"]);
+            releases.sort(function(b,a) {
+                return util.symanticToNumeric(a["tag_name"]) - util.symanticToNumeric(b["tag_name"]);
             });
             this.firmwareReleases = releases;
             var latest = releases[0];
@@ -233,7 +227,7 @@ extend(This.prototype,{
         },this));
     },
 	clientIdentified:function(ip,status) {
-        console.log("client identified",ip,status);
+        console.log("client identified",ip);
         var strip = this.getStrip(status.mac);
         if (!strip) {
             strip = new LEDStrip(status.mac,ip);

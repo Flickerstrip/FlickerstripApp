@@ -52,8 +52,16 @@ extend(This.prototype,{
         }
 
         if (updated) {
-            console.log("emitting status",this.visible);
             this.emit("Strip.StatusUpdated");
+            if (visible == false) {
+                console.log("Client disconnected: "+this.ip);
+                  var e = new Error('dummy');
+                  var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
+                      .replace(/^\s+at\s+/gm, '')
+                      .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
+                      .split('\n');
+                  console.log(stack);
+            }
         }
     },
     progressUpdate:function(connection) {
@@ -61,50 +69,16 @@ extend(This.prototype,{
         this.emit("Strip.ProgressUpdated",this,session);
     },
     uploadFirmware:function(path) {
-        var stream = fs.createReadStream(path);
-        var stats = fs.statSync(path)
-        var hexSize = stats["size"];
-        console.log("Uploading Firmware: ",path,hexSize);
+        //var stream = fs.createReadStream(path);
+        //var stats = fs.statSync(path)
+        //var hexSize = stats["size"];
 
-        var setup = false;
-        var done = false;
-        var frameSize = 1000;
-        var bytesSent = 0;
-        stream.on("readable",_.bind(function() {
-            this._connection.sendCustom(_.bind(function(socket) {
-                if (!setup) {
-                    setup = true;
-                    this._connection.pauseDataHandler();
-                    var buf = this._connection._prepareCommand(StripWrapper.packetTypes.UPLOAD_FIRMWARE,hexSize);
-                    socket.write(this._connection._prepareBuffer("bin",buf));
-                    function dataHandler() {
-                        if (done) return;
-
-                        var buf = stream.read(frameSize);
-                        if (!buf) {
-                            buf = stream.read();
-                        }
-
-                        if (buf) { 
-                            bytesSent += buf.length;
-                            socket.write(buf);
-                            console.log("sending: "+bytesSent+" of "+hexSize);
-                        } else {
-                            socket.removeListener("data",_.bind(dataHandler,this));
-                            setTimeout(_.bind(function() {
-                                done = true;
-                                this._connection.status = "ready";
-                                this._connection._manageQueue();
-                            },this),5);
-                        }
-                    }
-                    socket.on("data",_.bind(dataHandler,this));
-                    dataHandler.call(this);
-                    return false;
-                } else if (done) {
-                    this._connection.resumeDataHandler();
-                    return true;
-                }
+        clearInterval(this._timer); this.timer = null;
+        fs.readFile(path,_.bind(function(err,data) {
+            var hexSize = data.length
+            console.log("Uploading Firmware: ",path,hexSize);
+            request.put({uri:"http://"+this.ip+"/update",body:data}).on("end",_.bind(function(error, response, body) {
+                console.log("upload complete!");
             },this));
         },this));
     },
@@ -118,8 +92,8 @@ extend(This.prototype,{
         if (data) {
             request({"timeout":2000,uri:"http://"+this.ip+"/"+command,body:data},_.bind(function(error, response, body) {
                 if (error) {
-                    console.log("error!",error);
                     this.setVisible(false);
+                    if (error.code != "ETIMEDOUT") console.log("error!",error);
                     return;
                 }
                 var json = JSON.parse(body);
@@ -128,8 +102,8 @@ extend(This.prototype,{
         } else {
             request({"timeout":2000,uri:"http://"+this.ip+"/"+command},_.bind(function(error, response, body) {
                 if (error) {
-                    console.log("error!",error);
                     this.setVisible(false);
+                    if (error.code != "ETIMEDOUT") console.log("error!",error);
                     return;
                 }
                 var json = JSON.parse(body);
@@ -171,7 +145,6 @@ extend(This.prototype,{
         }
 
         var concatted = Buffer.concat([metadata,payload]);
-        console.log(concatted);
 
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",false,concatted);
 

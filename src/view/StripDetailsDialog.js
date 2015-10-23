@@ -1,11 +1,12 @@
-define(['jquery',"text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html","jquery.touchwipe.min"],function($,mobile_template,desktop_template) {
+define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html","jquery.touchwipe.min"],function($,util,mobile_template,desktop_template) {
 
     var This = function() {
         this.init.apply(this,arguments);
     }
 
     $.extend(This.prototype, {
-        init:function(send,strip) {
+        init:function(send,strip,gui) {
+            this.gui = gui;
             this.send = send;
             this.strip = strip;
 
@@ -15,19 +16,40 @@ define(['jquery',"text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetai
             this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
 
             $(this.strip).on("Strip.StatusUpdated NameUpdated",_.bind(this.update,this));
+            $(this.gui).on("LatestReleaseUpdated",_.bind(this.update,this));
+
             this.update();
 
             this.$el.find(".closeDetails").click(_.bind(this.hide,this));
+        },
+        doUpdateClicked:function(e) {
+            console.log("uploading firmware!");
+            this.send("UploadFirmware",this.strip.id);
+
+            return false;
         },
         update:function() {
             var name = this.strip.name || "Unknown Strip";
             this.$el.find(".name").text(name);
 
             this.$el.find(".infoList").empty();
+
+
+            var firmware = "";
+            var nl = util.symanticToNumeric(this.gui.latestRelease)
+            var nf = util.symanticToNumeric(this.strip.firmware)
+            if (nl == nf) {
+                firmware = this.strip.firmware;
+            } else if (nl > nf) {
+                firmware = $("<span class='version outofdate'><a class='doupdate' href='#'>Update Available</a> "+this.strip.firmware+"</span>");
+            } else if (nf > nl) {
+                firmware = $("<span class='version devversion'>"+this.strip.firmware+"</span>");
+            }
+
             this.generateList([
                 {"key":"Name","value":name,"click":_.bind(this.renameStrip,this)},
                 {"key":"MAC Address","value":this.strip.id},
-                {"key":"Firmware Version","value":this.strip.firmware},
+                {"key":"Firmware Version","value":firmware},
                 {"key":"Used Space","value":this.strip.memory.used},
                 {"key":"Available Space","value":this.strip.memory.free},
             ],this.$el.find(".infoList"));
@@ -39,6 +61,8 @@ define(['jquery',"text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetai
             } else {
                 statusIndicator.addClass("error").attr("title","disconnected");
             }
+
+            this.$el.find(".doupdate").click(_.bind(this.doUpdateClicked,this));
         },
         renameStrip:function() {
             var newName = prompt("Enter a new name for the strip.",this.strip.name || "Unknown Strip");
@@ -50,7 +74,7 @@ define(['jquery',"text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetai
             _.each(arr,function(item) {
                 var $lel = $("<div class=\"info\"><span class=\"infoLabel\"></span><span class=\"infoValue\"></span></div>");
                 $lel.find(".infoLabel").text(item.key);
-                $lel.find(".infoValue").text(item.value);
+                $lel.find(".infoValue").append(item.value);
                 if (item.click) $lel.click(item.click);
                 $els.append($lel);
             });

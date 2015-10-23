@@ -47,7 +47,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             },this));
         },
         showDetailsClicked:function() {
-            this.detailsDialog = new StripDetailsDialog(this.send,this.strip);
+            this.detailsDialog = new StripDetailsDialog(this.send,this.strip,this.gui);
             this.detailsDialog.show();
         },
         statusUpdated:function() {

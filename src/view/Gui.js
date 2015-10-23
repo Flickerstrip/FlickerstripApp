@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,util,template) {
     var This = function(window,send) {
         this.send = send;
         this.window = window;
@@ -165,9 +165,22 @@ function($,_, util, tinycolor, ControlsView, LEDStripRenderer, SelectList, Group
                 $el.append($("<span class='name'></span>").text(name));
                 $el.append($("<span class='version'></span>").text(strip.firmware));
 
-                $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
+                function setVersionClass($el,firmware,latest) {
+                    var fn = util.symanticToNumeric(firmware);
+                    var ln = util.symanticToNumeric(latest);
+
+                    $el.removeClass("outofdate");
+                    $el.removeClass("devversion");
+
+                    if (fn == ln) return;
+
+                    if (fn < ln) $el.addClass("outofdate");
+                    if (fn > ln) $el.addClass("devversion");
+                }
+                var $ver = $el.find(".version");
+                setVersionClass($ver,strip.firmware,this.latestRelease);
                 $(strip).on("LatestReleaseUpdated",_.bind(function() {
-                    $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
+                    setVersionClass($ver,strip.firmware,this.latestRelease);
                 },this));
 
                 var $onoff = $("<button class='powerButton'><span class='glyphicon glyphicon-off'></span></button>");

@@ -25,6 +25,7 @@ nwjs_prepare:
 
 nwjs_update: ./build/nwjs/node_modules
 	rsync --update -ravh ./src/controller ./build/nwjs/
+	rsync --update -ravh ./src/shared ./build/nwjs/
 	rsync --update -ravh ./src/view ./build/nwjs/ --exclude less
 	rsync --update -ravh ./src/nwjs ./build/
 	mv ./build/nwjs/nwjs_package.json ./build/nwjs/package.json
@@ -50,6 +51,7 @@ cordova_prepare:
 
 cordova_update: cordova_prepare | ./build/cordova/www/jxcore/node_modules
 	rsync --update -ravh ./src/controller ./build/cordova/www/jxcore
+	rsync --update -ravh ./src/shared ./build/cordova/www/jxcore
 	rsync --update -ravh ./src/view ./build/cordova/www/ --exclude less
 	rsync --update -ravh ./src/cordova/www ./build/cordova/
 	rsync --update -ravh ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
