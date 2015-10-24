@@ -166,13 +166,15 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 $el.append($("<span class='version'></span>").text(strip.firmware));
 
                 function setVersionClass($el,firmware,latest) {
+                    if (!firmware || !latest) return;
                     var fn = util.symanticToNumeric(firmware);
                     var ln = util.symanticToNumeric(latest);
 
+                    $el.removeClass("uptodate");
                     $el.removeClass("outofdate");
                     $el.removeClass("devversion");
 
-                    if (fn == ln) return;
+                    if (fn == ln) $el.addClass("uptodate");
 
                     if (fn < ln) $el.addClass("outofdate");
                     if (fn > ln) $el.addClass("devversion");

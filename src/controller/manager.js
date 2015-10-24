@@ -87,7 +87,7 @@ extend(This.prototype,{
     },
     loadFirmwareReleaseInfo:function() {
         request({
-            url:"https://api.github.com/repos/julianh2o/ESPLEDStrip/releases",
+            url:"https://api.github.com/repos/Flickerstrip/FlickerstripFirmware/releases",
             json:true,
             headers: {
                 "User-Agent":"Flickerstrip-Dashboard",
@@ -122,11 +122,11 @@ extend(This.prototype,{
             return;
         }
         var f = fs.createWriteStream(binPath);
-        request("https://github.com/julianh2o/ESPLEDStrip/releases/download/"+release+"/"+release+".bin")
+        request("https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/"+release+"/"+release+".bin")
             .on("response",function() {
                     if (cb) cb(true);
             }).pipe(f);
-        //download url: https://github.com/julianh2o/ESPLEDStrip/releases/download/v0.0.1/v0.0.1.bin
+        //download url: https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/v0.0.1/v0.0.1.bin
     },
     eventHandler:function() {
         this.emit.apply(this,arguments);
