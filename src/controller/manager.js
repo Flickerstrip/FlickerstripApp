@@ -26,10 +26,10 @@ extend(This.prototype,{
         this.config = config;
         this.send = send;
 
-        //this.loadStrips(_.bind(function() {
+        this.loadStrips(_.bind(function() {
             this.discovery = new DiscoveryServer();
             this.discovery.on("DiscoveredClient",_.bind(this.clientDiscovered,this));
-        //},this));
+        },this));
 
         this.loadFirmwareReleaseInfo();
 
@@ -149,6 +149,7 @@ extend(This.prototype,{
                     }
                 }
                 this.strips.push(lstrip);
+                lstrip.visible = false;
                 this.stripAdded(lstrip);
             },this));
             if (cb) cb();

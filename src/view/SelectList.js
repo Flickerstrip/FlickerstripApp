@@ -51,8 +51,7 @@ define(['jquery'],function($) {
         refresh:function() {
             var self = this;
             this.$el.children(".listElement").each(function() {
-                var index = $(this).data("index");
-                self.renderer.call(self.rendererthis,self.data[index],$(this));
+                self.renderer.call(self.rendererthis,$(this).data("object"),$(this));
             });
         },
         each:function(cb) {

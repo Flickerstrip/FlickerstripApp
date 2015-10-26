@@ -17,6 +17,21 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
         return selected;
     }
 
+    function setVersionClass($el,firmware,latest) {
+        if (!firmware || !latest) return;
+        var fn = util.symanticToNumeric(firmware);
+        var ln = util.symanticToNumeric(latest);
+
+        $el.removeClass("uptodate");
+        $el.removeClass("outofdate");
+        $el.removeClass("devversion");
+
+        if (fn == ln) $el.addClass("uptodate");
+
+        if (fn < ln) $el.addClass("outofdate");
+        if (fn > ln) $el.addClass("devversion");
+    }
+
     $.extend(This.prototype,{
         canvas:null,
         stripListComponent:null,
@@ -60,6 +75,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
         },
         releaseUpdated:function(e,release) {
             this.latestRelease = release;
+            this.selectList.refresh();
         },
         eventHandler:function() {
             var preprocessors = {
@@ -155,30 +171,16 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             if ($el) {
                 $el.find(".name").text(name);
                 $el.find(".version").text(strip.firmware);
-                $el.find(".version").toggleClass("outofdate",strip.firmware != this.latestRelease);
+                var $ver = $el.find(".version");
+                setVersionClass($ver,strip.firmware,this.latestRelease);
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
                 $el = $("<li class='list-group-item listElement' />");
-                var statusClass = strip.visble ? "connected" : "error";
+                var statusClass = strip.visible ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
                 $el.append($("<span class='version'></span>").text(strip.firmware));
-
-                function setVersionClass($el,firmware,latest) {
-                    if (!firmware || !latest) return;
-                    var fn = util.symanticToNumeric(firmware);
-                    var ln = util.symanticToNumeric(latest);
-
-                    $el.removeClass("uptodate");
-                    $el.removeClass("outofdate");
-                    $el.removeClass("devversion");
-
-                    if (fn == ln) $el.addClass("uptodate");
-
-                    if (fn < ln) $el.addClass("outofdate");
-                    if (fn > ln) $el.addClass("devversion");
-                }
                 var $ver = $el.find(".version");
                 setVersionClass($ver,strip.firmware,this.latestRelease);
                 $(strip).on("LatestReleaseUpdated",_.bind(function() {

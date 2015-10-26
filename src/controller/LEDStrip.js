@@ -27,52 +27,40 @@ extend(This.prototype,{
 	init:function(id,ip) {
         this.id = id;
         this.ip = ip;
+        this.busy = false;
+        this.queue = [];
         this.visibleTimeout = 9000;
-
-		//connection.on("ReceivedStatus",_.bind(this.receivedStatus,this));
-		//connection.on("ProgressUpdate",_.bind(this.progressUpdate,this));
-		//connection.on("Disconnect",_.bind(this.connectionReset,this));
 	},
+    startWatchdogTimer:function() {
+        if (this._timer) return;
+        this._timer = setInterval(_.bind(function() {
+            this.requestStatus();
+        },this),this.visibleTimeout*.3);
+    },
+    stopWatchdogTimer:function() {
+        if (!this._timer) return;
+        clearInterval(this._timer);
+        this._timer = null;
+    },
     setVisible:function(visible) {
         var updated = visible != this.visible;
         this.visible = visible;
 
         if (visible) {
             this.lastSeen = new Date().getTime()
-            if (!this._timer) {
-                this._timer = setInterval(_.bind(function() {
-                    this.requestStatus();
-                },this),this.visibleTimeout*.3);
-            }
-        } else {
-            if (this._timer) {
-                clearInterval(this._timer);
-                this._timer = null;
-            }
+            this.startWatchdogTimer();
         }
 
-        if (updated) {
-            this.emit("Strip.StatusUpdated");
-            if (visible == false) {
-                console.log("Client disconnected: "+this.ip);
-//                  var e = new Error('dummy');
-//                  var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
-//                      .replace(/^\s+at\s+/gm, '')
-//                      .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
-//                      .split('\n');
-//                  console.log(stack);
-            }
+        if (!visible && updated) {
+            console.log("Client disconnected: "+this.ip);
+            this.ip = null;
+            this.busy = false;
+            this.queue = [];
+            this.stopWatchdogTimer();
+            this.emit("Strip.StatusUpdated",{"visible":false});
         }
-    },
-    progressUpdate:function(connection) {
-        var session = connection.getCurrentSession();
-        this.emit("Strip.ProgressUpdated",this,session);
     },
     uploadFirmware:function(path) {
-        //var stream = fs.createReadStream(path);
-        //var stats = fs.statSync(path)
-        //var hexSize = stats["size"];
-
         clearInterval(this._timer); this.timer = null;
         fs.readFile(path,_.bind(function(err,data) {
             var hexSize = data.length
@@ -88,28 +76,36 @@ extend(This.prototype,{
         status.visible = this.visible;
         this.emit("Strip.StatusUpdated",status);
     },
-    sendCommand:function(command,cb,data) {
-        if (data) {
-            request({"timeout":2000,uri:"http://"+this.ip+"/"+command,body:data},_.bind(function(error, response, body) {
-                if (error) {
-                    this.setVisible(false);
-                    if (error.code != "ETIMEDOUT") console.log("error!",error);
-                    return;
-                }
-                var json = JSON.parse(body);
-                if (cb) cb(json);
-            },this));
-        } else {
-            request({"timeout":2000,uri:"http://"+this.ip+"/"+command},_.bind(function(error, response, body) {
-                if (error) {
-                    this.setVisible(false);
-                    if (error.code != "ETIMEDOUT") console.log("error!",error);
-                    return;
-                }
-                var json = JSON.parse(body);
-                if (cb) cb(json);
-            },this));
+    handleQueue:function() {
+        if (!this.queue.length) return;
+
+        var args = this.queue.shift();
+        this.sendCommand.apply(this,args);
+    },
+    sendCommand:function(command,cb,data,notimeout) {
+        if (this.busy) {
+            this.queue.push(Array.prototype.slice.call(arguments));
+            return;
         }
+        this.busy = true;
+        this.stopWatchdogTimer();
+        var opt = {
+            uri:"http://"+this.ip+"/"+command
+        };
+        if (data) opt.body = data;
+        if (!notimeout) opt.timeout = 2000;
+        request(opt,_.bind(function(error, response, body) {
+            this.startWatchdogTimer();
+            if (error) {
+                this.setVisible(false);
+                if (error.code != "ETIMEDOUT") console.log("error!",error,command);
+                return;
+            }
+            var json = JSON.parse(body);
+            this.busy = false;
+            if (cb) cb(json);
+            this.handleQueue();
+        },this));
     },
     requestStatus:function() {
         this.sendCommand("status",_.bind(this.receivedStatus,this));
@@ -146,10 +142,10 @@ extend(This.prototype,{
 
         var concatted = Buffer.concat([metadata,payload]);
 
-        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",false,concatted);
+        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function() {
+            this.emit("Strip.UploadPatternComplete");
+        },this),concatted,true);
 
-
-        //this._connection.sendPattern(name,fps,data,isPreview);
         if (!isPreview) this.requestStatus();
     },
     selectPattern:function(index) {

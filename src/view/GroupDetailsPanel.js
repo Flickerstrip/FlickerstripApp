@@ -24,15 +24,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 e.stopPropagation();
             },this));
 
-            this.updateValues(strip);
-            $(strip).on("Strip.Connected",_.bind(function() {
-                strip._connection = true;
-                this.updateValues(strip);
-            },this));
-            $(strip).on("Strip.Disconnected",_.bind(function() {
-                strip._connection = false;
-                this.updateValues(strip);
-            },this));
+            this.statusUpdated();
 
             this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
 
@@ -53,6 +45,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         statusUpdated:function() {
             $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
             this.updateAvailableIndicator(this.strip.memory.used,this.strip.memory.total);
+            this.updateValues(this.strip);
             this.refreshPatterns();
         },
         updateAvailableIndicator:function(used,total) {
@@ -70,7 +63,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             var statusIndicator = $header.find(".statusIndicator").css("visibility","visible");
             statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (strip._connection) {
+            if (strip.visible) {
                 statusIndicator.addClass("connected").attr("title","connected");
             } else {
                 statusIndicator.addClass("error").attr("title","disconnected");
@@ -96,13 +89,11 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         savePattern:function(e,name,fps,pattern,isPreview) {
             var len = pattern.length * pattern[0].length;
             this.send("LoadPattern",this.strip.id,name,fps,pattern,isPreview);
-            /*
-               var progressDialog = new ProgressDialog(this.strip);
+            var progressDialog = new ProgressDialog(true);
             progressDialog.show();
-            $(progressDialog).on("Complete",function() {
-                //console.log("Complete!");
+            $(this.strip).one("Strip.UploadPatternComplete",function() {
+                progressDialog.hide();
             });
-            */
         },
         forgetPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");

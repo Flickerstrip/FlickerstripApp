@@ -23,7 +23,6 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             this.$el.find(".closeDetails").click(_.bind(this.hide,this));
         },
         doUpdateClicked:function(e) {
-            console.log("uploading firmware!");
             this.send("UploadFirmware",this.strip.id);
 
             return false;
@@ -56,7 +55,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
 
             var statusIndicator = this.$el.find(".statusIndicator").css("visibility","visible");
             statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (this.strip._connection) {
+            if (this.strip.visible) {
                 statusIndicator.addClass("connected").attr("title","connected");
             } else {
                 statusIndicator.addClass("error").attr("title","disconnected");
