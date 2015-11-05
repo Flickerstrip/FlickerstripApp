@@ -1,4 +1,6 @@
 LESS_FILES := $(shell find ./src/view/less -iname '*.less')
+NWJS_PLATFORMS = $(shell ls ./nwjs)
+RSYNC_OPT = --update -ravh --exclude '.*.swp'
 
 all: nwjs
 
@@ -17,27 +19,43 @@ clean:
 	cd ./buildcache && git clone https://github.com/jxcore/jxcore-cordova
 
 ############ NWJS
-nwjs_prepare:
-	mkdir -p ./build/nwjs
+./build/nwjs/linux-x64:
+	mkdir -p $@
+	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp -r ./nwjs/`basename $@`/* $@
 
-./build/nwjs/node_modules: | ./buildcache/node_modules
-	cp -r ./buildcache/node_modules ./build/nwjs/
+./build/nwjs/osx-x64:
+	mkdir -p $@
+	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp -r ./nwjs/`basename $@`/* $@
 
-nwjs_update: ./build/nwjs/node_modules
-	rsync --update -ravh ./src/controller ./build/nwjs/
-	rsync --update -ravh ./src/shared ./build/nwjs/
-	rsync --update -ravh ./src/view ./build/nwjs/ --exclude less
-	rsync --update -ravh ./src/nwjs ./build/
-	mv ./build/nwjs/nwjs_package.json ./build/nwjs/package.json
+./build/nwjs/win-x64:
+	mkdir -p $@
+	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp -r ./nwjs/`basename $@`/* $@
 
-./build/nwjs/nwjs.app:
-	cp -r nwjs/* ./build/nwjs/
+./build/nwjs/%/node_modules: ./build/nwjs/% ./buildcache/node_modules
+	cp -r ./buildcache/node_modules `dirname $@`
 
-./build/nwjs/view/css/style.css: $(LESS_FILES)
-	mkdir -p ./build/nwjs/view/css
-	lessc ./src/view/less/desktop.less > ./build/nwjs/view/css/style.css
+./build/nwjs/%/view: ./src/view ./build/nwjs/%
+	echo "COPYING VIEW FILES `dirname $@`"
+	rsync $(RSYNC_OPT) ./src/view `dirname $@`
 
-nwjs: nwjs_prepare nwjs_update ./build/nwjs/view/css/style.css ./build/nwjs/nwjs.app
+./build/nwjs/%/controller: ./src/controller ./build/nwjs/%
+	rsync $(RSYNC_OPT) --update -ravh ./src/controller `dirname $@`
+
+./build/nwjs/%/shared: ./src/shared ./build/nwjs/%
+	rsync $(RSYNC_OPT) --update -ravh ./src/shared `dirname $@`
+
+./build/nwjs/%/view/css/style.css: $(LESS_FILES)
+	mkdir -p `dirname $@`
+	lessc ./src/view/less/desktop.less > $@
+
+linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
+osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
+win-x64: ./build/nwjs/win-x64 ./build/nwjs/win-x64/view ./build/nwjs/win-x64/controller ./build/nwjs/win-x64/shared ./build/nwjs/win-x64/node_modules ./build/nwjs/win-x64/view/css/style.css
+
+nwjs_all: linux-x64 osx-x64 win-x64
 ############ NWJS
 
 
@@ -50,11 +68,11 @@ cordova_prepare:
 	cp -r ./buildcache/node_modules ./build/cordova/www/jxcore/
 
 cordova_update: cordova_prepare | ./build/cordova/www/jxcore/node_modules
-	rsync --update -ravh ./src/controller ./build/cordova/www/jxcore
-	rsync --update -ravh ./src/shared ./build/cordova/www/jxcore
-	rsync --update -ravh ./src/view ./build/cordova/www/ --exclude less
-	rsync --update -ravh ./src/cordova/www ./build/cordova/
-	rsync --update -ravh ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
+	rsync $(RSYNC_OPT) ./src/controller ./build/cordova/www/jxcore
+	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www/jxcore
+	rsync $(RSYNC_OPT) ./src/view ./build/cordova/www/ --exclude less
+	rsync $(RSYNC_OPT) ./src/cordova/www ./build/cordova/
+	rsync $(RSYNC_OPT) ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
 
 coreExtensions: ./build/cordova/jxcore-cordova ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java ./build/cordova/jxcore-cordova/plugin.xml
 
@@ -102,5 +120,5 @@ run_android: cordova
 	cd ./build/cordova && cordova run android
 ############ CORDOVA
 
-run: nwjs
-	open ./build/nwjs/nwjs.app
+run: osx-x64
+	open ./build/nwjs/osx-x64/nwjs.app

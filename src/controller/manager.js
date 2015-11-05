@@ -168,7 +168,9 @@ extend(This.prototype,{
     },
     saveStrips:function() {
         var text = JSON.stringify(this.strips,function(key,value) {
-            if (key.indexOf("_") === 0) return false;
+            if (key.indexOf("_") === 0) {
+                return undefined;
+            }
             return value;
         });
         fs.writeFile(this.config.configLocation,text,function(err) {
@@ -215,7 +217,7 @@ extend(This.prototype,{
     clientDiscovered:function(ip) {
         var found = null;
         _.each(this.strips,function(strip,index) {
-            if (strip.ip == ip) found = strip;
+            if (strip._ip == ip) found = strip;
         });
         if (found != null) {
             found.setVisible(true);
@@ -238,7 +240,7 @@ extend(This.prototype,{
             this.saveStrips();
             this.stripAdded(strip);
         } else {
-            strip.ip = ip;
+            strip._ip = ip;
             strip.receivedStatus(status);
             strip.setVisible(true);
         }

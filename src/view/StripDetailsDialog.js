@@ -65,6 +65,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
         },
         renameStrip:function() {
             var newName = prompt("Enter a new name for the strip.",this.strip.name || "Unknown Strip");
+            if (!newName) return;
             this.strip.name = newName;
             this.send("RenameStrip",this.strip.id,newName);
             $(this.strip).trigger("NameUpdated",this.strip.id,newName);

@@ -5,7 +5,6 @@ var _ = require("underscore")._;
 var util = require("util");
 var StripWrapper = require("./StripWrapper");
 var fs = require("fs");
-var streamifier = require("streamifier");
 
 var _c = require("c-struct");
 var PatternMetadata = new _c.Schema({
@@ -22,20 +21,21 @@ var This = function() {
     this.init.apply(this,arguments);
 };
 
+var visibleTimeout = 9000;
+
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
 	init:function(id,ip) {
         this.id = id;
-        this.ip = ip;
-        this.busy = false;
-        this.queue = [];
-        this.visibleTimeout = 9000;
+        this._ip = ip;
+        this._busy = false;
+        this._queue = [];
 	},
     startWatchdogTimer:function() {
         if (this._timer) return;
         this._timer = setInterval(_.bind(function() {
             this.requestStatus();
-        },this),this.visibleTimeout*.3);
+        },this),visibleTimeout*.3);
     },
     stopWatchdogTimer:function() {
         if (!this._timer) return;
@@ -52,20 +52,20 @@ extend(This.prototype,{
         }
 
         if (!visible && updated) {
-            console.log("Client disconnected: "+this.ip);
-            this.ip = null;
-            this.busy = false;
-            this.queue = [];
+            console.log("Client disconnected: "+this._ip);
+            this._ip = null;
+            this._busy = false;
+            this._queue = [];
             this.stopWatchdogTimer();
             this.emit("Strip.StatusUpdated",{"visible":false});
         }
     },
     uploadFirmware:function(path) {
-        clearInterval(this._timer); this.timer = null;
+        clearInterval(this._timer); this._timer = null;
         fs.readFile(path,_.bind(function(err,data) {
             var hexSize = data.length
             console.log("Uploading Firmware: ",path,hexSize);
-            request.put({uri:"http://"+this.ip+"/update",body:data}).on("end",_.bind(function(error, response, body) {
+            request.put({uri:"http://"+this._ip+"/update",body:data}).on("end",_.bind(function(error, response, body) {
                 console.log("upload complete!");
             },this));
         },this));
@@ -77,20 +77,20 @@ extend(This.prototype,{
         this.emit("Strip.StatusUpdated",status);
     },
     handleQueue:function() {
-        if (!this.queue.length) return;
+        if (!this._queue.length) return;
 
-        var args = this.queue.shift();
+        var args = this._queue.shift();
         this.sendCommand.apply(this,args);
     },
     sendCommand:function(command,cb,data,notimeout) {
-        if (this.busy) {
-            this.queue.push(Array.prototype.slice.call(arguments));
+        if (this._busy) {
+            this._queue.push(Array.prototype.slice.call(arguments));
             return;
         }
-        this.busy = true;
+        this._busy = true;
         this.stopWatchdogTimer();
         var opt = {
-            uri:"http://"+this.ip+"/"+command
+            uri:"http://"+this._ip+"/"+command
         };
         if (data) opt.body = data;
         if (!notimeout) opt.timeout = 2000;
@@ -102,7 +102,7 @@ extend(This.prototype,{
                 return;
             }
             var json = JSON.parse(body);
-            this.busy = false;
+            this._busy = false;
             if (cb) cb(json);
             this.handleQueue();
         },this));

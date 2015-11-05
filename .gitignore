@@ -3,16 +3,12 @@
 build
 buildcache
 known_strips.json
-nwjc
-nwjs.app
 node_modules/
 .DS_Store
 gitversion.txt
 shutdownlog.txt
 nw.pak
 miniterm.py
-*.dll
-*.exe
-*.dat
 npm-debug.log
 .refactorix
+nwjs/

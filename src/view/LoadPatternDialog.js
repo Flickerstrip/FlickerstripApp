@@ -1,5 +1,7 @@
-define(["jquery","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
-function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_template,desktop_template) {
+var sandbox = require("sandbox");
+
+define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
+function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_template,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -56,16 +58,17 @@ function($,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_templat
         },
         generatePattern:function() {
             var pattern = this.getPattern(this.activePattern);
-            var renderer = pattern.renderer;
+            var render = pattern.render;
             var pixelValues = [];
             for (var t=0;t<pattern.frames; t++) {
                 var timeSlice = [];
-                for (var x=0;x<pattern.leds; x++) {
-                    var c = renderer(x,t).toRgb();
+                for (var x=0;x<pattern.pixels; x++) {
+                    var c = new tinycolor(render(x,t)).toRgb();
                     timeSlice.push(c.r,c.g,c.b);
                 }
                 pixelValues[t] = timeSlice;
             }
+            console.log(pixelValues);
             return pixelValues;
         },
         patternSelected:function(e,selectedObjects,selectedIndexes) {

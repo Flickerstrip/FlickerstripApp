@@ -49,6 +49,9 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
             if (!(this.pattern && this.rendered)) return;
+
+            var imgctx = this.rendered.getContext("2d");
+
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
             var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.start)/1000)) % this.pattern.frames);
         
@@ -61,7 +64,9 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             //g.fillStyle = "black";
             //g.fillRect(padding.left-1,10-1,this.canvas.width - padding.left - padding.right+1, ledHeight+2);
             for (var i=0; i<this.stripLength; i++) {
-                var c = this.pattern.renderer(i,currentFrame);
+                var data = imgctx.getImageData(currentFrame,i%this.rendered.height, 1, 1).data
+                var c = new tinycolor({r:data[0],g:data[1],b:data[2]});
+                //var c = new tinycolor(this.pattern.render(i,currentFrame));
 
                 var offset = 1;
                 g.fillStyle = tinycolor(c.toString()).toHexString();
@@ -92,8 +97,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             var labelFrequency = 5;
             g.fillStyle = "black";
             g.textAlign = 'center';
-            g.font = "10px Monaco";
-            for (var i=0; i<=duration; i++) {
+            g.font = "10px Monaco"; for (var i=0; i<=duration; i++) {
                 var x = padding.left + i*this.pattern.fps;
                 drawLine(g,x,padding.top-tickLength,x,padding.top);
                 if (i % labelFrequency == 0) {
@@ -110,7 +114,6 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             g.fillStyle = "#000";
             g.fillRect(loc.x-1,loc.y-1,loc.width+2,loc.height+2);
 
-            var imgctx = this.rendered.getContext("2d");
             var durationPerX = renderDuration / loc.width;
             for (var x=0; x<loc.width; x++) {
                 var ctime = durationPerX * x;
@@ -131,11 +134,21 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         updatePatternCache:function() {
             this.start = new Date().getTime();
             
+            var rendered = {};
             this.rendered = renderToCanvas(this.pattern.frames,this.stripLength,_.bind(function(g) {
                 for (var x = 0; x<this.pattern.frames; x++) {
                     for (var y = 0; y<this.stripLength; y++) {
-                        var i = y % this.pattern.leds;
-                        var c = this.pattern.renderer(i,x);
+                        var c;
+                        var i = y % this.pattern.pixels;
+                        if (!rendered[i+"_"+x]) {
+                            if (this.pattern.debug && x < 5) console.log("Frame: x="+i+" t="+x);
+                            var a = this.pattern.render(i,x);
+                            if (this.pattern.debug && x < 5) console.log("Result: ",a);
+                            c = new tinycolor(a);
+                            rendered[i+"_"+x] = c;
+                        } else {
+                            c = rendered[i+"_"+x];
+                        }
                         g.fillStyle = c.toHexString();
                         g.fillRect(x,y,1,1);
                     }
