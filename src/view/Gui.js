@@ -1,7 +1,6 @@
 define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
 function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,util,template) {
     var This = function(window,send) {
-        this.send = send;
         this.window = window;
         var document = window.document;
         this.document = window.document;
@@ -37,12 +36,13 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
         stripListComponent:null,
         stripRenderer:null,
         activePattern:null,
-        init:function(document,eventRelay) {
-            this.eventRelay = eventRelay;
+        init:function(document,send) {
+            this.send = send;
             this.$el = $(document.body);
             this.$el.addClass("theme1");
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
+            $(this).on("StripRemoved",_.bind(this.stripRemoved,this));
             $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
 
             this.render();
@@ -101,11 +101,18 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             return found;
         },
         stripAdded:function(e,strip) {
-            this.selectList.addElement(strip);
+            this.selectList.addElement(strip,strip.group);
             var self = this;
             $(strip).on("Strip.StatusUpdated",_.bind(function() {
                 self.selectList.updateElement(strip);
             },this));
+        },
+        stripRemoved:function(e,id) {
+            this.selectList.$el.find(".listElement").each(function() {
+                if ($(this).data("object").id == id) {
+                    $(this).remove();
+                }
+            });
         },
         stripSelected:function(e,selectedStrips,selectedIndexes) {
             this.selectedStrips = selectedStrips;
@@ -124,7 +131,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             }
         },
         selectSingleStrip:function(strip) {
-            this.groupDetails = new GroupDetailsPanel(this.send,strip,this);
+            this.groupDetails = new GroupDetailsPanel(this.send,[strip],this);
             $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
                 this.selectList.deselect();
                 this.$el.removeClass("groupDetailsShowing");
@@ -133,11 +140,13 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
-            var $el = this.$el.find("#activeStrip");
-            $el.find("#nameValue").off("dblclick");
-            $el.find("#identifierValue").hide();
-            $el.find("#nameValue").text(strips.length+" selected");
-            $el.find(".statusIndicator").css("visibility","hidden");
+            this.groupDetails = new GroupDetailsPanel(this.send,strips,this);
+            $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
+                this.selectList.deselect();
+                this.$el.removeClass("groupDetailsShowing");
+            },this));
+
+            this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
         },
         render:function() {
             this.$el.empty();
@@ -145,7 +154,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
 
             this.activePattern = null; //todo: select correct pattern
             var $stripList = this.$el.find("#strip-list");
-            var selectList = new SelectList([],this.stripElementRenderer,this);
+            var selectList = new SelectList([],this.stripElementRenderer,this,null,this.stripElementGroupRenderer);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
 
@@ -154,15 +163,34 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             $.contextMenu({
                 selector: ".listElement",
                     items: {
-                        foo: {name: "Forget Strip", callback: function(key, opt){
-                            var obj = $(this).data("object")
-                            $(self).trigger("ForgetStrip",[obj.id]);
+                        foo: {name: "Forget Strip", callback:function(key, opt){
+                            var obj = $(this).data("object");
+                            self.send("ForgetStrip",[obj.id]);
                         }},
                         //bar: {name: "Boo", callback: function(key, opt){ console.log("bar arguments: ",arguments); }},
                     }
             });
 
+            $.contextMenu({
+                selector: ".header[data-name!='Ungrouped']",
+                    items: {
+                        foo: {name: "Delete group", callback:function(key, opt){
+                            var group = $(this).data("name");
+                            self.$el.find(".listElement").each(function() {
+                                if ($(this).data("group") == group) {
+                                    $(this).data("group","");
+                                    self.send("SetGroup",$(this).data("object").id,"");
+                                }
+                            });
+                            self.selectList.refreshGroupings();
+                        }},
+                    }
+            });
+
             $(selectList).on("change",_.bind(this.stripSelected,this));
+        },
+        stripElementGroupRenderer:function(header) {
+            return $("<li class='list-group-item header' data-name='"+header+"'>"+header+"</li>");
         },
         stripElementRenderer:function(strip,$el) {
             var name = strip.name;

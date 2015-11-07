@@ -68,7 +68,6 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobi
                 }
                 pixelValues[t] = timeSlice;
             }
-            console.log(pixelValues);
             return pixelValues;
         },
         patternSelected:function(e,selectedObjects,selectedIndexes) {

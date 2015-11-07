@@ -5,19 +5,29 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     }
 
     $.extend(This.prototype, {
-        init:function(send,strip,gui) {
+        init:function(send,strips,gui) {
             this.gui = gui;
             this.send = send;
+            this.strips = strips;
             this.$el = $("<div class='groupDetails' />");
             this.$el.empty().append(template);
-            this.strip = strip;
-            if (strip && strip.patterns) this.refreshPatterns();
-            if (strip && strip.memory) this.updateAvailableIndicator(strip.memory.used,strip.memory.total);
-            if (strip && strip.brightness) this.$el.find(".brightnessField").val(strip.brightness);
 
-            $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
+            this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,this.strip);
 
-            $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
+            if (strips.length == 1) {
+                var strip = this.strips[0];
+
+                $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
+
+                $(this.brightnessControl).on("change",_.bind(function(e,val) {
+                   this.send("SetBrightness",strip._id,val); 
+                },this));
+            } else {
+            }
+
+            this.$el.find(".multiselect").toggle(strips.length > 1);
+            this.$el.find(".progress").toggle(strips.length == 1);
+            this.$el.find(".nextToBrightnessBar").toggle(strips.length == 1);
 
             this.$el.find(".backButton").click(_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
@@ -26,16 +36,22 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             this.statusUpdated();
 
-            this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
+            this.$el.find(".createGroupFromSelected").click(_.bind(this.createGroupClicked,this));
 
-            this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,strip);
+            this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
             this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
 
             this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
-                console.log("sending strip disconnect");
                 this.send("DisconnectStrip",this.strip.id);
+            },this));
+        },
+        createGroupClicked:function() {
+            var groupName = prompt("Enter a name for your group");
+            if (groupName == null) return;
+            _.each(this.strips,_.bind(function(strip) {
+                this.send("SetGroup",strip.id,groupName);
             },this));
         },
         showDetailsClicked:function() {
@@ -43,36 +59,52 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.detailsDialog.show();
         },
         statusUpdated:function() {
-            $(".uploadFirmware").toggle(this.gui.latestRelease != this.strip.firmware);
-            this.updateAvailableIndicator(this.strip.memory.used,this.strip.memory.total);
-            this.updateValues(this.strip);
-            this.refreshPatterns();
-        },
-        updateAvailableIndicator:function(used,total) {
-            var percent = Math.floor(100*used/total);
-            this.$el.find(".spaceAvailableIndicator").css("width",percent+"%").text(percent+"% used");
-        },
-        updateValues:function(strip) {
-            var $header = this.$el.find(".stripHeader");
-            $header.find(".identifierValue").text(strip.id);
-            var name = strip.name || "Unknown Strip";
-            $header.find(".name").text(name);
+            if (this.strips.length == 1) {
+                var strip = this.strips[0];
+                if (!strip.status) return false; //we dont have any status information on this strip
 
-            $header.find(".name").off("dblclick");
-            util.doubleClickEditable($header.find(".name"),_.bind(this.nameUpdated,this));
+                //Update firmware upload button visibility
+                $(".uploadFirmware").toggle(this.gui.latestRelease != strip.firmware);
 
-            var statusIndicator = $header.find(".statusIndicator").css("visibility","visible");
-            statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
-            if (strip.visible) {
-                statusIndicator.addClass("connected").attr("title","connected");
+                //refresh patterns
+                this.patternList = new SelectList(strip.patterns,this.patternListRenderer,this);
+                if (strip.selectedPattern !== undefined) this.patternList.select(strip.selectedPattern);
+                $(this.patternList).change(_.bind(this.patternSelected,this));
+                this.$el.find(".patterns").empty().append(this.patternList.$el);
+
+                //update brightness arrow
+                this.brightnessControl.setBrightness(strip.brightness);
+
+                //update header
+                var $header = this.$el.find(".stripHeader");
+                $header.find(".identifierValue").text(strip.id);
+                var name = strip.name || "Unknown Strip";
+                $header.find(".name").text(name);
+
+                //double click edit name of strip
+                $header.find(".name").off("dblclick");
+                util.doubleClickEditable($header.find(".name"),_.bind(function() {
+                    strip.name = name;
+                    $(strip).trigger("NameUpdated",strip.id,name);
+                    this.send("RenameStrip",strip.id,name);
+                },this));
+
+                //update strip status indicator
+                var statusIndicator = $header.find(".statusIndicator").css("visibility","visible");
+                statusIndicator.removeClass("unknown").removeClass("connected").removeClass("error");
+                if (strip.visible) {
+                    statusIndicator.addClass("connected").attr("title","connected");
+                } else {
+                    statusIndicator.addClass("error").attr("title","disconnected");
+                }
+
+                //update pattern space available indicator
+                var percent = Math.floor(100*strip.memory.used/strip.memory.total);
+                this.$el.find(".spaceAvailableIndicator").css("width",percent+"%").text(percent+"% used");
             } else {
-                statusIndicator.addClass("error").attr("title","disconnected");
+                this.$el.find(".stripHeader .name").text("Multiple selected");
+                console.log("multistrip update");
             }
-        },
-        nameUpdated:function(name) {
-            this.strip.name = name;
-            $(this.strip).trigger("NameUpdated",this.strip.id,name);
-            this.send("RenameStrip",this.strip.id,name);
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
@@ -102,12 +134,6 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             e.preventDefault();
             e.stopPropagation();
             return true;
-        },
-        refreshPatterns:function() {
-            this.patternList = new SelectList(this.strip.patterns,this.patternListRenderer,this)
-            if (this.strip.selectedPattern !== undefined) this.patternList.select(this.strip.selectedPattern); //TODO is index okay?
-            $(this.patternList).change(_.bind(this.patternSelected,this));
-            this.$el.find(".patterns").empty().append(this.patternList.$el);
         },
         patternSelected:function(e,selectedItems,selectedIndexes) {
             if (selectedItems.length == 0) return;

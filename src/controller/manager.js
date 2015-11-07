@@ -67,6 +67,11 @@ extend(This.prototype,{
             this.setStripName(id,newname);
         },this));
 
+        this.on("SetGroup",_.bind(function(id,newgroup) {
+		    var strip = this.getStrip(id);
+            strip.setGroup(newgroup);
+        },this));
+
         this.on("SetBrightness",_.bind(function(id,value) {
             this.setBrightness(id,value);
         },this));
@@ -180,8 +185,8 @@ extend(This.prototype,{
    /////////////////////
     setStripName:function(id,name) {
         var strip = this.getStrip(id);
-        strip.name = name;
-        this.saveStrips();
+        console.log("setting name of strip..",id,strip);
+        strip.setName(name);
     },
     setBrightness:function(id,value) {
         var strip = this.getStrip(id);
@@ -230,9 +235,10 @@ extend(This.prototype,{
         },this));
     },
 	clientIdentified:function(ip,status) {
-        console.log("client identified",ip);
+        console.log("Client identified: ",status.mac,ip);
         var strip = this.getStrip(status.mac);
         if (!strip) {
+            console.log("stats mac: ",status.mac,status);
             strip = new LEDStrip(status.mac,ip);
             this.strips.push(strip);
             strip.receivedStatus(status);

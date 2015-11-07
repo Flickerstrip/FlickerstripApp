@@ -7,7 +7,7 @@ define(['jquery'],function($) {
         defaultOpts:{
             multiple:true,
         },
-        init:function(data,renderer,rendererthis,opts) {
+        init:function(data,renderer,rendererthis,opts,grouprenderer) {
             this.rendererthis = rendererthis;
             this.$el = $("<ul class='list-group'/>");
             this.$el.attr("tabindex","0");
@@ -17,14 +17,28 @@ define(['jquery'],function($) {
             this.opts = opts ? opts : this.defaultOpts;
 
             this.renderer = renderer;
+            this.grouprenderer = grouprenderer;
 
-            _.each(data,_.bind(function(value,index) {
-                value.index = index;
-                var $el = this.renderer.call(this.rendererthis,value);
-                $el.data("index",index);
-                $el.data("object",value);
-                this.$el.append($el);
-            },this));
+            var self = this;
+            function addGroup(items,group) {
+                _.each(items,_.bind(function(value,index) {
+                    value.index = index;
+                    var $el = this.renderer.call(this.rendererthis,value);
+                    $el.data("index",index);
+                    $el.data("object",value);
+                    $el.data("group",group);
+                    this.$el.append($el);
+                },self));
+            }
+
+            if ($.isArray(data)) {
+                addGroup(data,null);
+            } else {
+                _.each(data,function(items,group) {
+                    addGroup(items,group);
+                });
+            }
+            this.refreshGroupings();
 
             this.addBehavior();
 
@@ -32,13 +46,42 @@ define(['jquery'],function($) {
             this.$el.blur(_.bind(this.blurred,this));
             this.$el.keydown(_.bind(this.keyDown,this));
         },
-        addElement:function(element) {
+        addElement:function(element,group) {
             var $el = this.renderer.call(this.rendererthis,element);
             this.$el.append($el);
             this.addBehavior($el);
             var index = this.$el.find(".listElement").length-1;
             $el.data("index",index);
             $el.data("object",element);
+            $el.data("group",group);
+
+            this.refreshGroupings();
+        },
+        refreshGroupings:function() {
+            var groupMap = {};
+            this.$el.find(".listElement").each(function() {
+                var group = $(this).data("group");
+                group = group || "";
+                if (!groupMap[group]) groupMap[group] = [];
+                groupMap[group].push(this);
+            });
+
+            var keys = Object.keys(groupMap);
+            keys.sort(function(a,b) {
+                if (a == '' && b == '') return 0;
+                if (a == '') return 1;
+                if (b == '') return -1;
+                return a.localeCompare(b);
+            });
+
+            this.$el.children().detach();
+            _.each(keys,_.bind(function(group) {
+                var header = group == "" ? "Ungrouped" : group;
+                if (this.grouprenderer) this.$el.append(this.grouprenderer(header));
+                _.each(groupMap[group],_.bind(function(item) {
+                    this.$el.append(item);
+                },this));
+            },this));
         },
         updateElement:function(element) {
             var self = this;

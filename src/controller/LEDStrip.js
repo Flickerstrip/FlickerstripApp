@@ -73,6 +73,7 @@ extend(This.prototype,{
     receivedStatus:function(status) {
         extend(this,status);
         this.setVisible(true);
+        this.status = true;
         status.visible = this.visible;
         this.emit("Strip.StatusUpdated",status);
     },
@@ -83,6 +84,10 @@ extend(This.prototype,{
         this.sendCommand.apply(this,args);
     },
     sendCommand:function(command,cb,data,notimeout) {
+        if (!this._ip) {
+            console.log("ERROR: sending command to disconnected strip");
+            return;
+        }
         if (this._busy) {
             this._queue.push(Array.prototype.slice.call(arguments));
             return;
@@ -92,7 +97,13 @@ extend(This.prototype,{
         var opt = {
             uri:"http://"+this._ip+"/"+command
         };
-        if (data) opt.body = data;
+        if (data) {
+            if (typeof data === 'object' && !(data instanceof Buffer)) { 
+                opt.json = data;
+            } else {
+                opt.body = data;
+            }
+        }
         if (!notimeout) opt.timeout = 2000;
         request(opt,_.bind(function(error, response, body) {
             this.startWatchdogTimer();
@@ -101,7 +112,11 @@ extend(This.prototype,{
                 if (error.code != "ETIMEDOUT") console.log("error!",error,command);
                 return;
             }
-            var json = JSON.parse(body);
+            try {
+                var json = JSON.parse(body);
+            } catch (e) {
+                console.log("error parsing response",opt,body);
+            }
             this._busy = false;
             if (cb) cb(json);
             this.handleQueue();
@@ -110,6 +125,14 @@ extend(This.prototype,{
     requestStatus:function() {
         this.sendCommand("status",_.bind(this.receivedStatus,this));
     },
+	setName:function(name) {
+        console.log("setting name....");
+        this.sendCommand("config/name",null,{"name":name});
+	},
+	setGroup:function(name) {
+        console.log("setting group!",this.id,name);
+        this.sendCommand("config/group",null,{"name":name});
+	},
 	setBrightness:function(brightness) {
         if (brightness < 0) brightness = 0;
         if (brightness > 100) brightness = 100;
@@ -157,10 +180,6 @@ extend(This.prototype,{
     },
 	disconnectStrip:function() {
         this.sendCommand("disconnect");
-    },
-    setName:function(name) {
-        this.name = name;
-        this.emit("NameUpdated",this);
     },
     getName:function() {
         return this.name;

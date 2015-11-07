@@ -4,10 +4,8 @@ define(['jquery',"view/util.js"],function($,util) {
     }
 
     $.extend(This.prototype, {
-        init:function($el,send,strip) {
-            this.send = send;
-            this.strip = strip;
-
+        init:function($el,brightness) {
+            this.brightness = brightness || 0;
             this.$el = $el;
             this.$bar = $("<div class='brightnessBar' />");
             this.$indicator = $("<div class='indicator'><span class='glyphicon glyphicon-triangle-right'></span></div>");
@@ -16,12 +14,6 @@ define(['jquery',"view/util.js"],function($,util) {
             this.$el.append(this.$bar);
             this.$el.append(this.$indicator);
             this.$el.append(this.$text);
-
-            this.setBrightness(strip.brightness/100);
-
-            $(strip).on("Strip.StatusUpdated",_.bind(function() {
-                this.setBrightness(strip.brightness/100);
-            },this));
 
             $(this.$el).click(_.bind(this.barClicked,this));
 
@@ -42,22 +34,24 @@ define(['jquery',"view/util.js"],function($,util) {
         },
         barClicked:function(e) {
             var posY = $(this.$bar).offset().top;
-            var value = 1-((e.pageY - posY) / $(this.$bar).height());
+            var value = Math.floor(100*(1-((e.pageY - posY) / $(this.$bar).height())));
+            console.log(value);
 
-            var intval = Math.floor(value*100);
-            if (intval != Math.floor(this.brightness*100)) {
+            var changed = this.setBrightness(value);
+            if (changed) {
                 setTimeout(_.bind(function() {
-                    this.send("SetBrightness",this.strip.id,intval);
+                    $(this).trigger("change",this.brightness);
                 },this),5);
             }
 
             this.setBrightness(value);
         },
-        setBrightness:function(value) {
-            this.brightness = value;
-            var percent = Math.floor(100*value);
+        setBrightness:function(percent) {
+            var changed = percent != this.brightness;
+            this.brightness = percent;
             this.$indicator.css("top",(100-percent)+"%");
             this.$text.text(percent+"%");
+            return changed;
         }
     });
 
