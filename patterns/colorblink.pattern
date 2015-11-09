@@ -1,0 +1,28 @@
+name:Color Blink
+author:Flickerstrip
+
+{
+    controls: [
+        {
+            name: "Color1",
+            id: "color1",
+            type: "color",
+            default: "#f00"
+        },
+        {
+            name: "Color2",
+            id: "color2",
+            type: "color",
+            default: "#0f0"
+        }
+    ],
+    pattern:function(args) {
+        this.pixels=1;
+        this.frames=2;
+        this.fps=1;
+        this.render=function(x,t) {
+            return tinycolor(t == 0 ? args.color1 : args.color2).toRgb();
+        }
+        return this;
+    }
+}

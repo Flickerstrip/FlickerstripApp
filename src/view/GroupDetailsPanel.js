@@ -5,29 +5,32 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     }
 
     $.extend(This.prototype, {
-        init:function(send,strips,gui) {
+        init:function(send,strips,gui,group) {
             this.gui = gui;
             this.send = send;
+            this.group = group;
             this.strips = strips;
             this.$el = $("<div class='groupDetails' />");
             this.$el.empty().append(template);
 
             this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,this.strip);
 
-            if (strips.length == 1) {
+            if (this.group) {
+            } else if (strips.length == 1) {
                 var strip = this.strips[0];
 
                 $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
 
                 $(this.brightnessControl).on("change",_.bind(function(e,val) {
-                   this.send("SetBrightness",strip._id,val); 
+                        console.log("strip",strip);
+                   this.send("SetBrightness",strip.id,val); 
                 },this));
             } else {
             }
 
-            this.$el.find(".multiselect").toggle(strips.length > 1);
-            this.$el.find(".progress").toggle(strips.length == 1);
-            this.$el.find(".nextToBrightnessBar").toggle(strips.length == 1);
+            this.$el.find(".multiselect").toggle(!group && strips.length > 1);
+            this.$el.find(".progress").toggle(group || strips.length == 1);
+            this.$el.find(".nextToBrightnessBar").toggle(group || strips.length == 1);
 
             this.$el.find(".backButton").click(_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
@@ -59,7 +62,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.detailsDialog.show();
         },
         statusUpdated:function() {
-            if (this.strips.length == 1) {
+            if (this.group) {
+                this.$el.find(".stripHeader .name").text("Group: "+this.group);
+            } else if (this.strips.length == 1) {
                 var strip = this.strips[0];
                 if (!strip.status) return false; //we dont have any status information on this strip
 
@@ -111,7 +116,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.send("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-            var patternDialog = new LoadPatternDialog();
+            var patternDialog = new LoadPatternDialog(this.send,this.gui);
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();
         },
@@ -119,27 +124,36 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.send("UploadFirmware",this.strip.id);
         },
         savePattern:function(e,name,fps,pattern,isPreview) {
-            var len = pattern.length * pattern[0].length;
-            this.send("LoadPattern",this.strip.id,name,fps,pattern,isPreview);
-            var progressDialog = new ProgressDialog(true);
-            progressDialog.show();
-            $(this.strip).one("Strip.UploadPatternComplete",function() {
-                progressDialog.hide();
-            });
+            if (this.strips.length == 1) {
+                var strip = this.strips[0];
+                var len = pattern.length * pattern[0].length;
+                this.send("LoadPattern",strip.id,name,fps,pattern,isPreview);
+                var progressDialog = new ProgressDialog(true);
+                progressDialog.show();
+                $(strip).one("Strip.UploadPatternComplete",function() {
+                    progressDialog.hide();
+                });
+            }
         },
         forgetPatternClicked:function(e) {
-            var pattern = $(e.target).closest(".listElement").data("object");
-			this.send("ForgetPattern",this.strip.id,pattern.index);
+            if (this.strips.length == 1) {
+                var strip = this.strips[0];
+                var pattern = $(e.target).closest(".listElement").data("object");
+                this.send("ForgetPattern",strip.id,pattern.index);
 
-            e.preventDefault();
-            e.stopPropagation();
-            return true;
+                e.preventDefault();
+                e.stopPropagation();
+                return true;
+            }
         },
         patternSelected:function(e,selectedItems,selectedIndexes) {
             if (selectedItems.length == 0) return;
-            this.$el.find(".listElement").removeClass("showDeleteButton");
-            var selectedPattern = selectedItems[0]
-            this.send("SelectPattern",this.strip.id,selectedPattern.index);
+            if (this.strips.length == 1) {
+                var strip = this.strips[0];
+                this.$el.find(".listElement").removeClass("showDeleteButton");
+                var selectedPattern = selectedItems[0]
+                this.send("SelectPattern",strip.id,selectedPattern.index);
+            }
         },
         patternListRenderer:function(pattern,$el) {
             if ($el) {

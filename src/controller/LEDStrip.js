@@ -75,6 +75,7 @@ extend(This.prototype,{
         this.setVisible(true);
         this.status = true;
         status.visible = this.visible;
+        console.log(status);
         this.emit("Strip.StatusUpdated",status);
     },
     handleQueue:function() {
@@ -165,6 +166,7 @@ extend(This.prototype,{
 
         var concatted = Buffer.concat([metadata,payload]);
 
+        console.log("is preview: ",isPreview);
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function() {
             this.emit("Strip.UploadPatternComplete");
         },this),concatted,true);

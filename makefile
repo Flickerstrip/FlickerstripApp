@@ -47,13 +47,16 @@ clean:
 ./build/nwjs/%/shared: ./src/shared ./build/nwjs/%
 	rsync $(RSYNC_OPT) --update -ravh ./src/shared `dirname $@`
 
+./build/nwjs/%/patterns: ./patterns ./build/nwjs/%
+	rsync $(RSYNC_OPT) --update -ravh ./patterns `dirname $@`
+
 ./build/nwjs/%/view/css/style.css: $(LESS_FILES)
 	mkdir -p `dirname $@`
 	lessc ./src/view/less/desktop.less > $@
 
-linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
-osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
-win-x64: ./build/nwjs/win-x64 ./build/nwjs/win-x64/view ./build/nwjs/win-x64/controller ./build/nwjs/win-x64/shared ./build/nwjs/win-x64/node_modules ./build/nwjs/win-x64/view/css/style.css
+linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/patterns ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
+osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/patterns ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
+win-x64: ./build/nwjs/win-x64 ./build/nwjs/win-x64/patterns ./build/nwjs/win-x64/view ./build/nwjs/win-x64/controller ./build/nwjs/win-x64/shared ./build/nwjs/win-x64/node_modules ./build/nwjs/win-x64/view/css/style.css
 
 nwjs_all: linux-x64 osx-x64 win-x64
 ############ NWJS

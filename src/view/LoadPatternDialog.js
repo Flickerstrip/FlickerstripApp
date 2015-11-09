@@ -1,23 +1,22 @@
 var sandbox = require("sandbox");
 
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobile_template,desktop_template) {
+define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/DownloadPatternsDialog.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
+function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,DownloadPatternsDialog,ControlsView,mobile_template,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
 
     $.extend(This.prototype, {
-        init:function(strip) {
-            this.$el = $("<div class='loadPatternDialog'/>");
+        init:function(send,gui) {
+            this.send = send;
+            this.gui = gui;
+            this.$el = $("<div class='loadPatternDialog largemodal'/>");
 
             this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
             this.$el = this.$el.children();
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");
-
-            this.patternOptions = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
-            this.$choices.empty().append(this.patternOptions.$el);
 
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
@@ -26,14 +25,28 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobi
                 this.stripRenderer.resizeToParent();
             },this),5);
 
-            $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
-
+            this.$el.find(".downloadPatterns").click(_.bind(this.downloadPatternsButtonClicked,this));
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
             this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
             this.$el.find(".backButton").click(_.bind(function() {
                 this.patternOptions.deselect();
                 $(document.body).removeClass("configurePatternShowing");
+            },this));
+
+            $(this.gui).on("PatternsLoaded",_.bind(this.patternsLoaded,this));
+            this.patternsLoaded();
+        },
+        patternsLoaded:function() {
+            this.patternOptions = new SelectList(this.gui.patterns,this.patternOptionRenderer,{multiple:false});
+            this.$choices.empty().append(this.patternOptions.$el);
+
+            $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
+        },
+        downloadPatternsButtonClicked:function(e) {
+            this.downloadPatternsDialog = new DownloadPatternsDialog(this.send,this.gui).show();
+            $(this.downloadPatternsDialog).on("DownloadPattern",_.bind(function(e,pattern) {
+                this.send("SavePattern",pattern);
             },this));
         },
         loadPatternButtonClicked:function(e) {
@@ -75,7 +88,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobi
 
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
-            var patternSpec = selectedObjects[0];
+            var patternObject = selectedObjects[0];
+            var patternSpec = eval("("+patternObject.body+")");
 
             if (patternSpec.controls) {
                 this.controlView = new ControlsView(this.window,patternSpec.controls,{});
@@ -91,7 +105,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,mobi
 
             //update titlebar
             var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
-            this.$el.find(".patternTitle").text(patternSpec.name+ " ("+frameInfo+")");
+            this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
 
             this.$config.empty();
             setTimeout(_.bind(function() {

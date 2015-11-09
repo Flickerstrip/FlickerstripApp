@@ -10,9 +10,7 @@ var request = require("request");
 var https = require("https");
 var path = require("path");
 var util = require("../shared/util");
-
-//var USBCommunication = require("./USBCommunication");
-//var WirelessManager = require("./WirelessManager");
+var async = require("async");
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -24,6 +22,7 @@ extend(This.prototype,{
     firmwareReleases:[],
     init:function(config,send) {
         this.config = config;
+        this.serverLocation = 'http://localhost:3000';
         this.send = send;
 
         this.loadStrips(_.bind(function() {
@@ -32,6 +31,8 @@ extend(This.prototype,{
         },this));
 
         this.loadFirmwareReleaseInfo();
+
+        this.loadPatterns();
 
         ///////////////////////////////////////// Strip actions
         this.on("SelectPattern",_.bind(function(id,index) {
@@ -89,6 +90,69 @@ extend(This.prototype,{
             this.forgetStrip(id);
         },this));
         ///////////////////////////////////////// Strip actions
+
+        //this.on("CreateDummy",_.bind(function() {
+        this.on("CreateDummy",_.bind(function() {
+            strip = new LEDStrip("du:mm:yy:st:ri:ps",null);
+            this.strips.push(strip);
+            strip.setVisible(false);
+            this.stripAdded(strip);
+        },this));
+
+        this.on("RefreshServerPatterns",_.bind(function() {
+            request.get(this.serverLocation+"/pattern",_.bind(function(response,error,data) {
+                var patterns = JSON.parse(data);
+                this.send("ServerPatternsLoaded",patterns);
+            },this));
+        },this));
+
+        this.on("LoadServerPattern",_.bind(function(id) {
+            request.get(this.serverLocation+"/pattern/"+id,_.bind(function(response,error,data) {
+                this.send("LoadedServerPattern",id,data);
+            },this));
+        },this));
+
+        this.on("SavePattern",_.bind(function(pattern) {
+            var out = "";
+            out += "name:"+pattern.name+"\n";
+            out += "author:"+pattern.Owner.display+"\n";
+            out += "\n\n";
+            out += pattern.body;
+
+            fs.writeFile(path.join(this.config.patternFolder,pattern.name+".pattern"),out,"utf8",_.bind(function(err) {
+                console.log("wrote file, reloading patterns");
+                this.loadPatterns();
+            },this));
+        },this));
+    },
+    loadPatterns:function() {
+        fs.readdir(this.config.patternFolder,_.bind(function(err,files) {
+            async.map(files,_.bind(function(file,callback) {
+                fs.readFile(path.join(this.config.patternFolder,file),'utf8',callback);
+            },this),_.bind(function(err,results) {
+                this.patterns = [];
+                _.each(_.zip(files,results),_.bind(function(info) {
+                    var filename=info[0];
+                    var content=info[1];
+                    var sections = content.split("\n\n");
+                    var headerraw = sections[0];
+                    var body = sections[1];
+
+                    var metadata = {};
+                    _.each(headerraw.split("\n"),function(line) {
+                        if (line == "") return;
+                        var tokens = line.split(":");
+                        metadata[tokens[0]] = tokens[1];
+                    });
+
+                    metadata.path = path.join(this.config.patternFolder,filename);
+                    metadata.body = body;
+                    this.patterns.push(metadata);
+                },this));
+
+                this.send("PatternsLoaded",this.patterns);
+            },this));
+        },this));
     },
     loadFirmwareReleaseInfo:function() {
         request({

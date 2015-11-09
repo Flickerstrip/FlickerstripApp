@@ -41,9 +41,20 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             this.$el = $(document.body);
             this.$el.addClass("theme1");
 
+            $(document).on('show.bs.modal', '.modal', function () {
+                var zIndex = 1040 + (10 * $('.modal:visible').length);
+                $(this).css('z-index', zIndex);
+                setTimeout(function() {
+                    $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+                }, 0);
+            });
+
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
             $(this).on("StripRemoved",_.bind(this.stripRemoved,this));
             $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
+            $(this).on("PatternsLoaded",_.bind(function(e,patterns) {
+                this.patterns = patterns;
+            },this));
 
             this.render();
 
@@ -101,6 +112,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             return found;
         },
         stripAdded:function(e,strip) {
+            this.$el.find(".createDummyStrip").hide();
             this.selectList.addElement(strip,strip.group);
             var self = this;
             $(strip).on("Strip.StatusUpdated",_.bind(function() {
@@ -114,7 +126,26 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 }
             });
         },
-        stripSelected:function(e,selectedStrips,selectedIndexes) {
+        groupSelected:function(group) {
+            var strips = [];
+            this.selectList.$el.find(".listElement").each(function() {
+                if ($(this).data("group") == group) strips.push($(this).data("object"));
+            });
+
+            this.groupDetails = new GroupDetailsPanel(this.send,strips,this,group);
+
+            $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
+                this.selectList.deselect();
+                this.$el.removeClass("groupDetailsShowing");
+            },this));
+
+            this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
+        },
+        stripSelected:function(e,selectedStrips,selectedIndexes,group) {
+            if (group) {
+                this.groupSelected(group); //TODO fix me
+                return;
+            }
             this.selectedStrips = selectedStrips;
             if (selectedStrips.length == 1) {
                 this.multipleSelected = false;
@@ -172,7 +203,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             });
 
             $.contextMenu({
-                selector: ".header[data-name!='Ungrouped']",
+                selector: ".groupHeader[data-name!='Ungrouped']",
                     items: {
                         foo: {name: "Delete group", callback:function(key, opt){
                             var group = $(this).data("name");
@@ -188,9 +219,13 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             });
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
+
+            this.$el.find(".createDummyStrip").click(_.bind(function() {
+                this.send("CreateDummy");
+            },this));
         },
         stripElementGroupRenderer:function(header) {
-            return $("<li class='list-group-item header' data-name='"+header+"'>"+header+"</li>");
+            return $("<li class='list-group-item groupHeader' data-name='"+header+"'>"+header+"</li>");
         },
         stripElementRenderer:function(strip,$el) {
             var name = strip.name;

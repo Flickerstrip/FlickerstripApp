@@ -22,7 +22,7 @@ Mobile("guiLog").registerAsync(function(json) {
 var manager;
 Mobile("guiReady").registerAsync(function(json) {
     //require('os').tmpdir()
-    var config = new Configuration(path.join(process.userPath,"config.json"),path.join(process.userPath,"firmwareVersions"));
+    var config = new Configuration(path.join(process.userPath,"config.json"),path.join(process.userPath,"firmwareVersions"),path.join(process.userPath,"patterns"));
     try {
         manager = new Manager(config,function() {
             var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {

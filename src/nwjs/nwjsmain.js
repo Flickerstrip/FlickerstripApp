@@ -80,7 +80,8 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
 
         platform = "desktop";
         gui = new Gui(window,guiEmit);
-        var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"));
+        var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"),path.join(".","patterns"));
+        console.log("DESKTOP config",config);
         manager = new Manager(config,managerEmit);
     });
 });

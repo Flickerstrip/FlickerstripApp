@@ -75,10 +75,20 @@ define(['jquery'],function($) {
             });
 
             this.$el.children().detach();
+            var index = 0;
             _.each(keys,_.bind(function(group) {
                 var header = group == "" ? "Ungrouped" : group;
-                if (this.grouprenderer) this.$el.append(this.grouprenderer(header));
+                if (this.grouprenderer) {
+                    var $groupHeader = this.grouprenderer(header);
+                    $groupHeader.click(_.bind(function() {
+                        //group clicked
+                        var args = [false,false,header];
+                        $(this).trigger("change",args);
+                    },this));
+                    this.$el.append($groupHeader);
+                }
                 _.each(groupMap[group],_.bind(function(item) {
+                    $(item).data("index",index++);
                     this.$el.append(item);
                 },this));
             },this));
