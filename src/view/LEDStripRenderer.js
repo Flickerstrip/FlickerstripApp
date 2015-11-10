@@ -135,6 +135,14 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.start = new Date().getTime();
             
             var rendered = {};
+            if (this.pattern == null) {
+                this.rendered = renderToCanvas(1,1,_.bind(function(g) {
+                    g.fillStyle = "#000";
+                    g.fillRect(0,0,1,1);
+                },this))
+                return;
+            }
+
             this.rendered = renderToCanvas(this.pattern.frames,this.stripLength,_.bind(function(g) {
                 for (var x = 0; x<this.pattern.frames; x++) {
                     for (var y = 0; y<this.stripLength; y++) {

@@ -16,8 +16,13 @@ requirejs.config({
     },
     paths: {
         "view":"..",
-        "tmpl":"../tmpl",
+        "tmpl":"../tmpl"
     }
+//    packages: [{
+//        name: "codemirror",
+//        location: "cm",
+//        main: "lib/codemirror"
+//    }];
 });
 
 var win = nw.Window.get();

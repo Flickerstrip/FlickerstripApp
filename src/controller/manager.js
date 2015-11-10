@@ -115,12 +115,14 @@ extend(This.prototype,{
         this.on("SavePattern",_.bind(function(pattern) {
             var out = "";
             out += "name:"+pattern.name+"\n";
-            out += "author:"+pattern.Owner.display+"\n";
+            if (pattern.Owner) out += "author:"+pattern.Owner.display+"\n";
             out += "\n\n";
             out += pattern.body;
 
-            fs.writeFile(path.join(this.config.patternFolder,pattern.name+".pattern"),out,"utf8",_.bind(function(err) {
-                console.log("wrote file, reloading patterns");
+            if (pattern.path) fs.unlinkSync(pattern.path);
+
+            var name = pattern.name.replace(/[^a-zA-z0-9]/,"");
+            fs.writeFile(path.join(this.config.patternFolder,name+".pattern"),out,"utf8",_.bind(function(err) {
                 this.loadPatterns();
             },this));
         },this));
@@ -134,9 +136,10 @@ extend(This.prototype,{
                 _.each(_.zip(files,results),_.bind(function(info) {
                     var filename=info[0];
                     var content=info[1];
-                    var sections = content.split("\n\n");
-                    var headerraw = sections[0];
-                    var body = sections[1];
+                    var loc = content.indexOf("\n\n");
+                    var headerraw = content.substring(0,loc);
+                    var body = content.substring(loc+2);
+                    if (filename[0] == '.') return;
 
                     var metadata = {};
                     _.each(headerraw.split("\n"),function(line) {

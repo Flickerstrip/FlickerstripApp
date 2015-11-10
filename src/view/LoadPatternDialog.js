@@ -1,7 +1,7 @@
 var sandbox = require("sandbox");
 
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/DownloadPatternsDialog.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,DownloadPatternsDialog,ControlsView,mobile_template,desktop_template) {
+define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/EditPatternDialog.js","view/DownloadPatternsDialog.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
+function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog,DownloadPatternsDialog,ControlsView,mobile_template,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -26,6 +26,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,DownloadPatternsD
             },this),5);
 
             this.$el.find(".downloadPatterns").click(_.bind(this.downloadPatternsButtonClicked,this));
+            this.$el.find(".createPattern").click(_.bind(this.createPatternClicked,this));
+            this.$el.find(".editPattern").click(_.bind(this.editPatternClicked,this));
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
             this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
@@ -41,12 +43,30 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,DownloadPatternsD
             this.patternOptions = new SelectList(this.gui.patterns,this.patternOptionRenderer,{multiple:false});
             this.$choices.empty().append(this.patternOptions.$el);
 
+            this.$el.find(".patternTitle").empty();
+            this.stripRenderer.setPattern(null);
+            this.$el.find(".patternConfiguration").empty();
+
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
+        },
+        createPatternClicked:function(e) {
+            this.editPatternDialog = new EditPatternDialog(this.send,this.gui,{}).show();
+            $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.send("SavePattern",pattern);
+                this.editPatternDialog.hide();
+            },this));
         },
         downloadPatternsButtonClicked:function(e) {
             this.downloadPatternsDialog = new DownloadPatternsDialog(this.send,this.gui).show();
             $(this.downloadPatternsDialog).on("DownloadPattern",_.bind(function(e,pattern) {
                 this.send("SavePattern",pattern);
+            },this));
+        },
+        editPatternClicked:function(e) {
+            this.editPatternDialog = new EditPatternDialog(this.send,this.gui,this.selectedPatternObject).show();
+            $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.send("SavePattern",pattern);
+                this.editPatternDialog.hide();
             },this));
         },
         loadPatternButtonClicked:function(e) {
@@ -89,6 +109,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,DownloadPatternsD
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
             var patternObject = selectedObjects[0];
+            this.selectedPatternObject = patternObject;
             var patternSpec = eval("("+patternObject.body+")");
 
             if (patternSpec.controls) {
