@@ -6,7 +6,7 @@ function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,Contro
         this.init.apply(this,arguments);
     }
 
-    var defaultBody = "function() {\n\tthis.pixels=1;\n\tthis.frames=360;\n\tthis.fps=30;\n\tthis.render=function(x,t) {\n\t\treturn {h:t,s:100,v:100};\n\t}\n\treturn this;\n}";
+    var defaultBody = "{\n\tpattern:function() {\n\t\tthis.pixels=1;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\treturn {h:t,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n}";
 
     $.extend(This.prototype, {
         init:function(send,gui,pattern) {
@@ -23,6 +23,7 @@ function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,Contro
             },this));
 
             if (!this.pattern.body) this.pattern.body = defaultBody;
+            if (!this.pattern.name) this.pattern.name = "New Pattern";
 
             this.$preview = this.$el.find(".patternPreview");
             this.stripRenderer = new LEDStripRenderer(150);
