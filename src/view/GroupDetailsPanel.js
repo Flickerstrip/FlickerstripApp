@@ -5,15 +5,15 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
     }
 
     $.extend(This.prototype, {
-        init:function(send,strips,gui,group) {
+        init:function(conduit,strips,gui,group) {
             this.gui = gui;
-            this.send = send;
+            this.conduit = conduit;
             this.group = group;
             this.strips = strips;
             this.$el = $("<div class='groupDetails' />");
             this.$el.empty().append(template);
 
-            this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.send,this.strip);
+            this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.conduit,this.strip);
 
             if (this.group) {
             } else if (strips.length == 1) {
@@ -22,8 +22,8 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
 
                 $(this.brightnessControl).on("change",_.bind(function(e,val) {
-                        console.log("strip",strip);
-                   this.send("SetBrightness",strip.id,val); 
+                   console.log("strip",strip);
+                   this.conduit.emit("SetBrightness",strip.id,val); 
                 },this));
             } else {
             }
@@ -47,18 +47,18 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
 
             this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
-                this.send("DisconnectStrip",this.strip.id);
+                this.conduit.emit("DisconnectStrip",this.strip.id);
             },this));
         },
         createGroupClicked:function() {
             var groupName = prompt("Enter a name for your group");
             if (groupName == null) return;
             _.each(this.strips,_.bind(function(strip) {
-                this.send("SetGroup",strip.id,groupName);
+                this.conduit.emit("SetGroup",strip.id,groupName);
             },this));
         },
         showDetailsClicked:function() {
-            this.detailsDialog = new StripDetailsDialog(this.send,this.strip,this.gui);
+            this.detailsDialog = new StripDetailsDialog(this.conduit,this.strips,this.gui);
             this.detailsDialog.show();
         },
         statusUpdated:function() {
@@ -66,6 +66,13 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.$el.find(".stripHeader .name").text("Group: "+this.group);
             } else if (this.strips.length == 1) {
                 var strip = this.strips[0];
+
+                //update header
+                var $header = this.$el.find(".stripHeader");
+                $header.find(".identifierValue").text(strip.id);
+                var name = strip.name || "Unknown Strip";
+                $header.find(".name").text(name);
+
                 if (!strip.status) return false; //we dont have any status information on this strip
 
                 //Update firmware upload button visibility
@@ -80,18 +87,12 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 //update brightness arrow
                 this.brightnessControl.setBrightness(strip.brightness);
 
-                //update header
-                var $header = this.$el.find(".stripHeader");
-                $header.find(".identifierValue").text(strip.id);
-                var name = strip.name || "Unknown Strip";
-                $header.find(".name").text(name);
-
                 //double click edit name of strip
                 $header.find(".name").off("dblclick");
                 util.doubleClickEditable($header.find(".name"),_.bind(function() {
                     strip.name = name;
                     $(strip).trigger("NameUpdated",strip.id,name);
-                    this.send("RenameStrip",strip.id,name);
+                    this.conduit.emit("RenameStrip",strip.id,name);
                 },this));
 
                 //update strip status indicator
@@ -113,21 +114,21 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         },
         selectPatternClicked:function(e) {
             var pattern = $(e.target).closest(".listElement").data("object");
-            this.send("SelectPattern",this.strip.id,pattern.index);
+            this.conduit.emit("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-            var patternDialog = new LoadPatternDialog(this.send,this.gui);
+            var patternDialog = new LoadPatternDialog(this.conduit,this.gui);
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();
         },
         uploadFirmwareClicked:function(e) {
-            this.send("UploadFirmware",this.strip.id);
+            this.conduit.emit("UploadFirmware",this.strip.id);
         },
         savePattern:function(e,name,fps,pattern,isPreview) {
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
                 var len = pattern.length * pattern[0].length;
-                this.send("LoadPattern",strip.id,name,fps,pattern,isPreview);
+                this.conduit.emit("LoadPattern",strip.id,name,fps,pattern,isPreview);
                 var progressDialog = new ProgressDialog(true);
                 progressDialog.show();
                 $(strip).one("Strip.UploadPatternComplete",function() {
@@ -139,7 +140,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
                 var pattern = $(e.target).closest(".listElement").data("object");
-                this.send("ForgetPattern",strip.id,pattern.index);
+                this.conduit.emit("ForgetPattern",strip.id,pattern.index);
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -152,7 +153,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 var strip = this.strips[0];
                 this.$el.find(".listElement").removeClass("showDeleteButton");
                 var selectedPattern = selectedItems[0]
-                this.send("SelectPattern",strip.id,selectedPattern.index);
+                this.conduit.emit("SelectPattern",strip.id,selectedPattern.index);
             }
         },
         patternListRenderer:function(pattern,$el) {

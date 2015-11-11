@@ -5,10 +5,10 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
     }
 
     $.extend(This.prototype, {
-        init:function(send,strip,gui) {
+        init:function(conduit,strips,gui) {
             this.gui = gui;
-            this.send = send;
-            this.strip = strip;
+            this.conduit = conduit;
+            this.strip = strips[0];
 
             this.$el = $("<div class='stripDetails' />");
             if (platform == "desktop") this.$el.addClass("modal");
@@ -23,7 +23,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             this.$el.find(".closeDetails").click(_.bind(this.hide,this));
         },
         doUpdateClicked:function(e) {
-            this.send("UploadFirmware",this.strip.id);
+            this.conduit.emit("UploadFirmware",this.strip.id);
 
             return false;
         },
@@ -67,7 +67,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             var newName = prompt("Enter a new name for the strip.",this.strip.name || "Unknown Strip");
             if (!newName) return;
             this.strip.name = newName;
-            this.send("RenameStrip",this.strip.id,newName);
+            this.conduit.emit("RenameStrip",this.strip.id,newName);
             $(this.strip).trigger("NameUpdated",this.strip.id,newName);
         },
         generateList:function(arr,$els) {

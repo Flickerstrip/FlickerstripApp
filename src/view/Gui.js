@@ -37,16 +37,18 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
         stripRenderer:null,
         activePattern:null,
         init:function(document,send) {
-            this.send = send;
             this.$el = $(document.body);
             this.$el.addClass("theme1");
+            this.conduit = util.createConduit(send);
 
-            $(document).on('show.bs.modal', '.modal', function () {
+            $(document).on('show.bs.modal', function (e) {
                 var zIndex = 1040 + (10 * $('.modal:visible').length);
-                $(this).css('z-index', zIndex);
+                var $el = $(e.target);
+                $el.css('z-index', zIndex);
+                $el.children().css("z-index",zIndex+1);
                 setTimeout(function() {
                     $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
-                }, 0);
+                }, 5);
             });
 
             $(this).on("StripAdded",_.bind(this.stripAdded,this));
@@ -88,20 +90,22 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             this.latestRelease = release;
             this.selectList.refresh();
         },
-        eventHandler:function() {
+        eventHandler:function(emitObject) {
             var preprocessors = {
                 "Strip.StatusUpdated":function(strip,stripStatus) {
                     $.extend(strip,stripStatus);
                 },
             };
-            if (arguments[0].indexOf("Strip.") === 0) {
+            if (emitObject.target) {
                 var strip = this.findStripId(arguments[1]);
-                if (preprocessors[arguments[0]]) {
-                    preprocessors[arguments[0]].apply(this,[strip].concat(Array.prototype.slice.call(arguments, 2)));
+                if (preprocessors[emitObject.name]) {
+                    preprocessors[emitObject.name].apply(this,[strip].concat(Array.prototype.slice.call(arguments, 2)));
                 }
-                $(strip).trigger(arguments[0],Array.prototype.slice.call(arguments, 2));
+                $(strip).trigger(emitObject.name,Array.prototype.slice.call(arguments, 2));
+            } else if (emitObject.response) {
+                this.conduit.handleResponse(emitObject.response,emitObject.args);
             } else {
-                $(this).trigger(arguments[0],Array.prototype.slice.call(arguments, 1));
+                $(this).trigger(emitObject.name,emitObject.args);
             }
         },
         findStripId:function(id) {
@@ -132,7 +136,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 if ($(this).data("group") == group) strips.push($(this).data("object"));
             });
 
-            this.groupDetails = new GroupDetailsPanel(this.send,strips,this,group);
+            this.groupDetails = new GroupDetailsPanel(this.conduit,strips,this,group);
 
             $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
                 this.selectList.deselect();
@@ -162,7 +166,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             }
         },
         selectSingleStrip:function(strip) {
-            this.groupDetails = new GroupDetailsPanel(this.send,[strip],this);
+            this.groupDetails = new GroupDetailsPanel(this.conduit,[strip],this);
             $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
                 this.selectList.deselect();
                 this.$el.removeClass("groupDetailsShowing");
@@ -171,7 +175,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
         },
         selectMultipleStrips:function(strips){
-            this.groupDetails = new GroupDetailsPanel(this.send,strips,this);
+            this.groupDetails = new GroupDetailsPanel(this.conduit,strips,this);
             $(this.groupDetails).on("GroupDetailsDismissed",_.bind(function() {
                 this.selectList.deselect();
                 this.$el.removeClass("groupDetailsShowing");
@@ -221,7 +225,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             $(selectList).on("change",_.bind(this.stripSelected,this));
 
             this.$el.find(".createDummyStrip").click(_.bind(function() {
-                this.send("CreateDummy");
+                this.conduit.emit("CreateDummy");
             },this));
         },
         stripElementGroupRenderer:function(header) {
@@ -258,10 +262,10 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
 
                 $onoff.click(_.bind(function(e) {
                     if ($onoff.hasClass("on")) {
-                        this.send("ToggleStrip",strip.id,0);
+                        this.conduit.emit("ToggleStrip",strip.id,0);
                         $onoff.toggleClass("on",false);
                     } else {
-                        this.send("ToggleStrip",strip.id,1);
+                        this.conduit.emit("ToggleStrip",strip.id,1);
                         $onoff.toggleClass("on",true);
                     }
                     e.stopPropagation();

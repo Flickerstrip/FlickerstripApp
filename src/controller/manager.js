@@ -23,9 +23,9 @@ extend(This.prototype,{
     init:function(config,send) {
         this.config = config;
         this.serverLocation = 'http://localhost:3000';
-        this.send = send;
+        this.conduit = util.createConduit(send);
 
-        this.loadStrips(_.bind(function() {
+        this.loadConfig(_.bind(function() {
             this.discovery = new DiscoveryServer();
             this.discovery.on("DiscoveredClient",_.bind(this.clientDiscovered,this));
         },this));
@@ -99,16 +99,71 @@ extend(This.prototype,{
             this.stripAdded(strip);
         },this));
 
-        this.on("RefreshServerPatterns",_.bind(function() {
-            request.get(this.serverLocation+"/pattern",_.bind(function(response,error,data) {
+        this.on("RefreshServerPatterns",_.bind(function(callback) {
+            request.get(this.serverLocation+"/pattern",_.bind(function(error,response,data) {
                 var patterns = JSON.parse(data);
-                this.send("ServerPatternsLoaded",patterns);
+                callback(patterns);
             },this));
         },this));
 
-        this.on("LoadServerPattern",_.bind(function(id) {
-            request.get(this.serverLocation+"/pattern/"+id,_.bind(function(response,error,data) {
-                this.send("LoadedServerPattern",id,data);
+        this.on("LoadServerPattern",_.bind(function(callback,id) {
+            console.log("loading pattern from server",id);
+            request.get(this.serverLocation+"/pattern/"+id,_.bind(function(error,response,data) {
+                callback(id,data);
+            },this));
+        },this));
+
+        this.on("GetUser",_.bind(function(callback) {
+            callback(this.config.user);
+        },this));
+
+        this.on("CreateUser",_.bind(function(callback,email,password,display) {
+                    console.log(arguments);
+            var opt = {
+                url:this.serverLocation+"/user/create",
+                json: {
+                    email:email,
+                    password:password,
+                    display:display,
+                }
+            };
+            request.post(opt,_.bind(function(error,response,data) {
+                callback(response.statusCode == 200);
+            },this));
+        },this));
+
+        this.on("VerifyUser",_.bind(function(callback,email,password) {
+            var opt = {
+                url:this.serverLocation+"/user/challenge",
+                headers:{
+                    "Authorization":"Basic " + new Buffer(email + ":" + password).toString("base64"),
+                }
+            }
+            request.post(opt,_.bind(function(error,response,data) {
+                callback(response.statusCode == 200);
+            },this));
+        },this));
+
+        this.on("SaveCredentials",_.bind(function(callback,email,password) {
+            this.config.user = {email:email,password:password};
+            this.saveConfig(callback);
+        },this));
+
+        this.on("UploadPattern",_.bind(function(callback,pattern) {
+            var data = {
+                "name":pattern.name,
+                "type":"javascript",
+                "data":pattern.body,
+            }
+            var opt = {
+                url:this.serverLocation+"/pattern/create",
+                headers:{
+                    "Authorization":"Basic " + new Buffer(this.config.user.email + ":" + this.config.user.password).toString("base64"),
+                },
+                json:data
+            }
+            request.post(opt,_.bind(function(error,response,data) {
+                callback(response.statusCode == 200);
             },this));
         },this));
 
@@ -153,7 +208,7 @@ extend(This.prototype,{
                     this.patterns.push(metadata);
                 },this));
 
-                this.send("PatternsLoaded",this.patterns);
+                this.conduit.emit("PatternsLoaded",this.patterns);
             },this));
         },this));
     },
@@ -174,7 +229,7 @@ extend(This.prototype,{
             });
             this.firmwareReleases = releases;
             var latest = releases[0];
-            this.send("LatestReleaseUpdated",latest["tag_name"]);
+            this.conduit.emit("LatestReleaseUpdated",latest["tag_name"]);
             this.downloadFirmware(latest["tag_name"],function(downloaded) {
                 if (downloaded) {
                     console.log("downloaded firmware: ",latest["tag_name"]);
@@ -200,19 +255,32 @@ extend(This.prototype,{
             }).pipe(f);
         //download url: https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/v0.0.1/v0.0.1.bin
     },
-    eventHandler:function() {
-        this.emit.apply(this,arguments);
+    eventHandler:function(emitObject) {
+        if (emitObject.target) {
+        } else if (emitObject.callback) {
+            var conduit = this.conduit;
+            var cb = function() {
+                conduit.respond(emitObject.callback,arguments);
+            };
+            //console.log("calling",this,[emitObject.name,cb].concat(emitObject.args).concat([emitObject]));
+            this.emit.apply(this,[emitObject.name,cb].concat(emitObject.args).concat([emitObject]));
+        } else {
+            this.emit.apply(this,[emitObject.name].concat(emitObject.args).concat([emitObject]));
+        }
     },
-    loadStrips:function(cb) {
+    loadConfig:function(cb) {
         if (!fs.existsSync(this.config.configLocation)) {
             if (cb) cb();
             return;
         }
         fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
-            var strips = JSON.parse(contents);
+            var config = JSON.parse(contents);
+            this.config = config;
+
+            //load strips
             this.strips = [];
-            _.each(strips,_.bind(function(strip) {
+            _.each(this.config.strips,_.bind(function(strip) {
                 var lstrip = new LEDStrip();
                 for (var key in strip) {
                     if (key.indexOf("_") === 0) continue;
@@ -230,16 +298,17 @@ extend(This.prototype,{
     stripAdded:function(strip) {
         var self = this;
         strip.onAny(function() {
-            self.send.apply(self,[this.event,strip.id].concat(Array.prototype.slice.call(arguments)));
+            self.conduit.emitOn.apply(self,[this.event,"strip",strip].concat(Array.prototype.slice.call(arguments)));
         });
 
-        strip.on("Strip.PatternsUpdated",_.bind(this.saveStrips,this));
-        strip.on("NameUpdated",_.bind(this.saveStrips,this));
+        strip.on("Strip.PatternsUpdated",_.bind(this.saveConfig,this));
+        strip.on("NameUpdated",_.bind(this.saveConfig,this));
 
-        this.send("StripAdded",strip);
+        this.conduit.emit("StripAdded",strip);
     },
-    saveStrips:function() {
-        var text = JSON.stringify(this.strips,function(key,value) {
+    saveConfig:function(cb) {
+        this.config.strips = this.strips;
+        var text = JSON.stringify(this.config,function(key,value) {
             if (key.indexOf("_") === 0) {
                 return undefined;
             }
@@ -247,12 +316,13 @@ extend(This.prototype,{
         });
         fs.writeFile(this.config.configLocation,text,function(err) {
             if (err) console.err("Failed to write strip data",err);
+            console.log("calling callback",cb);
+            if (cb) cb();
         });
     },
    /////////////////////
     setStripName:function(id,name) {
         var strip = this.getStrip(id);
-        console.log("setting name of strip..",id,strip);
         strip.setName(name);
     },
     setBrightness:function(id,value) {
@@ -262,8 +332,8 @@ extend(This.prototype,{
     forgetStrip:function(id) {
         var index = this.getStripIndex(id);
         this.strips.splice(index,1);
-        this.saveStrips()
-        this.send("StripRemoved",id);
+        this.saveConfig()
+        this.conduit.emit("StripRemoved",id);
     },
     disconnectStrip:function(id) {
         var strip = this.getStrip(id);
@@ -310,7 +380,7 @@ extend(This.prototype,{
             this.strips.push(strip);
             strip.receivedStatus(status);
             strip.setVisible(true);
-            this.saveStrips();
+            this.saveConfig();
             this.stripAdded(strip);
         } else {
             strip._ip = ip;

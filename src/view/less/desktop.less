@@ -53,7 +53,15 @@ height: 100%;
     }
 }
 
-.editPattern {
+.patternChoices::-webkit-scrollbar * {
+    background:transparent;
+}
+.patternChoices::-webkit-scrollbar-thumb {
+    background:#999 !important;
+}
+
+.editPattern,.uploadPattern {
+    margin-right: 3px;
     float: right;
 }
 
@@ -77,7 +85,33 @@ height: 100%;
     }
 }
 
-.loadPatternDialogContainer .mbody, .downloadPatternDialogContainer .mbody {
+.loginDialog {
+    margin: auto;
+    width: 300px;
+
+    .mdialog {
+        top: 100px;
+    }
+
+    .display {
+        display: none;
+    }
+
+    &.displayPrompt {
+        .display {
+            display: block;
+        }
+        .login {
+            display: none;
+        }
+    }
+}
+
+.downloadPatternDialog .listElement {
+    height: 25px;
+}
+
+.loadPatternDialogContainer .mbody, .downloadPatternDialog .mbody {
     .flex(1 1 auto);
     .flex-display;
     .flex-direction(row);
@@ -91,7 +125,7 @@ height: 100%;
         .flexExpandContent;
 
         .list-group {
-            overflow-y: scroll;
+            overflow-y: auto;
         }
     }
 
@@ -112,14 +146,10 @@ height: 100%;
     }
 }
 
-.largemodal {
-    .modal;
-    .flexExpandContent;
-
+.modal {
     .mdialog {
-        z-index: 1060;
+        //z-index: 1060;
         .modal-dialog;
-        .flexExpandContent;
     }
 
     .mcontent {
@@ -151,6 +181,15 @@ height: 100%;
         .modal-footer;
     }
 }
+
+.largemodal {
+    .modal;
+    .flexExpandContent;
+
+    .mdialog {
+        .flexExpandContent;
+    }
+}
 ////////////////////////// Load Pattern Dialog ////////////////////////////////
 
 .progressDialog {
@@ -159,7 +198,7 @@ height: 100%;
     display: flex;
 
     .mdialog {
-        z-index: 1050;
+        //z-index: 1050;
         .modal-dialog;
         flex: 1;
     }
@@ -201,5 +240,5 @@ height: 100%;
 }
 
 .stripDetails .modal-dialog {
-    z-index: 1050;
+    //z-index: 1050;
 }

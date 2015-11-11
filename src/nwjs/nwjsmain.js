@@ -70,7 +70,6 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 return value;
             }));
 
-            //console.log("guiEmit:", args);
             manager.eventHandler.apply(manager,args);
         }
         function managerEmit() {
@@ -79,14 +78,12 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 return value;
             }));
 
-            //console.log("managerEmit:", args);
             gui.eventHandler.apply(gui,args);
         }
 
         platform = "desktop";
         gui = new Gui(window,guiEmit);
         var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"),path.join(".","patterns"));
-        console.log("DESKTOP config",config);
         manager = new Manager(config,managerEmit);
     });
 });

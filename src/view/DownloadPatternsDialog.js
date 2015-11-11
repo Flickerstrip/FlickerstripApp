@@ -7,8 +7,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
     }
 
     $.extend(This.prototype, {
-        init:function(send,gui) {
-            this.send = send;
+        init:function(conduit,gui) {
+            this.conduit = conduit;
             this.gui = gui;
             this.$el = $("<div class='downloadPatternDialog largemodal'/>");
 
@@ -28,8 +28,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
                 this.stripRenderer.resizeToParent();
             },this),5);
 
-            this.send("RefreshServerPatterns");
-            $(gui).on("ServerPatternsLoaded",_.bind(function(e,patterns) {
+            this.conduit.request("RefreshServerPatterns",_.bind(function(patterns) {
                 this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
                 this.$el.find(".serverPatterns").empty().append(this.patternSelect.$el);
                 $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
@@ -54,16 +53,12 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             if (selectedObjects.length == 0) return;
 
             var patternObject = selectedObjects[0];
-            this.send("LoadServerPattern",patternObject.id);
-            $(this.gui).one("LoadedServerPattern",_.bind(function(e,id,body) {
+            this.conduit.request("LoadServerPattern",patternObject.id,_.bind(function(id,body) {
                 patternObject.body = body;
                 this.selectedPattern = patternObject;
-                console.log("body",body);
                 var patternSpec = eval("("+body+")");
 
-                console.log("spec",patternSpec);
                 var pattern = this.getPattern(patternSpec);
-                console.log("pattern",pattern);
 
                 this.stripRenderer.setPattern(pattern);
 
@@ -75,9 +70,11 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
         patternOptionRenderer:function(pattern,$el) {
             if ($el) {
                 $el.find(".name").text(pattern.name);
+                $el.find(".aside").text(pattern.Owner.display);
             } else {
                 $el = $("<ul class='list-group-item listElement' />");
                 $el.append($("<span class='name'></span>").text(pattern.name));
+                $el.append($("<span class='aside'></span>").text(pattern.Owner.display));
             }
             return $el;
         },
