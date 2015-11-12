@@ -4,6 +4,7 @@ var fs = require("fs");
 var ShutdownHandler = require("./controller/ShutdownHandler");
 var Configuration = require("./controller/configuration.js");
 var path = require("path");
+var pjson = require('./package.json');
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
 
@@ -34,7 +35,8 @@ try {
     console.log(ex.message);
 }
 
-var debugMode = true;
+var debugMode = pjson.debug;
+console.log("debug",debugMode,pjson);
 if (debugMode) {
     win.moveTo(400,30);
     var dev = win.showDevTools();
@@ -42,6 +44,10 @@ if (debugMode) {
     dev.height =  window.screen.availHeight - win.height - 20;
     dev.width =  window.screen.availWidth;
     win.focus();
+
+    window.onkeydown = function(e) {
+        if (e.keyCode == 27) nw.App.closeAllWindows();
+    };
 }
 
 nw.App.setCrashDumpDir("./");
@@ -88,6 +94,3 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
     });
 });
 
-window.onkeydown = function(e) {
-    if (e.keyCode == 27) nw.App.closeAllWindows();
-};

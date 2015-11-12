@@ -24,13 +24,11 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
-            setTimeout(_.bind(function() {
-                this.stripRenderer.resizeToParent();
-            },this),5);
-
+            this.$el.find(".serverPatterns").addClass("empty");
+            this.$el.find(".right").addClass("deselected");
             this.conduit.request("RefreshServerPatterns",_.bind(function(patterns) {
                 this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
-                this.$el.find(".serverPatterns").empty().append(this.patternSelect.$el);
+                this.$el.find(".serverPatterns").empty().append(this.patternSelect.$el).removeClass("empty");
                 $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
             },this));
 
@@ -54,6 +52,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
 
             var patternObject = selectedObjects[0];
             this.conduit.request("LoadServerPattern",patternObject.id,_.bind(function(id,body) {
+                this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
                 patternObject.body = body;
                 this.selectedPattern = patternObject;
                 var patternSpec = eval("("+body+")");
@@ -65,6 +64,10 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
                 //update titlebar
                 var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
                 this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
+
+                setTimeout(_.bind(function() {
+                    this.stripRenderer.resizeToParent();
+                },this),5);
             },this));
         },
         patternOptionRenderer:function(pattern,$el) {
@@ -97,7 +100,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             var $body = $(document.body);
             $(document.body).removeClass("loadPatternShowing");
             $(document.body).removeClass("configurePatternShowing");
-            $(document.body).find(".hideButton").unbind("click");
+            this.$el.find(".hideButton").unbind("click");
 
             if (platform == "desktop") {
                 this.$el.modal('hide');

@@ -18,13 +18,11 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");
 
+            this.$el.addClass("deselected");
+
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
-            setTimeout(_.bind(function() {
-                this.stripRenderer.resizeToParent();
-            },this),5);
-
             this.$el.find(".downloadPatterns").click(_.bind(this.downloadPatternsButtonClicked,this));
             this.$el.find(".createPattern").click(_.bind(this.createPatternClicked,this));
             this.$el.find(".uploadPattern").click(_.bind(this.uploadPatternClicked,this));
@@ -34,6 +32,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
             this.$el.find(".backButton").click(_.bind(function() {
                 this.patternOptions.deselect();
+                this.$el.removeClass("deselected");
                 $(document.body).removeClass("configurePatternShowing");
             },this));
 
@@ -93,6 +92,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             },this));
         },
         loadPatternButtonClicked:function(e) {
+            if ($(e.target).is(".disabled")) return;
             this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
@@ -102,6 +102,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
+            if ($(e.target).is(".disabled")) return;
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.getPattern(this.activePattern)
                 var pixelData = this.generatePattern();
@@ -127,7 +128,9 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             return pixelValues;
         },
         patternSelected:function(e,selectedObjects,selectedIndexes) {
+            this.$el.toggleClass("deselected",selectedObjects.length == 0);
             if (selectedObjects.length == 0) return;
+
 
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
@@ -153,6 +156,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
 
             this.$config.empty();
             setTimeout(_.bind(function() {
+                this.stripRenderer.resizeToParent();
+
                 if (this.controlView) {
                     this.$config.append(this.controlView.el);
                     this.$config.removeClass("nocontrols");
@@ -200,7 +205,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             var $body = $(document.body);
             $(document.body).removeClass("loadPatternShowing");
             $(document.body).removeClass("configurePatternShowing");
-            $(document.body).find(".hideButton").unbind("click");
+            this.$el.find(".hideButton").unbind("click");
 
             if (platform == "desktop") {
                 this.$el.modal('hide');

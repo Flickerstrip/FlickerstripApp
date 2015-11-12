@@ -1,8 +1,17 @@
-LESS_FILES := $(shell find ./src/view/less -iname '*.less')
+FIND_FLAGS := ! -name '.*.swp' -type f
+LESS_FILES := $(shell find ./src/view/less $(FIND_FLAGS) -iname '*.less')
+VIEW_FILES := $(shell find ./src/view $(FIND_FLAGS))
+CONTROLLER_FILES := $(shell find ./src/controller $(FIND_FLAGS))
+PATTERN_FILES := $(shell find ./patterns $(FIND_FLAGS))
+SHARED_FILES := $(shell find ./src/shared $(FIND_FLAGS))
+SRC_FILES := $(shell find ./src)
 NWJS_PLATFORMS = $(shell ls ./nwjs)
-RSYNC_OPT = --update -ravh --exclude '.*.swp'
+RSYNC_OPT = --update -qravh --exclude '.*.swp'
+DEBUG = 1
 
 all: nwjs
+
+print-%  : ; @echo $* = $($*)
 
 clean:
 	rm -rf ./build
@@ -11,7 +20,7 @@ clean:
 	mkdir ./buildcache
 
 ./buildcache/node_modules: | ./buildcache
-	cp ./src/nwjs/nwjs_package.json ./buildcache/package.json
+	cp ./src/nwjs/package.json ./buildcache/package.json
 	cd ./buildcache/ && npm install
 	rm ./buildcache/package.json
 
@@ -19,35 +28,38 @@ clean:
 	cd ./buildcache && git clone https://github.com/jxcore/jxcore-cordova
 
 ############ NWJS
-./build/nwjs/linux-x64:
+./build/nwjs/linux-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 	cp -r ./nwjs/`basename $@`/* $@
 
-./build/nwjs/osx-x64:
+./build/nwjs/osx-x64: $(SRC_FILES)
+	mkdir -p $@
+	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+ifeq ($(DEBUG),1)
+	sed -i '' 's/"debug":false/"debug":true/g' $@/package.json
+	sed -i '' 's/"toolbar": false/"toolbar":true/g' $@/package.json
+endif
+	cp -r ./nwjs/`basename $@`/* $@
+
+./build/nwjs/win-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 	cp -r ./nwjs/`basename $@`/* $@
 
-./build/nwjs/win-x64:
-	mkdir -p $@
-	rsync $(RSYNC_OPT) ./src/nwjs/* $@
-	cp -r ./nwjs/`basename $@`/* $@
-
-./build/nwjs/%/node_modules: ./build/nwjs/% ./buildcache/node_modules
+./build/nwjs/%/node_modules: ./buildcache/node_modules
 	cp -r ./buildcache/node_modules `dirname $@`
 
-./build/nwjs/%/view: ./src/view ./build/nwjs/%
-	echo "COPYING VIEW FILES `dirname $@`"
+./build/nwjs/%/view: $(VIEW_FILES)
 	rsync $(RSYNC_OPT) ./src/view `dirname $@`
 
-./build/nwjs/%/controller: ./src/controller ./build/nwjs/%
+./build/nwjs/%/controller: $(CONTROLLER_FILES)
 	rsync $(RSYNC_OPT) --update -ravh ./src/controller `dirname $@`
 
-./build/nwjs/%/shared: ./src/shared ./build/nwjs/%
+./build/nwjs/%/shared: $(SHARED_FILES)
 	rsync $(RSYNC_OPT) --update -ravh ./src/shared `dirname $@`
 
-./build/nwjs/%/patterns: ./patterns ./build/nwjs/%
+./build/nwjs/%/patterns: $(PATTERN_FILES)
 	rsync $(RSYNC_OPT) --update -ravh ./patterns `dirname $@`
 
 ./build/nwjs/%/view/css/style.css: $(LESS_FILES)
@@ -57,6 +69,7 @@ clean:
 linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/patterns ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
 osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/patterns ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
 win-x64: ./build/nwjs/win-x64 ./build/nwjs/win-x64/patterns ./build/nwjs/win-x64/view ./build/nwjs/win-x64/controller ./build/nwjs/win-x64/shared ./build/nwjs/win-x64/node_modules ./build/nwjs/win-x64/view/css/style.css
+
 
 nwjs_all: linux-x64 osx-x64 win-x64
 ############ NWJS
@@ -125,3 +138,5 @@ run_android: cordova
 
 run: osx-x64
 	open ./build/nwjs/osx-x64/nwjs.app
+
+.PHONY: linux-x64 osx-x64 win-x64 nwjs_all run clean run_android run_ios cordova

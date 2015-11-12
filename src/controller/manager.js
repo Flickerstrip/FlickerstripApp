@@ -107,7 +107,6 @@ extend(This.prototype,{
         },this));
 
         this.on("LoadServerPattern",_.bind(function(callback,id) {
-            console.log("loading pattern from server",id);
             request.get(this.serverLocation+"/pattern/"+id,_.bind(function(error,response,data) {
                 callback(id,data);
             },this));

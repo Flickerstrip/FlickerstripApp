@@ -78,7 +78,7 @@ define(['jquery'],function($) {
             var index = 0;
             _.each(keys,_.bind(function(group) {
                 var header = group == "" ? "Ungrouped" : group;
-                if (this.grouprenderer) {
+                if (this.grouprenderer && keys.length > 1) {
                     var $groupHeader = this.grouprenderer(header);
                     $groupHeader.click(_.bind(function() {
                         //group clicked

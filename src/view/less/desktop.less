@@ -53,13 +53,6 @@ height: 100%;
     }
 }
 
-.patternChoices::-webkit-scrollbar * {
-    background:transparent;
-}
-.patternChoices::-webkit-scrollbar-thumb {
-    background:#999 !important;
-}
-
 .editPattern,.uploadPattern {
     margin-right: 3px;
     float: right;
@@ -69,18 +62,41 @@ height: 100%;
     border: 1px solid black;
 }
 
-.downloadPatternDialogContainer .mbody {
+.loadPatternDialog {
+    .paneldisabled {display: none;}
+    &.deselected {
+        .paneldisabled { .flex-display; }
+        .titleArea, .patternPreview, .patternConfiguration { display: none; }
+    }
+}
+
+.downloadPatternDialog .mbody {
     .flex(1 1 auto);
     padding: 10px;
 
     .flex-display;
     .flex-direction(column);
 
-    * {
+    >* {
         .flex(0 0 auto);
 
         &:last-child {
             .flex(1 1 auto);
+        }
+    }
+
+    .serverPatterns {
+        .paneldisabled { display: none; };
+        &.empty .paneldisabled { .flex-display; };
+    }
+    .right {
+        .paneldisabled { display: none; };
+        &.deselected {
+            .patternTitle,
+            .patternPreview,
+            .buttons { display: none; };
+
+            .paneldisabled { .flex-display; };
         }
     }
 }
@@ -111,7 +127,7 @@ height: 100%;
     height: 25px;
 }
 
-.loadPatternDialogContainer .mbody, .downloadPatternDialog .mbody {
+.loadPatternDialog .mbody, .downloadPatternDialog .mbody {
     .flex(1 1 auto);
     .flex-display;
     .flex-direction(row);
@@ -232,6 +248,46 @@ height: 100%;
             .flex(1 1 auto);
         }
     }
+}
+
+.groupDetails {
+    .multiple,
+    .paneldisabled { display: none; }
+}
+
+.paneldisabled {
+    .well;
+    .well-lg;
+    margin-bottom: 0;
+    .flex(1 1 auto) !important;
+    .align-items(center);
+    .justify-content(center);
+
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #999;
+}
+
+.groupDetails.none-selected {
+    .brightnessControl,
+    .multiselect,
+    .progress,
+    .nextToBrightnessBar { display: none; }
+
+    .paneldisabled { .flex-display; }
+}
+
+.groupDetails.one-selected {
+    .multiselect { display: none; }
+}
+
+.groupDetails.multiple-selected {
+    .brightnessControl,
+    .progress,
+    .nextToBrightnessBar { display: none; }
+
+    .multiselect { display: block; }
 }
 
 .forgetPattern,

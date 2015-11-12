@@ -66,7 +66,7 @@ function($,tinycolor,util,desktop_template) {
             var $body = $(document.body);
             $(document.body).removeClass("loadPatternShowing");
             $(document.body).removeClass("configurePatternShowing");
-            $(document.body).find(".hideButton").unbind("click");
+            this.$el.find(".hideButton").unbind("click");
 
             if (platform == "desktop") {
                 this.$el.modal('hide');

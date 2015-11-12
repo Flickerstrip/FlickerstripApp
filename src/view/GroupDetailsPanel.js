@@ -15,9 +15,13 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             this.brightnessControl = new BrightnessControl(this.$el.find(".brightnessControl"),this.conduit,this.strip);
 
-            if (this.group) {
+            if (this.strips.length == 0) {
+                this.$el.addClass("none-selected");
+            } else if (this.group) {
+                this.$el.addClass("group-selected");
             } else if (strips.length == 1) {
                 var strip = this.strips[0];
+                this.$el.addClass("one-selected");
 
                 $(strip).on("Strip.StatusUpdated",_.bind(this.statusUpdated,this));
 
@@ -26,11 +30,8 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                    this.conduit.emit("SetBrightness",strip.id,val); 
                 },this));
             } else {
+                this.$el.addClass("multiple-selected");
             }
-
-            this.$el.find(".multiselect").toggle(!group && strips.length > 1);
-            this.$el.find(".progress").toggle(group || strips.length == 1);
-            this.$el.find(".nextToBrightnessBar").toggle(group || strips.length == 1);
 
             this.$el.find(".backButton").click(_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
@@ -62,7 +63,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.detailsDialog.show();
         },
         statusUpdated:function() {
-            if (this.group) {
+            if (this.strips.length == 0) {
+               this.$el.find(".stripHeader .name").text("");
+            } else if (this.group) {
                 this.$el.find(".stripHeader .name").text("Group: "+this.group);
             } else if (this.strips.length == 1) {
                 var strip = this.strips[0];
@@ -118,6 +121,11 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         },
         loadPatternClicked:function(e) {
             var patternDialog = new LoadPatternDialog(this.conduit,this.gui);
+            var allVisible = _.reduce(this.strips,function(memo,item) {memo = memo && item.visible},true);
+            if (!allVisible) {
+                patternDialog.$el.find(".previewPatternButton").addClass("disabled");
+                patternDialog.$el.find(".loadPatternButton").addClass("disabled");
+            }
             $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
             patternDialog.show();
         },

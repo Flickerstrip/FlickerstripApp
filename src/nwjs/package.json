@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "description": "An application to allow you to interact with your LED strips.",
   "main": "nwjs.html",
+  "debug":false,
   "window": {
     "title": "WiFi LED Control",
     "icon": "icon.png",
-    "toolbar": true,
+    "toolbar":false,
     "frame": true,
     "min_width": 200,
     "min_height": 200,

@@ -60,6 +60,9 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
 
             this.render();
 
+            this.groupDetails = new GroupDetailsPanel(this.conduit,[],this,false);
+            this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);
+
             this.$el.find(".configureNewStrip").on("click",_.bind(function() {
                 var $div = $("<div />");
                 $div.css({
