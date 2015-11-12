@@ -36,7 +36,6 @@ try {
 }
 
 var debugMode = pjson.debug;
-console.log("debug",debugMode,pjson);
 if (debugMode) {
     win.moveTo(400,30);
     var dev = win.showDevTools();
