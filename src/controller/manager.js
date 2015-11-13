@@ -11,7 +11,7 @@ var https = require("https");
 var path = require("path");
 var util = require("../shared/util");
 var async = require("async");
-var pjson = require('./package.json');
+var pjson = require('../package.json');
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -21,8 +21,9 @@ nutil.inherits(This,EventEmitter);
 extend(This.prototype,{
     strips:[],
     firmwareReleases:[],
-    init:function(config,send) {
+    init:function(config,send,platform) {
         this.config = config;
+        this.platform = platform;
         this.serverLocation = pjson.debug ? 'http://localhost:3000' : 'http://flickerstrip.elasticbeanstalk.com';
         this.conduit = util.createConduit(send);
 
@@ -115,6 +116,9 @@ extend(This.prototype,{
 
         this.on("GetUser",_.bind(function(callback) {
             callback(this.config.user);
+        },this));
+
+        this.on("OpenConsole",_.bind(function() {
         },this));
 
         this.on("CreateUser",_.bind(function(callback,email,password,display) {

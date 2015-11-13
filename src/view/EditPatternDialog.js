@@ -10,8 +10,8 @@ function($,tinycolor,CodeMirror,ace,util,SelectList,patterns,LEDStripRenderer,Co
     var defaultBody = "({\n\tpattern:function() {\n\t\tthis.pixels=1;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\treturn {h:t,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n})";
 
     $.extend(This.prototype, {
-        init:function(send,gui,pattern) {
-            this.send = send;
+        init:function(conduit,gui,pattern) {
+            this.conduit = conduit;
             this.pattern = $.extend({},pattern);
             this.gui = gui;
 			this.widgets = [];
@@ -47,6 +47,10 @@ function($,tinycolor,CodeMirror,ace,util,SelectList,patterns,LEDStripRenderer,Co
                 this.pattern.body = this.editor.getValue();
                 $(this).trigger("Save",this.pattern);
             },this));
+
+			this.$el.find(".openConsole").click(_.bind(function() {
+				this.conduit.emit("OpenConsole");
+			},this));
         },
         getPattern:function(patternSpec) { //TODO dedupe me
             var args = {};

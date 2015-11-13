@@ -75,6 +75,15 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 return value;
             }));
 
+            if (args[0].name == "OpenConsole") {
+                var win = nw.Window.get();
+                var dev = win.showDevTools();
+                dev.moveTo(0,win.height+40);
+                dev.height =  window.screen.availHeight - win.height - 20;
+                dev.width =  window.screen.availWidth;
+                win.focus();
+            }
+
             manager.eventHandler.apply(manager,args);
         }
         function managerEmit() {
@@ -89,7 +98,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
         platform = "desktop";
         gui = new Gui(window,guiEmit);
         var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"),path.join(".","patterns"));
-        manager = new Manager(config,managerEmit);
+        manager = new Manager(config,managerEmit,platform);
     });
 });
 

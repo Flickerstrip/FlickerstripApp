@@ -27,6 +27,7 @@ function($,tinycolor,util,desktop_template) {
         loginClicked:function() {
             var email = this.$email.val();
             var password = this.$password.val();
+            console.log("login clicked.. verifying");
             this.conduit.request("VerifyUser",email,password,_.bind(function(success,user) {
                 if (!success) {
                     this.$el.addClass("displayPrompt");

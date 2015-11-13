@@ -1,0 +1,30 @@
+name:Solid Color
+
+
+
+({
+    controls: [{
+        name: "Color",
+        id: "color",
+        type: "color",
+        default: "#ff00ff"
+    }],
+	pattern:function(args) {
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        this.pixels=1;
+        this.frames=1;
+        this.fps=1;
+        this.render=function(x,t) {
+            var color = hexToRgb(args.color);
+            return {r:color.r,g:color.g,b:color.b};
+        };
+        return this;
+	}
+})
