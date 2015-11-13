@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+ROOT=$(cd `dirname "${BASH_SOURCE[0]}"`/.. && pwd)
+REPO=Flickerstrip/FlickerstripApp
+RELEASE=`git describe --tags --abbrev=0`
+
+zipAs() {
+    mv $1 $2
+    zip -r $2.zip $2/*
+    mv $2 $1
+}
+
+uploadFile() {
+    FILE_PATH=$1
+    FILE_NAME=$(basename "$FILE_PATH")
+    curl -s -S -X POST https://uploads.github.com/repos/$REPO/releases/$ID/assets?name=$FILE_NAME -A "$REPO script" --header "Content-Type: application/octet-stream" --header "Accept: application/vnd.github.v3+json" --data-binary @"$FILE_PATH" -H "Authorization: token `cat $ROOT/credentials.txt`" > /dev/null
+}
+
+function json_escape(){
+    echo -n "$1" | python -c 'import json,sys;print(json.dumps(sys.stdin.read()))'
+}
+
+function blue() {
+    echo -e '\033[34m'"$1"'\033[39m'
+}
+
+if [ ! -e "$ROOT/credentials.txt" ]; then
+    echo "credentials.txt not found, fill this with an access token to continue"
+    exit
+fi
+
+RELEASE_LOG=$(mktemp /tmp/releasetext.XXXXXX)
+(echo "Changelog: "; git log `git describe --tags --abbrev=0 'HEAD^'`..HEAD --oneline | tail -n +2 | tail -r | sed 's/^[^ ]* /* /') > $RELEASE_LOG
+
+touch -A -01 $RELEASE_LOG
+EDIT_TIME=`stat -f %m $RELEASE_LOG`
+
+vi $RELEASE_LOG
+
+NEW_TIME=`stat -f %m $RELEASE_LOG`
+if [ "$EDIT_TIME" -eq "$NEW_TIME" ]
+then
+    echo "Publish release cancelled"
+else
+    blue "Building project"
+    (cd $ROOT; make clean; make nwjs_all)
+    (cd $ROOT/build/nwjs/; zipAs linux-x64 FlickerstripApp-Linux64-$RELEASE)
+    (cd $ROOT/build/nwjs/; zipAs osx-x64 FlickerstripApp-OSX64-$RELEASE)
+    (cd $ROOT/build/nwjs/; zipAs win-x64 FlickerstripApp-Win64-$RELEASE)
+    mkdir -p $ROOT/releases
+    cp $ROOT/build/nwjs/*.zip $ROOT/releases
+
+    # Generate json body
+    DATA_FILE=/tmp/publishreleasedata.json
+    echo -n '{"tag_name":"'$RELEASE'","name":"'$RELEASE'","body":' > $DATA_FILE
+    cat $RELEASE_LOG | python -c 'import json,sys;print(json.dumps(sys.stdin.read()))' | tr -d '\n' >> $DATA_FILE
+    echo -n ',"draft":false,"prerelease":false}' >> $DATA_FILE
+
+    blue "Creating release"
+    ID=$(curl https://api.github.com/repos/$REPO/releases -H "Authorization: token `cat $ROOT/credentials.txt`" --data @"$DATA_FILE" | perl -nle 'print "$1" if (/"id":.?([0-9]*?),/)' | head -n 1)
+
+    blue "Uploading FlickerstripApp-Linux64-$RELEASE.zip"
+    uploadFile $ROOT/releases/FlickerstripApp-Linux64-$RELEASE.zip
+
+    blue "Uploading FlickerstripApp-OSX64-$RELEASE.zip"
+    uploadFile $ROOT/releases/FlickerstripApp-OSX64-$RELEASE.zip
+
+    blue "Uploading FlickerstripApp-Win64-$RELEASE.zip"
+    uploadFile $ROOT/releases/FlickerstripApp-Win64-$RELEASE.zip
+
+    blue "Cleaning up"
+    (cd $ROOT; make clean)
+fi
+
