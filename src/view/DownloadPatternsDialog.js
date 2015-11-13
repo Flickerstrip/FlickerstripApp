@@ -68,7 +68,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             var patternObject = selectedObjects[0];
             this.conduit.request("LoadServerPattern",patternObject.id,_.bind(function(id,body) {
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
-                this.$el.find(".deletePattern").toggle(patternObject.Owner.id == this.user.id);
+                this.$el.find(".deletePattern").toggle(this.user && patternObject.Owner.id == this.user.id);
                 patternObject.body = body;
                 this.selectedPattern = patternObject;
                 var patternSpec = eval("("+body+")");
