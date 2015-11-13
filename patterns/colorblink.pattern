@@ -1,8 +1,8 @@
 name:Color Blink
 author:Flickerstrip
 
-{
-    controls: [
+({
+    controls:[
         {
             name: "Color1",
             id: "color1",
@@ -22,7 +22,7 @@ author:Flickerstrip
         this.fps=1;
         this.render=function(x,t) {
             return tinycolor(t == 0 ? args.color1 : args.color2).toRgb();
-        }
+        };
         return this;
     }
-}
+})

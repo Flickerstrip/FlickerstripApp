@@ -1,7 +1,7 @@
 var sandbox = require("sandbox");
 
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/EditPatternDialog.js","view/DownloadPatternsDialog.js","view/ControlsView.js","view/LoginDialog.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog,DownloadPatternsDialog,ControlsView,LoginDialog,mobile_template,desktop_template) {
+define(["jquery","tinycolor","view/util.js","view/ProgressDialog","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/EditPatternDialog.js","view/DownloadPatternsDialog.js","view/ControlsView.js","view/LoginDialog.js","text!tmpl/loadPatternDialogMobile.html","text!tmpl/loadPatternDialog.html"],
+function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,EditPatternDialog,DownloadPatternsDialog,ControlsView,LoginDialog,mobile_template,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -17,8 +17,6 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             this.$choices = this.$el.find(".patternChoices")
             this.$preview = this.$el.find(".patternPreview");
             this.$config = this.$el.find(".patternConfiguration");
-
-            this.$el.addClass("deselected");
 
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
@@ -40,6 +38,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
             this.patternsLoaded();
         },
         patternsLoaded:function() {
+            this.$el.addClass("deselected");
+
             this.patternOptions = new SelectList(this.gui.patterns,this.patternOptionRenderer,{multiple:false});
             this.$choices.empty().append(this.patternOptions.$el);
 
@@ -51,18 +51,21 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
         },
         uploadPattern:function() {
             if (!this.selectedPatternObject) return;
-            console.log("upload pattern called",this.selectedPatternObject);
-            this.conduit.request("UploadPattern",this.selectedPatternObject,_.bind(function() {
 
+            var progress = new ProgressDialog(true).show();
+            this.conduit.request("UploadPattern",this.selectedPatternObject,_.bind(function() {
+                progress.hide();
+                this.$el.find(".uploadPattern").text("Uploaded!").addClass("disabled");
             },this));
         },
-        uploadPatternClicked:function() {
+        uploadPatternClicked:function(e) {
+            if ($(e.target).is(":disabled")) return;
             if (!this.selectedPatternObject) return;
             this.conduit.request("GetUser",_.bind(function(user) {
                 if (!user)  {
                     this.loginDialog = new LoginDialog(this.conduit).show();
-                    $(this.loginDialog).on("Login",_.bind(function(e,user,password) {
-                        this.conduit.request("SaveCredentials",user,password,_.bind(function() {
+                    $(this.loginDialog).on("Login",_.bind(function(e,user,password,id) {
+                        this.conduit.request("SaveCredentials",user,password,id,_.bind(function() {
                             this.uploadPattern();
                         },this));
                     },this));
@@ -130,6 +133,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             this.$el.toggleClass("deselected",selectedObjects.length == 0);
             if (selectedObjects.length == 0) return;
+
+            this.$el.find(".uploadPattern").text("Share Pattern").removeClass("disabled");
 
 
             $(document.body).addClass("configurePatternShowing"); //for mobile
@@ -215,7 +220,12 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,EditPatternDialog
                     this.$el.remove();
                 },this),500);
             }
-        }
+            this.destroy();
+        },
+
+        destroy:function() {
+            this.stripRenderer.destroy();
+        },
     });
 
     return This;

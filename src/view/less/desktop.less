@@ -48,7 +48,7 @@ height: 100%;
 ////////////////////////// Load Pattern Dialog ////////////////////////////////
 .flexExpandContent {
     .flex-display;
-    > * {
+    >* {
         .flex(1 1 auto);
     }
 }
@@ -68,6 +68,23 @@ height: 100%;
         .paneldisabled { .flex-display; }
         .titleArea, .patternPreview, .patternConfiguration { display: none; }
     }
+}
+
+.editPatternDialog .mbody {
+    .flex-display;
+    .flex-direction(column);
+
+    >* {
+        .flex(0 0 auto);
+
+        &:last-child {
+            .flex(1 1 auto);
+        }
+    }
+}
+
+.editPatternDialog .mcontent {
+    .flexExpandContent;
 }
 
 .downloadPatternDialog .mbody {

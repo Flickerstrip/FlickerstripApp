@@ -27,15 +27,15 @@ function($,tinycolor,util,desktop_template) {
         loginClicked:function() {
             var email = this.$email.val();
             var password = this.$password.val();
-            this.conduit.request("VerifyUser",email,password,_.bind(function(success) {
+            this.conduit.request("VerifyUser",email,password,_.bind(function(success,user) {
                 if (!success) {
                     this.$el.addClass("displayPrompt");
                     this.$el.find(".createAccount").one("click",_.bind(function() {
                         var display = this.$el.find("#display").val();
-                        this.conduit.request("CreateUser",email,password,display,_.bind(function(success) {
+                        this.conduit.request("CreateUser",email,password,display,_.bind(function(success,user) {
                             if (success) {
                                 this.hide();
-                                $(this).trigger("Login",[email,password]);
+                                $(this).trigger("Login",[email,password,user.id]);
                             } else {
                                 this.$el.find(".error").text("Login/Create failed");
                             }
@@ -43,7 +43,7 @@ function($,tinycolor,util,desktop_template) {
                     },this));
                 } else {
                     this.hide();
-                    $(this).trigger("Login",[email,password]);
+                    $(this).trigger("Login",[email,password,user.id]);
                 }
             },this));
         },

@@ -21,18 +21,27 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
 
             this.$preview = this.$el.find(".patternPreview");
 
+            this.conduit.request("GetUser",_.bind(function(user) {
+                this.user = user;
+            },this));
+
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
             this.$el.find(".serverPatterns").addClass("empty");
+            this.refreshPatterns();
+
+            this.$el.find(".deletePattern").click(_.bind(this.deletePatternClicked,this));
+
+            this.$el.find(".downloadPattern").click(_.bind(this.doDownloadPattern,this));
+        },
+        refreshPatterns:function() {
             this.$el.find(".right").addClass("deselected");
             this.conduit.request("RefreshServerPatterns",_.bind(function(patterns) {
                 this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
                 this.$el.find(".serverPatterns").empty().append(this.patternSelect.$el).removeClass("empty");
                 $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
             },this));
-
-            this.$el.find(".downloadPattern").click(_.bind(this.doDownloadPattern,this));
         },
         doDownloadPattern:function() {
             $(this).trigger("DownloadPattern",this.selectedPattern);
@@ -47,12 +56,19 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             if (typeof(patternSpec.pattern) === "function") return patternSpec.pattern(args);
             return patternSpec.pattern;
         },
+        deletePatternClicked:function() {
+            if (!this.selectedPattern) return;
+            this.conduit.request("DeletePattern",this.selectedPattern.id,_.bind(function() {
+                this.refreshPatterns();
+            },this));
+        },
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             if (selectedObjects.length == 0) return;
 
             var patternObject = selectedObjects[0];
             this.conduit.request("LoadServerPattern",patternObject.id,_.bind(function(id,body) {
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
+                this.$el.find(".deletePattern").toggle(patternObject.Owner.id == this.user.id);
                 patternObject.body = body;
                 this.selectedPattern = patternObject;
                 var patternSpec = eval("("+body+")");

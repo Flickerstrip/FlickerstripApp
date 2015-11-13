@@ -1,18 +1,20 @@
 var sandbox = require("sandbox");
+var JSHINT = require("jshint").JSHINT;
 
-define(["jquery","tinycolor","cm/lib/codemirror","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/editPatternDialog.html","cm/mode/javascript/javascript"],
-function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,ControlsView,desktop_template) {
+define(["jquery","tinycolor","cm/lib/codemirror","ace/ace","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/editPatternDialog.html","cm/mode/javascript/javascript","cm/addon/lint/javascript-lint"],
+function($,tinycolor,CodeMirror,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
 
-    var defaultBody = "{\n\tpattern:function() {\n\t\tthis.pixels=1;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\treturn {h:t,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n}";
+    var defaultBody = "({\n\tpattern:function() {\n\t\tthis.pixels=1;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\treturn {h:t,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n})";
 
     $.extend(This.prototype, {
         init:function(send,gui,pattern) {
             this.send = send;
             this.pattern = $.extend({},pattern);
             this.gui = gui;
+			this.widgets = [];
             this.$el = $("<div class='editPatternDialog'/>");
 
             this.$el.append(desktop_template);
@@ -42,7 +44,7 @@ function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,Contro
             },this));
 
             this.$el.find(".saveButton").click(_.bind(function() {
-                this.pattern.body = this.cm.getValue();
+                this.pattern.body = this.editor.getValue();
                 $(this).trigger("Save",this.pattern);
             },this));
         },
@@ -57,14 +59,18 @@ function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,Contro
             return patternSpec.pattern;
         },
         updateRendered:function() {
-            var patternSpec = eval("("+this.pattern.body+")");
-            var renderablePattern = this.getPattern(patternSpec);
-            this.stripRenderer.setPattern(renderablePattern);
+		    try {
+				var patternSpec = eval(this.pattern.body);
+				var renderablePattern = this.getPattern(patternSpec);
+				this.stripRenderer.setPattern(renderablePattern);
+			} catch (e) {
+				console.log("JAVASCRIPT ERROR!",e);
+			}
         },
-        codeUpdated:function(cm) {
+        codeUpdated:function() {
             if (this.updateDelay) clearTimeout(this.updateDelay);
             this.updateDelay = setTimeout(_.bind(function() {
-                this.pattern.body = cm.getValue();
+                this.pattern.body = this.editor.getValue();
                 this.updateRendered();
             },this),500);
         },
@@ -76,13 +82,12 @@ function($,tinycolor,CodeMirror,util,SelectList,patterns,LEDStripRenderer,Contro
                 $(document.body).append(this.$el);
                 this.$el.modal('show');
 
-                this.cm = CodeMirror(this.$el.find(".editorcontainer").get(0), {
-                    lineNumbers: true,
-                    mode: "javascript",
-                    value: this.pattern.body,
-                });
-
-                this.cm.on("change",_.bind(this.codeUpdated,this));
+				this.editor = ace.edit(this.$el.find(".editorcontainer").get(0));
+				this.editor.setValue(this.pattern.body);
+				this.editor.setTheme("ace/theme/monokai");
+				this.editor.getSession().setMode("ace/mode/javascript");
+				this.editor.getSession().on('change',_.bind(this.codeUpdated,this));
+				this.editor.gotoLine(0);
             }
             
             setTimeout(function() {

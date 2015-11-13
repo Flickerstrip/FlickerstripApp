@@ -35,6 +35,7 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
                 });
                 this.$el.modal('show');
             }
+			return this;
         },
         hide:function() {
             if (platform == "desktop") {

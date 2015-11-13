@@ -31,6 +31,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.pattern = null;
             this.stripLength = stripLength;
             this.rendered = null;
+			this.destroyed = false;
             
             var millis = new Date().getTime();
             var self = this;
@@ -46,7 +47,7 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.paint(g);
         },
         paint:function(g) {
-            this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+            if (!this.destroyed) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
             if (!(this.pattern && this.rendered)) return;
 
@@ -166,7 +167,10 @@ define(['jquery','tinycolor'],function($,tinycolor) {
         },
         getRenderer:function() {
             return this.neopixelRenderer;
-        }
+        },
+		destroy:function() {
+			this.destroyed = true;
+		},
     });
 
     return This;

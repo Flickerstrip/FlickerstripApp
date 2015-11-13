@@ -117,7 +117,6 @@ extend(This.prototype,{
         },this));
 
         this.on("CreateUser",_.bind(function(callback,email,password,display) {
-                    console.log(arguments);
             var opt = {
                 url:this.serverLocation+"/user/create",
                 json: {
@@ -126,8 +125,10 @@ extend(This.prototype,{
                     display:display,
                 }
             };
-            request.post(opt,_.bind(function(error,response,data) {
-                callback(response.statusCode == 200);
+            request.post(opt,_.bind(function(error,response,user) {
+                if (response.statusCode != 200) return callback(false,null);
+
+                callback(true,user);
             },this));
         },this));
 
@@ -136,15 +137,18 @@ extend(This.prototype,{
                 url:this.serverLocation+"/user/challenge",
                 headers:{
                     "Authorization":"Basic " + new Buffer(email + ":" + password).toString("base64"),
-                }
+                },
+                json:true,
             }
-            request.post(opt,_.bind(function(error,response,data) {
-                callback(response.statusCode == 200);
+            request.post(opt,_.bind(function(error,response,user) {
+                if (response.statusCode != 200) return callback(false,null);
+
+                callback(true,user);
             },this));
         },this));
 
-        this.on("SaveCredentials",_.bind(function(callback,email,password) {
-            this.config.user = {email:email,password:password};
+        this.on("SaveCredentials",_.bind(function(callback,email,password,id) {
+            this.config.user = {email:email,password:password,id:id};
             this.saveConfig(callback);
         },this));
 
@@ -162,6 +166,22 @@ extend(This.prototype,{
                 json:data
             }
             request.post(opt,_.bind(function(error,response,data) {
+                callback(response.statusCode == 200);
+            },this));
+        },this));
+
+        this.on("DeletePattern",_.bind(function(callback,patternId) {
+            var data = {
+                "id":patternId,
+            }
+            var opt = {
+                url:this.serverLocation+"/pattern/delete",
+                headers:{
+                    "Authorization":"Basic " + new Buffer(this.config.user.email + ":" + this.config.user.password).toString("base64"),
+                },
+                json:data
+            }
+            request.post(opt,_.bind(function(error,response) {
                 callback(response.statusCode == 200);
             },this));
         },this));
@@ -315,7 +335,6 @@ extend(This.prototype,{
         });
         fs.writeFile(this.config.configLocation,text,function(err) {
             if (err) console.err("Failed to write strip data",err);
-            console.log("calling callback",cb);
             if (cb) cb();
         });
     },
