@@ -17,10 +17,6 @@ uploadFile() {
     curl -s -S -X POST https://uploads.github.com/repos/$REPO/releases/$ID/assets?name=$FILE_NAME -A "$REPO script" --header "Content-Type: application/octet-stream" --header "Accept: application/vnd.github.v3+json" --data-binary @"$FILE_PATH" -H "Authorization: token `cat $ROOT/credentials.txt`" > /dev/null
 }
 
-function json_escape(){
-    echo -n "$1" | python -c 'import json,sys;print(json.dumps(sys.stdin.read()))'
-}
-
 function blue() {
     echo -e '\033[34m'"$1"'\033[39m'
 }

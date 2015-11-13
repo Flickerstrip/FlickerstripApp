@@ -11,6 +11,7 @@ var https = require("https");
 var path = require("path");
 var util = require("../shared/util");
 var async = require("async");
+var pjson = require('./package.json');
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -22,7 +23,7 @@ extend(This.prototype,{
     firmwareReleases:[],
     init:function(config,send) {
         this.config = config;
-        this.serverLocation = 'http://localhost:3000';
+        this.serverLocation = pjson.debug ? 'http://localhost:3000' : 'http://flickerstrip.elasticbeanstalk.com';
         this.conduit = util.createConduit(send);
 
         this.loadConfig(_.bind(function() {
