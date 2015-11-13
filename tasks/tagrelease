@@ -1,0 +1,56 @@
+#!/bin/bash
+
+LAST_RELEASE=`git describe --abbrev=0`
+
+parseRelease() {
+    semantic=${1:1}
+    IFS='.' read -ra release_info <<< "$semantic"
+}
+
+nextMajor() {
+    parseRelease $1;
+    echo v$(expr ${release_info[0]} + 1).0.0
+}
+
+nextMinor() {
+    parseRelease $1;
+    echo v${release_info[0]}.$(expr ${release_info[1]} + 1).0
+}
+
+nextPatch() {
+    parseRelease $1;
+    echo v${release_info[0]}.${release_info[1]}.$(expr ${release_info[2]} + 1)
+}
+
+
+echo "[M]ajor: `nextMajor $LAST_RELEASE`"
+echo "[m]inor: `nextMinor $LAST_RELEASE`"
+echo "[p]atch: `nextPatch $LAST_RELEASE`"
+read -p "Type of release?: (p) " type
+
+if [[ -z  $type  ]]
+then
+    type="p";
+fi
+
+case "$type" in
+    p)
+        NEXT_REVISION=`nextPatch $LAST_RELEASE`
+    ;;
+
+    m)
+        NEXT_REVISION=`nextMinor $LAST_RELEASE`
+    ;;
+
+    M)
+        NEXT_REVISION=`nextMajor $LAST_RELEASE`
+    ;;
+esac
+
+echo "Next version will be: $NEXT_REVISION"
+
+echo "const char GIT_CURRENT_VERSION[] = \"$NEXT_REVISION\";" > version.h
+git add version.h
+git commit -m "Preparing for release of $NEXT_REVISION"
+git tag -a $NEXT_REVISION -m "Releasing revision $NEXT_REVISION"
+git push origin $NEXT_REVISION
