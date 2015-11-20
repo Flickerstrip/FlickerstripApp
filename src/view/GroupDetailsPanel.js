@@ -121,8 +121,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         },
         loadPatternClicked:function(e) {
             var patternDialog = new LoadPatternDialog(this.conduit,this.gui);
-            var allVisible = _.reduce(this.strips,function(memo,item) {memo = memo && item.visible},true);
+            var allVisible = _.reduce(this.strips,function(memo,item) {return memo = memo && item.visible},true);
+            console.log("all visible: ",allVisible);
             if (!allVisible) {
+                //TODO double check that this works..
                 patternDialog.$el.find(".previewPatternButton").addClass("disabled");
                 patternDialog.$el.find(".loadPatternButton").addClass("disabled");
             }

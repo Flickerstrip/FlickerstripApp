@@ -7,7 +7,7 @@ SHARED_FILES := $(shell find ./src/shared $(FIND_FLAGS))
 SRC_FILES := $(shell find ./src)
 NWJS_PLATFORMS = $(shell ls ./nwjs)
 RSYNC_OPT = --update -qravh --exclude '.*.swp'
-DEBUG = 0
+DEBUG = 1
 
 all: nwjs
 

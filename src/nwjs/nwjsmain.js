@@ -65,7 +65,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
     $$(document).ready(function() {
         window.$ = $;
         window.jQuery = $;
-        $(document.body).append('<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>');
+        $(document.body).append('<script src="./view/lib/bootstrap.min.js"></script>');
 
         var gui, manager;
 
