@@ -1,6 +1,5 @@
 name:Temperature Scale
 
-
 ({
 	pattern:function() {
         function temperature(k) {

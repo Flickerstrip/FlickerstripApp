@@ -7,7 +7,8 @@ function($,tinycolor,CodeMirror,ace,util,SelectList,patterns,LEDStripRenderer,Co
         this.init.apply(this,arguments);
     }
 
-    var defaultBody = "({\n\tpattern:function() {\n\t\tthis.pixels=1;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\treturn {h:t,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n})";
+    
+    var defaultBody = '({\n\tcontrols:[\n\t\t{name: "Repetitions",id:"num",type:"numeric",default:"3"}\n\t],\n\tpattern:function(args) {\n\t\tthis.pixels=150;\n\t\tthis.frames=360;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\tvar v = 360* ((x+t) % (this.pixels/parseInt(args.num)))/(this.pixels/parseInt(args.num))\n\t\t\treturn {h:v,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n})\n';
 
     $.extend(This.prototype, {
         init:function(conduit,gui,pattern) {

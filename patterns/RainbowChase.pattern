@@ -1,6 +1,5 @@
 name:Rainbow Chase
 
-
 ({
 	pattern:function() {
 		this.pixels=150;

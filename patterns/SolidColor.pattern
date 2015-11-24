@@ -1,7 +1,5 @@
 name:Solid Color
 
-
-
 ({
     controls: [{
         name: "Color",
