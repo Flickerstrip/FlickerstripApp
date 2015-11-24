@@ -7,13 +7,14 @@ SHARED_FILES := $(shell find ./src/shared $(FIND_FLAGS))
 SRC_FILES := $(shell find ./src)
 NWJS_PLATFORMS = $(shell ls ./nwjs)
 RSYNC_OPT = --update -qravh --exclude '.*.swp'
-DEBUG = 1
+DEBUG ?= 0
 
 all: nwjs
 
 print-%  : ; @echo $* = $($*)
 
 clean:
+	-find ./build -iname patterns | while read LINE; do mv $$LINE ~/.Trash/patterns-`date +%s`; done
 	rm -rf ./build
 
 ./buildcache:
@@ -37,8 +38,8 @@ clean:
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 ifeq ($(DEBUG),1)
-	sed -i '' 's/"debug":false/"debug":true/g' $@/package.json
-	sed -i '' 's/"toolbar": false/"toolbar":true/g' $@/package.json
+	cat $@/package.json $@/debug.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
 endif
 	cp -r ./nwjs/`basename $@`/* $@
 

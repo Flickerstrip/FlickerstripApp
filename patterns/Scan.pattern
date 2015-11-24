@@ -1,0 +1,23 @@
+name:Scan
+
+({
+	pattern:function() {
+	    function pan(x,pixels,t,frames) {
+	        var framep = (2*t/frames)%1;
+	        return t > frames/2 ? (1-framep)*pixels : framep*pixels;
+	    }
+	    function dist(x,y) {
+	        return Math.abs(x-y);
+	    }
+		this.pixels=150;
+		this.frames=150;
+		this.fps=60;
+		this.distColoring = [255,255,200,150,100,50,0];
+		this.render=function(x,t) {
+		    var d = dist(x,pan(x,this.pixels,t,this.frames));
+		    var v = d > this.distColoring.length ? 0 : this.distColoring[d];
+			return {r:v,g:v,b:v};
+		}
+		return this;
+	}
+})

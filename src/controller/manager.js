@@ -24,7 +24,7 @@ extend(This.prototype,{
     init:function(config,send,platform) {
         this.config = config;
         this.platform = platform;
-        this.serverLocation = pjson.debug ? 'http://localhost:3000' : 'http://flickerstrip.elasticbeanstalk.com';
+        this.serverLocation = pjson.patternRepository;
         this.conduit = util.createConduit(send);
 
         this.loadConfig(_.bind(function() {

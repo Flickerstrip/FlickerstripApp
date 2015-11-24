@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "description": "An application to allow you to interact with your LED strips.",
   "main": "nwjs.html",
-  "debug":false,
+  "showDebugger":false,
+  "closeOnEsc":false,
+  "patternRepository":"http://flickerstrip.elasticbeanstalk.com",
   "window": {
     "title": "WiFi LED Control",
     "icon": "icon.png",

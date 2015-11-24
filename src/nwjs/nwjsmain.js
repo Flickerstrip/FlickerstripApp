@@ -35,15 +35,16 @@ try {
     console.log(ex.message);
 }
 
-var debugMode = pjson.debug;
-if (debugMode) {
+if (pjson.showDebugger) {
     win.moveTo(400,30);
     var dev = win.showDevTools();
     dev.moveTo(0,win.height+40);
     dev.height =  window.screen.availHeight - win.height - 20;
     dev.width =  window.screen.availWidth;
     win.focus();
+}
 
+if (pjson.closeOnEsc) {
     window.onkeydown = function(e) {
         if (e.keyCode == 27) nw.App.closeAllWindows();
     };
