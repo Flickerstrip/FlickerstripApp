@@ -27,7 +27,10 @@ define(['jquery','tinycolor','jquery.spectrum'],function($,tinycolor) {
         },
         generateForm:function(form) {
             var self = this;
-            var $form = $("<form class='controlsView' />");
+            var $form = $("<form class='controlsView''/>");
+            $form.submit(function() {
+                return false;
+            });
             _.each(form,function(control) {
                 var type = control.type;
                 var $el;

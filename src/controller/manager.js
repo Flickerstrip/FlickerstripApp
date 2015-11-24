@@ -195,7 +195,7 @@ extend(This.prototype,{
             var out = "";
             out += "name:"+pattern.name+"\n";
             if (pattern.Owner) out += "author:"+pattern.Owner.display+"\n";
-            out += "\n\n";
+            out += "\n";
             out += pattern.body;
 
             if (pattern.path) fs.unlinkSync(pattern.path);
@@ -245,7 +245,7 @@ extend(This.prototype,{
             }
         },_.bind(function(error,response,releases) {
             if (error) {
-                console.log(error);
+                console.log("Failed to load firmware release information: ",error.code);
                 return;
             }
             releases.sort(function(b,a) {
@@ -325,7 +325,7 @@ extend(This.prototype,{
             self.conduit.emitOn.apply(self,[this.event,"strip",strip].concat(Array.prototype.slice.call(arguments)));
         });
 
-        strip.on("Strip.PatternsUpdated",_.bind(this.saveConfig,this));
+        strip.on("Strip.StatusUpdated",_.bind(this.saveConfig,this));
         strip.on("NameUpdated",_.bind(this.saveConfig,this));
 
         this.conduit.emit("StripAdded",strip);
@@ -340,7 +340,7 @@ extend(This.prototype,{
         });
         fs.writeFile(this.config.configLocation,text,function(err) {
             if (err) console.err("Failed to write strip data",err);
-            if (cb) cb();
+            if (cb && typeof(cb) == "function") cb();
         });
     },
    /////////////////////

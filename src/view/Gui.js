@@ -100,9 +100,9 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 },
             };
             if (emitObject.target) {
-                var strip = this.findStripId(arguments[1]);
+                var strip = this.findStripId(emitObject.target);
                 if (preprocessors[emitObject.name]) {
-                    preprocessors[emitObject.name].apply(this,[strip].concat(Array.prototype.slice.call(arguments, 2)));
+                    preprocessors[emitObject.name].apply(this,[strip].concat(emitObject.args));
                 }
                 $(strip).trigger(emitObject.name,Array.prototype.slice.call(arguments, 2));
             } else if (emitObject.response) {

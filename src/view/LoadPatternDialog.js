@@ -95,21 +95,21 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             },this));
         },
         loadPatternButtonClicked:function(e) {
-            if ($(e.target).is(".disabled")) return;
+            //if ($(e.target).is(".disabled")) return;
             this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.getPattern(this.activePattern)
                 var pixelData = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern.fps,pixelData,false]);
+                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject.name,pattern.fps,pixelData,false]);
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
-            if ($(e.target).is(".disabled")) return;
+            //if ($(e.target).is(".disabled")) return;
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 var pattern = this.getPattern(this.activePattern)
                 var pixelData = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.activePattern.name,pattern.fps,pixelData,true]);
+                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject.name,pattern.fps,pixelData,true]);
             },this),5);
         },
         getPattern:function(patternSpec) {
@@ -123,7 +123,8 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             for (var t=0;t<pattern.frames; t++) {
                 var timeSlice = [];
                 for (var x=0;x<pattern.pixels; x++) {
-                    var c = new tinycolor(render(x,t)).toRgb();
+                    var result = render.apply(pattern,[x,t]);
+                    var c = new tinycolor(result).toRgb();
                     timeSlice.push(c.r,c.g,c.b);
                 }
                 pixelValues[t] = timeSlice;
@@ -174,12 +175,13 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         },
         controlsUpdated:function(e,$el) {
             var controlValues = this.controlView.getValues();
+            var patternObject = this.selectedPatternObject;
             var patternSpec = this.activePattern;
             var pattern = this.getPattern(patternSpec);
             this.stripRenderer.setPattern(pattern);
 
             var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
-            this.$el.find(".patternTitle").text(patternSpec.name+ " ("+frameInfo+")");
+            this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
         },
 
         patternOptionRenderer:function(pattern,$el) {

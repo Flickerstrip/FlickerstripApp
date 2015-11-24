@@ -75,7 +75,6 @@ extend(This.prototype,{
         this.setVisible(true);
         this.status = true;
         status.visible = this.visible;
-        console.log(status);
         this.emit("Strip.StatusUpdated",status);
     },
     handleQueue:function() {
@@ -113,8 +112,9 @@ extend(This.prototype,{
                 if (error.code != "ETIMEDOUT") console.log("error!",error,command);
                 return;
             }
+            var json = body;
             try {
-                var json = JSON.parse(body);
+                if (typeof(json) === "string") json = JSON.parse(json);
             } catch (e) {
                 console.log("error parsing response",opt,body);
             }
