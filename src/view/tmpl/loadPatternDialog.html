@@ -25,7 +25,17 @@
             </div>
             <div class="mfooter">
                 <button type="button" class="downloadPatterns btn btn-info" style='float: left;'>Download Patterns</button>
-                <button type="button" class="createPattern btn btn-default" style='float: left;'>New Pattern</button>
+
+                <div class="btn-group dropup" style='float: left;margin-left:5px;'>
+                  <button type="button" class="createPattern btn btn-default">New pattern</button>
+                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="createPatternAdvanced" href="#">New Advanced Pattern</a></li>
+                  </ul>
+                </div>
+
                 <button type="button" class="hideButton btn btn-default">Cancel</button>
                 <button type="button" class="btn btn-success previewPatternButton">Preview Pattern</button>
                 <button type="button" class="btn btn-primary loadPatternButton">Load Pattern</button>

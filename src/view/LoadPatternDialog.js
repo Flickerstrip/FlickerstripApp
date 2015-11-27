@@ -23,6 +23,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.$preview.empty().append(this.stripRenderer.$el);
             this.$el.find(".downloadPatterns").click(_.bind(this.downloadPatternsButtonClicked,this));
             this.$el.find(".createPattern").click(_.bind(this.createPatternClicked,this));
+            this.$el.find(".createPatternAdvanced").click(_.bind(this.createPatternAdvancedClicked,this));
             this.$el.find(".uploadPattern").click(_.bind(this.uploadPatternClicked,this));
             this.$el.find(".editPattern").click(_.bind(this.editPatternClicked,this));
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
@@ -75,10 +76,21 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             },this));
         },
         createPatternClicked:function(e) {
-            this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{}).show();
+            this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
+            this.stripRenderer.stop();
             $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
                 this.conduit.emit("SavePattern",pattern);
                 this.editPatternDialog.hide();
+                this.stripRenderer.start();
+            },this));
+        },
+        createPatternAdvancedClicked:function(e) {
+            this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"javascript"}).show();
+            this.stripRenderer.stop();
+            $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.conduit.emit("SavePattern",pattern);
+                this.editPatternDialog.hide();
+                this.stripRenderer.start();
             },this));
         },
         downloadPatternsButtonClicked:function(e) {
@@ -95,41 +107,20 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             },this));
         },
         loadPatternButtonClicked:function(e) {
-            //if ($(e.target).is(".disabled")) return;
+            if ($(e.target).is(".disabled")) return;
             this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                var pattern = this.getPattern(this.activePattern)
-                var pixelData = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject.name,pattern.fps,pixelData,false]);
+                util.evaluatePattern(this.selectedPatternObject,this.controlView ? this.controlView.getValues() : null);
+                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject,false]);
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
-            //if ($(e.target).is(".disabled")) return;
+            if ($(e.target).is(".disabled")) return;
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                var pattern = this.getPattern(this.activePattern)
-                var pixelData = this.generatePattern();
-                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject.name,pattern.fps,pixelData,true]);
+                util.evaluatePattern(this.selectedPatternObject,this.controlView ? this.controlView.getValues() : null);
+                $(this).trigger("LoadPatternClicked",[this.selectedPatternObject,true]);
             },this),5);
-        },
-        getPattern:function(patternSpec) {
-            if (typeof(patternSpec.pattern) === "function") return patternSpec.pattern(this.controlView ? this.controlView.getValues() : null);
-            return patternSpec.pattern;
-        },
-        generatePattern:function() {
-            var pattern = this.getPattern(this.activePattern);
-            var render = pattern.render;
-            var pixelValues = [];
-            for (var t=0;t<pattern.frames; t++) {
-                var timeSlice = [];
-                for (var x=0;x<pattern.pixels; x++) {
-                    var result = render.apply(pattern,[x,t]);
-                    var c = new tinycolor(result).toRgb();
-                    timeSlice.push(c.r,c.g,c.b);
-                }
-                pixelValues[t] = timeSlice;
-            }
-            return pixelValues;
         },
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             this.$el.toggleClass("deselected",selectedObjects.length == 0);
@@ -137,28 +128,24 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
 
             this.$el.find(".uploadPattern").text("Share Pattern").removeClass("disabled");
 
-
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
-            var patternObject = selectedObjects[0];
-            this.selectedPatternObject = patternObject;
-            var patternSpec = eval("("+patternObject.body+")");
+            this.selectedPatternObject = selectedObjects[0];
 
-            if (patternSpec.controls) {
-                this.controlView = new ControlsView(this.window,patternSpec.controls,{});
+            if (!this.selectedPatternObject.type) this.selectedPatternObject.type = "javascript"; //temporary hack TODO
+            util.evaluatePattern(this.selectedPatternObject,null);
+
+            if (this.selectedPatternObject.rendered.controls) {
+                this.controlView = new ControlsView(this.window,this.selectedPatternObject.rendered.controls,{});
                 $(this.controlView).on("Change",_.bind(this.controlsUpdated,this));
             } else {
                 this.controlView = null;
             }
 
-            var pattern = this.getPattern(patternSpec);
-            this.activePattern = patternSpec;
-
-            this.stripRenderer.setPattern(pattern);
+            this.stripRenderer.setPattern(this.selectedPatternObject.rendered);
 
             //update titlebar
-            var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
-            this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
+            this.updateTitlebar(this.selectedPatternObject);
 
             this.$config.empty();
             setTimeout(_.bind(function() {
@@ -173,15 +160,16 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
                 }
             },this),5);
         },
+        updateTitlebar:function() {
+            var frameInfo = this.selectedPatternObject.rendered.frames > 1 ? (this.selectedPatternObject.rendered.frames/this.selectedPatternObject.rendered.fps).toFixed(2)+"s" : "static";
+            this.$el.find(".patternTitle").text(this.selectedPatternObject.name+ " ("+frameInfo+")");
+        },
         controlsUpdated:function(e,$el) {
-            var controlValues = this.controlView.getValues();
-            var patternObject = this.selectedPatternObject;
-            var patternSpec = this.activePattern;
-            var pattern = this.getPattern(patternSpec);
-            this.stripRenderer.setPattern(pattern);
+            var args = this.controlView.getValues();
+            util.evaluatePattern(this.selectedPatternObject,args);
+            this.stripRenderer.setPattern(this.selectedPatternObject.rendered);
 
-            var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
-            this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
+            this.updateTitlebar();
         },
 
         patternOptionRenderer:function(pattern,$el) {

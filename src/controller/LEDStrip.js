@@ -142,31 +142,29 @@ extend(This.prototype,{
     toggle:function(value) {
         this.sendCommand(value ? "power/on" : "power/off");
     },
-    loadPattern:function(name,fps,data,isPreview) {
-        var frames = data.length;
-        var len = data[0].length;
+    loadPattern:function(renderedPattern,isPreview) {
+        var frames = renderedPattern.rendered.frames;
+        var pixels = renderedPattern.rendered.pixels;
+        var fps = renderedPattern.rendered.fps;
+        var data = renderedPattern.rendered.data;
         var metadata = _c.packSync("PatternMetadata",{
-            name:name,
+            name:renderedPattern.name,
             address: 0,
-            len: len*frames, //payload total size
+            len: pixels*frames*3, //payload total size
             frames: frames,
             flags: 0x0000,
             fps: fps,
         });
         var page = 0;
-        var bufferSize = Math.min(len*frames);
+        var bufferSize = pixels*frames*3;
         var payload = new Buffer(bufferSize);
 
-        var offset = 0;
-        for (var i=0; i<frames; i++) {
-            for (var l=0; l<len; l++) {
-                payload.writeUInt8(data[i][l],offset++);
-            }
+        for (var i=0; i<data.length; i++) {
+            payload.writeUInt8(data[i],i);
         }
 
         var concatted = Buffer.concat([metadata,payload]);
 
-        console.log("is preview: ",isPreview);
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function() {
             this.emit("Strip.UploadPatternComplete");
         },this),concatted,true);

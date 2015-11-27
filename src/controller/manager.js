@@ -43,10 +43,10 @@ extend(This.prototype,{
             strip.selectPattern(index);
         },this));
 		
-        this.on("LoadPattern",_.bind(function(id,name,fps,data,isPreview) {
+        this.on("LoadPattern",_.bind(function(id,renderedPattern,isPreview) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
-            strip.loadPattern(name,fps,data,isPreview);
+            strip.loadPattern(renderedPattern,isPreview);
         },this));
 
         this.on("UploadFirmware",_.bind(function(id) {
@@ -193,10 +193,17 @@ extend(This.prototype,{
 
         this.on("SavePattern",_.bind(function(pattern) {
             var out = "";
-            out += "name:"+pattern.name+"\n";
-            if (pattern.Owner) out += "author:"+pattern.Owner.display+"\n";
+            _.each(pattern,function(value,key) {
+                if (key == "body" || key == "rendered" || key == "path") return;
+                if (typeof value == "string") {
+                    out += key+":"+value+"\n";
+                } else {
+                    out += key+":"+JSON.stringify(value)+"\n";
+                }
+            })
             out += "\n";
-            out += pattern.body;
+            var body = typeof(pattern.body) == "string" ? pattern.body : JSON.stringify(pattern.body);
+            out += body;
 
             if (pattern.path) fs.unlinkSync(pattern.path);
 
@@ -205,6 +212,26 @@ extend(This.prototype,{
                 this.loadPatterns();
             },this));
         },this));
+    },
+    populatePattern:function(content) {
+        var loc = content.indexOf("\n\n");
+        var headerraw = content.substring(0,loc);
+        var body = content.substring(loc+2);
+
+        var pattern = {};
+        _.each(headerraw.split("\n"),function(line) {
+            if (line == "") return;
+            var tokens = line.split(":");
+            if (tokens[1][0] == "[" || tokens[1][0] == "{") {
+                console.log("parsing json",tokens[1]);
+                //assume json
+                tokens[1] = JSON.parse(tokens[1]);
+            }
+            pattern[tokens[0]] = tokens[1];
+        });
+
+        pattern.body = body[0] == "[" || body[0] == "{" ? JSON.parse(body) : body;
+        return pattern;
     },
     loadPatterns:function() {
         fs.readdir(this.config.patternFolder,_.bind(function(err,files) {
@@ -215,21 +242,11 @@ extend(This.prototype,{
                 _.each(_.zip(files,results),_.bind(function(info) {
                     var filename=info[0];
                     var content=info[1];
-                    var loc = content.indexOf("\n\n");
-                    var headerraw = content.substring(0,loc);
-                    var body = content.substring(loc+2);
                     if (filename[0] == '.') return;
+                    var pattern = this.populatePattern(content);
 
-                    var metadata = {};
-                    _.each(headerraw.split("\n"),function(line) {
-                        if (line == "") return;
-                        var tokens = line.split(":");
-                        metadata[tokens[0]] = tokens[1];
-                    });
-
-                    metadata.path = path.join(this.config.patternFolder,filename);
-                    metadata.body = body;
-                    this.patterns.push(metadata);
+                    pattern.path = path.join(this.config.patternFolder,filename);
+                    this.patterns.push(pattern);
                 },this));
 
                 this.conduit.emit("PatternsLoaded",this.patterns);
@@ -398,7 +415,6 @@ extend(This.prototype,{
         console.log("Client identified: ",status.mac,ip);
         var strip = this.getStrip(status.mac);
         if (!strip) {
-            console.log("stats mac: ",status.mac,status);
             strip = new LEDStrip(status.mac,ip);
             this.strips.push(strip);
             strip.receivedStatus(status);

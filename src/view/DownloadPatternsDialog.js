@@ -127,6 +127,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
                 },this),500);
             }
 
+            if (this.stripRenderer) this.stripRenderer.destroy();
             return this;
         }
     });

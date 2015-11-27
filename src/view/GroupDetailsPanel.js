@@ -131,11 +131,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
         uploadFirmwareClicked:function(e) {
             this.conduit.emit("UploadFirmware",this.strip.id);
         },
-        savePattern:function(e,name,fps,pattern,isPreview) {
+        savePattern:function(e,renderedPattern,isPreview) {
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
-                var len = pattern.length * pattern[0].length;
-                this.conduit.emit("LoadPattern",strip.id,name,fps,pattern,isPreview);
+                this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
                 var progressDialog = new ProgressDialog(true);
                 progressDialog.show();
                 $(strip).one("Strip.UploadPatternComplete",function() {

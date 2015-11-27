@@ -1,11 +1,4 @@
-define(['jquery','tinycolor'],function($,tinycolor) {
-    var renderToCanvas = function (width, height, renderFunction) {
-        var buffer = document.createElement('canvas');
-        buffer.width = width;
-        buffer.height = height;
-        renderFunction(buffer.getContext('2d'));
-        return buffer;
-    };
+define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 
     var drawLine = function(g,x,y,xx,yy) {
         g.beginPath();
@@ -27,11 +20,11 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.canvas = canvas;
             this.$el = $(this.canvas);
 
-            this.start = new Date().getTime();
+            this.startTime = new Date().getTime();
             this.pattern = null;
             this.stripLength = stripLength;
             this.rendered = null;
-			this.destroyed = false;
+			this.running = true;
             
             var millis = new Date().getTime();
             var self = this;
@@ -46,15 +39,21 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             var g = this.canvas.getContext("2d");
             this.paint(g);
         },
+        stop:function() {
+            this.running = false;
+        },
+        start:function() {
+            this.running = true;
+        },
         paint:function(g) {
-            if (!this.destroyed) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+            if (this.running) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
             if (!(this.pattern && this.rendered)) return;
 
             var imgctx = this.rendered.getContext("2d");
 
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
-            var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.start)/1000)) % this.pattern.frames);
+            var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.startTime)/1000)) % this.pattern.frames);
         
             var padding = {top: 20, right: 20, bottom: 10, left: 20};
             var usableWidth = this.canvas.width - padding.left - padding.right;
@@ -133,43 +132,22 @@ define(['jquery','tinycolor'],function($,tinycolor) {
             this.updatePatternCache();
         },
         updatePatternCache:function() {
-            this.start = new Date().getTime();
-            
             var rendered = {};
             if (this.pattern == null) {
-                this.rendered = renderToCanvas(1,1,_.bind(function(g) {
+                this.rendered = util.renderToCanvas(1,1,_.bind(function(g) {
                     g.fillStyle = "#000";
                     g.fillRect(0,0,1,1);
                 },this))
                 return;
             }
 
-            this.rendered = renderToCanvas(this.pattern.frames,this.stripLength,_.bind(function(g) {
-                for (var x = 0; x<this.pattern.frames; x++) {
-                    for (var y = 0; y<this.stripLength; y++) {
-                        var c;
-                        var i = y % this.pattern.pixels;
-                        if (!rendered[i+"_"+x]) {
-                            if (this.pattern.debug && x < 5) console.log("Frame: x="+i+" t="+x);
-                            var a = this.pattern.render(i,x);
-                            if (this.pattern.debug && x < 5) console.log("Result: ",a);
-                            c = new tinycolor(a);
-                            rendered[i+"_"+x] = c;
-                        } else {
-                            c = rendered[i+"_"+x];
-                        }
-                        g.fillStyle = c.toHexString();
-                        g.fillRect(x,y,1,1);
-                    }
-                }	
-            },this));
-
+            this.rendered = util.renderPattern(this.pattern,this.stripLength);
         },
         getRenderer:function() {
             return this.neopixelRenderer;
         },
 		destroy:function() {
-			this.destroyed = true;
+			this.running = false;
 		},
     });
 
