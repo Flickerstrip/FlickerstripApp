@@ -23,15 +23,15 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             }
             return out;
         },
-        renderPattern:function(pattern,pixels) {
-            return This.renderToCanvas(pattern.frames,pixels,function(g) {
-                for (var t = 0; t<pattern.frames; t++) {
-                    for (var n = 0; n<pixels; n++) {
-                        var i = t*3*pattern.pixels + (n%pattern.pixels)*3;
+        renderPattern:function(data,frames,patternWidth,canvasWidth) {
+            return This.renderToCanvas(frames,canvasWidth,function(g) {
+                for (var t = 0; t<frames; t++) {
+                    for (var n = 0; n<canvasWidth; n++) {
+                        var i = t*3*patternWidth + (n%patternWidth)*3;
 
-                        var red = pattern.data[i];
-                        var green = pattern.data[i+1];
-                        var blue = pattern.data[i+2];
+                        var red = data[i];
+                        var green = data[i+1];
+                        var blue = data[i+2];
 
                         var c = tinycolor({r:red,g:green,b:blue});
                         g.fillStyle = c.toHexString();

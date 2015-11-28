@@ -12,6 +12,7 @@ var path = require("path");
 var util = require("../shared/util");
 var async = require("async");
 var pjson = require('../package.json');
+var getPixels = require("get-pixels")
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -99,6 +100,24 @@ extend(This.prototype,{
             this.strips.push(strip);
             strip.setVisible(false);
             this.stripAdded(strip);
+        },this));
+
+        this.on("OpenImage",_.bind(function(callback,imagePath) {
+            console.log("image path",imagePath);
+            getPixels(imagePath,function(err,info) {
+                var width = info.shape[0];
+                var height = info.shape[1];
+                var bpp = info.shape[2];
+                console.log(info.data);
+                if (bpp == 4) {
+                    for (var i=info.data.length-1; i>=0; i--) {
+                        if (i % 4 == 3) {
+                            info.data.splice(i, 1);
+                        }
+                    }
+                }
+                callback(width,height,info.data);
+            });
         },this));
 
         this.on("RefreshServerPatterns",_.bind(function(callback) {

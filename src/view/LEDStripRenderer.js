@@ -141,7 +141,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 return;
             }
 
-            this.rendered = util.renderPattern(this.pattern,this.stripLength);
+            this.rendered = util.renderPattern(this.pattern.data,this.pattern.frames,this.pattern.pixels,this.stripLength);
         },
         getRenderer:function() {
             return this.neopixelRenderer;

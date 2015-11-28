@@ -21,21 +21,6 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
         return canvas;
     }
 
-    function canvasToBytes(canvas) {
-        var ctx=canvas.getContext("2d");
-        var data = ctx.getImageData(0,0,canvas.width,canvas.height);
-        var out = [];
-        for (var n=0; n<data.height; n++) {
-            for (var t=0; t<data.width; t++) {
-                var i = n*4+t*data.width*4;
-                out.push(data.data[i]);
-                out.push(data.data[i+1]);
-                out.push(data.data[i+2]);
-            }
-        }
-        return out;
-    }
-
     $.extend(This.prototype, {
         init:function(conduit,gui,pattern) {
             this.conduit = conduit;
@@ -121,9 +106,18 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                     this.editor.resizeToParent();
                 },this),5);
 
-                this.pattern.body = canvasToBytes(this.canvas);
+                this.pattern.body = util.canvasToBytes(this.canvas);
                 this.updateRendered();
-                this.$el.find(".editorcontainer").append("<input type='file'>");
+                var $file = $("<input type='file' accept='*.png,*.gif,*.jpg,*.jpeg'>");
+                $file.appendTo(this.$el.find(".editorcontainer"));
+                $file.change(_.bind(function() {
+                    var path = $file.val();
+                    this.conduit.request("OpenImage",path,function(width,height,pixels) {
+                        console.log("image returned",width,height,pixels);
+                        this.canvas = util.renderPattern(pixels,width,height,height);
+                        this.updatePattern();
+                    });
+                },this));
             }
         },
         savePatternClicked:function() {
@@ -134,7 +128,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             if (this.pattern.type == "javascript") {
                 this.pattern.body = this.editor.getValue();
             } else if (this.pattern.type == "bitmap") {
-                this.pattern.body = canvasToBytes(this.canvas);
+                this.pattern.body = util.canvasToBytes(this.canvas);
             }
 
             this.updateRendered();

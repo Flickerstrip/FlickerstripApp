@@ -83,7 +83,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
             this.zoomIndex = this.zoomScale.length-1;
             $(this.drawingArea).on("mousewheel",_.bind(function(e) {
                 var pos = getCursorPosition(this.drawingArea,e);
-                var delta = e.originalEvent.wheelDelta/120;
+                var delta = (e.originalEvent.detail<0 || e.originalEvent.wheelDelta>0) ? 1 : -1;
 
                 var cBefore = this.translateCanvasToImage(pos[0],pos[1],true);
 
