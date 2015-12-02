@@ -9,6 +9,14 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
     
     var defaultBody = '({\n\tcontrols:[\n\t\t{name: "Repetitions",id:"num",type:"numeric",default:"3"}\n\t],\n\tpattern:function(args) {\n\t\tthis.pixels=150;\n\t\tthis.frames=150;\n\t\tthis.fps=30;\n\t\tthis.render=function(x,t) {\n\t\t\tvar v = 360* ((x+t) % (this.pixels/parseInt(args.num)))/(this.pixels/parseInt(args.num))\n\t\t\treturn {h:v,s:100,v:100};\n\t\t}\n\t\treturn this;\n\t}\n})\n';
 
+    var defaultPixelPattern = {
+        pixels:7,
+        fps:3,
+        frames:7,
+        type:"bitmap",
+        body:[0,0,0,0,0,0,0,0,0,251,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,255,0,0,255,170,0,251,255,0,0,0,0,251,255,0,255,170,0,255,0,0,255,255,255,255,0,0,255,170,0,251,255,0,0,0,0,251,255,0,255,170,0,255,0,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,251,255,0,0,0,0,0,0,0,0,0,0],
+    };
+
     function createCanvas(width,height) {
         var canvas = document.createElement('canvas');
         canvas.width = width;
@@ -35,6 +43,8 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             this.$el.find(".hideButton").click(_.bind(function() {
                 this.hide()
             },this));
+
+            //util.testFunctions();
 
             if (!this.pattern.name) this.pattern.name = "New Pattern";
 
@@ -68,32 +78,24 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 this.$el.find(".openConsole").hide();
                 this.$el.find(".patternControls").show();
 
-                this.canvas = createCanvas(200,150);
+                this.pattern = $.extend({},defaultPixelPattern,this.pattern);
+                this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,true,false);
                 $(this.canvas).css("border","1px solid black");
 
                 this.editor = new CanvasPixelEditor(this.canvas);
 
                 this.$fps = this.$el.find(".fps");
-                this.$seconds = this.$el.find(".seconds");
+                this.$frames = this.$el.find(".frames");
                 this.$pixels = this.$el.find(".pixels");
 
-                if (!this.pattern.fps) this.pattern.fps = 1;
-                if (!this.pattern.frames) this.pattern.frames = 5*this.pattern.fps;
-                if (!this.pattern.pixes) this.pattern.pixels = 5;
-                this.editor.setFps(this.pattern.fps);
-                this.editor.setCanvasSize(this.pattern.frames,this.pattern.pixels);
-
-                this.$fps.val(this.pattern.fps);
-                this.$seconds.val(this.pattern.frames/this.pattern.fps);
-                this.$pixels.val(this.pattern.pixels);
+                this.updateEditor();
 
                 this.$el.find(".patternControls input").change(_.bind(function() {
                     this.pattern.fps = parseFloat(this.$fps.val());
-                    this.pattern.frames = parseFloat(this.$seconds.val())*this.pattern.fps;
+                    this.pattern.frames = parseFloat(this.$frames.val())
                     this.pattern.pixels = parseInt(this.$pixels.val());
 
-                    this.editor.setFps(this.pattern.fps);
-                    this.editor.setCanvasSize(this.pattern.frames,this.pattern.pixels);
+                    this.updateEditor();
                     this.updateRendered();
                 },this));
 
@@ -112,13 +114,28 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 $file.appendTo(this.$el.find(".editorcontainer"));
                 $file.change(_.bind(function() {
                     var path = $file.val();
-                    this.conduit.request("OpenImage",path,function(width,height,pixels) {
-                        console.log("image returned",width,height,pixels);
-                        this.canvas = util.renderPattern(pixels,width,height,height);
+                    $file.val("");
+                    if (!path) return;
+                    this.conduit.request("OpenImage",path,_.bind(function(width,height,pixels) {
+                        var transpose = true;
+                        this.canvas = util.renderPattern(pixels,width,height,null,null,transpose);
+                        this.editor.setImage(this.canvas);
+
+                        this.pattern.frames = transpose ? height : width;
+                        this.pattern.pixels = transpose ? width : height;
+
+                        this.updateEditor();
                         this.updatePattern();
-                    });
+                    },this));
                 },this));
             }
+        },
+        updateEditor:function() {
+            this.$frames.val(this.pattern.frames);
+            this.$pixels.val(this.pattern.pixels);
+            this.$fps.val(this.pattern.fps);
+            this.editor.setFps(this.pattern.fps);
+            this.editor.setCanvasSize(this.pattern.frames,this.pattern.pixels);
         },
         savePatternClicked:function() {
             this.updatePattern();
@@ -128,7 +145,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             if (this.pattern.type == "javascript") {
                 this.pattern.body = this.editor.getValue();
             } else if (this.pattern.type == "bitmap") {
-                this.pattern.body = util.canvasToBytes(this.canvas);
+                this.pattern.body = util.canvasToBytes(this.canvas,true);
             }
 
             this.updateRendered();

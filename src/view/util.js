@@ -2,6 +2,106 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
     var This = function(view) {
     };
     $.extend(This,{
+        testFunctions:function() {
+            function compareArrays(a,b) {
+                if (a.length != b.length) {
+                    console.log("lengths unmatched",a.length,b.length);
+                    return false;
+                }
+                for (var i=0; i<a.length; i++) {
+                    if (a[i] != b[i]) {
+                        console.log("unmatched at "+i);
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            function assert(exp,message) {
+                console.log((exp?"":"!FAIL ")+"Assert: "+message+" : "+exp);
+            }
+
+            function printCanvas(canvas) {
+                var data = canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height);
+                for(var y=0; y<data.height; y++) {
+                    out = "";
+                    for(var x=0; x<data.width; x++) {
+                        var pixel = This.getPixelFromImageData(data,x,y);
+                        out += "["+pixel.join(",")+"] ";
+                    }
+                    console.log(out);
+                }
+            }
+
+            var arr3by5 = [
+                1,2,3,
+                4,5,6,
+                7,8,9,
+
+                10,11,12,
+                13,14,15,
+                16,17,18,
+
+                19,20,21,
+                22,23,24,
+                25,26,27,
+
+                28,29,30,
+                31,32,33,
+                34,35,36,
+
+                37,38,39,
+                40,41,42,
+                43,44,45
+            ];
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+
+            console.log("Testing getPixelFromArray on original values");
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,0,0,3),[1,2,3]),"pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,1,0,3),[4,5,6]),"pixel 1,0 matches");
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,2,0,3),[7,8,9]),"pixel 2,0 matches");
+
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,0,0,3),[1,2,3]),"pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,0,1,3),[10,11,12]),"pixel 0,1 matches");
+            assert(compareArrays(This.getPixelFromArray(arr3by5,3,5,0,2,3),[19,20,21]),"pixel 0,2 matches");
+
+            console.log("Testing rendered pattern (untransposed)");
+            var canvas = This.renderPattern(arr3by5,3,5,null,null,false);
+
+            var data = canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height);
+            assert(compareArrays(This.getPixelFromImageData(data,0,0),[1,2,3]),"pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,1,0),[4,5,6]),"pixel 1,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,2,0),[7,8,9]),"pixel 2,0 matches");
+
+            assert(compareArrays(This.getPixelFromImageData(data,0,0),[1,2,3]),"pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,0,1),[10,11,12]),"pixel 0,1 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,0,2),[19,20,21]),"pixel 0,2 matches");
+
+            var backtobytes = This.canvasToBytes(canvas);
+            assert(compareArrays(backtobytes,arr3by5),"comparing canvasToBytes back to the original array");
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+
+            console.log("Testing rendered pattern (transposed)");
+            var canvas = This.renderPattern(arr3by5,3,5,null,null,true);
+
+            console.log("Transposed canvas");
+            printCanvas(canvas);
+
+            data = canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height);
+            assert(compareArrays(This.getPixelFromImageData(data,0,0),[1,2,3]),"xposed pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,0,1),[4,5,6]),"xposed pixel 1,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,0,2),[7,8,9]),"xposed pixel 2,0 matches");
+
+            assert(compareArrays(This.getPixelFromImageData(data,0,0),[1,2,3]),"xposed pixel 0,0 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,1,0),[10,11,12]),"xposed pixel 0,1 matches");
+            assert(compareArrays(This.getPixelFromImageData(data,2,0),[19,20,21]),"xposed pixel 0,2 matches");
+        },
         renderToCanvas:function (width, height, renderFunction) {
             var buffer = document.createElement('canvas');
             buffer.width = width;
@@ -9,33 +109,72 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             renderFunction(buffer.getContext('2d'));
             return buffer;
         },
-        canvasToBytes:function(canvas) {
+        getPixelFromArray(array,width,height,x,y,bytes) {
+            if (x > width) return null;
+            if (y > height) return null;
+            if (x < 0 || y < 0) return null;
+
+            var i = bytes*(x+y*width);
+
+            var pixel = [];
+            for (var n=0; n<bytes;n++) {
+                pixel[n] = array[i+n];
+            }
+            return pixel;
+        },
+        getPixelFromImageData(data,x,y) {
+            var pixel = This.getPixelFromArray(data.data,data.width,data.height,x,y,4);
+            if (pixel == null) return null;
+            return pixel.slice(0,3);
+        },
+        canvasToBytes:function(canvas,transpose) {
             var ctx=canvas.getContext("2d");
             var data = ctx.getImageData(0,0,canvas.width,canvas.height);
             var out = [];
-            for (var n=0; n<data.height; n++) {
-                for (var t=0; t<data.width; t++) {
-                    var i = n*4+t*data.width*4;
-                    out.push(data.data[i]);
-                    out.push(data.data[i+1]);
-                    out.push(data.data[i+2]);
+            if (transpose) {
+                for (var x=0; x<data.width; x++) {
+                    for (var y=0; y<data.height; y++) {
+                        var pixel = This.getPixelFromImageData(data,x,y);
+                        out = out.concat(pixel);
+                    }
+                }
+            } else {
+                for (var y=0; y<data.height; y++) {
+                    for (var x=0; x<data.width; x++) {
+                        var pixel = This.getPixelFromImageData(data,x,y);
+                        out = out.concat(pixel);
+                    }
                 }
             }
             return out;
         },
-        renderPattern:function(data,frames,patternWidth,canvasWidth) {
-            return This.renderToCanvas(frames,canvasWidth,function(g) {
-                for (var t = 0; t<frames; t++) {
-                    for (var n = 0; n<canvasWidth; n++) {
-                        var i = t*3*patternWidth + (n%patternWidth)*3;
+        renderPattern:function(data,dataWidth,dataHeight,canvasWidth,canvasHeight,transpose,repeat) {
+            canvasWidth = canvasWidth || dataWidth;
+            canvasHeight = canvasHeight || dataHeight;
 
-                        var red = data[i];
-                        var green = data[i+1];
-                        var blue = data[i+2];
+            if (transpose) {
+                var tmp = canvasWidth;
+                canvasWidth = canvasHeight;
+                canvasHeight = tmp;
+            }
+            return This.renderToCanvas(canvasWidth,canvasHeight,function(g) {
+                for (var x = 0; x<canvasWidth; x++) {
+                    for (var y = 0; y<canvasHeight; y++) {
+                        var ix = transpose ? y : x;
+                        var iy = transpose ? x : y;
 
-                        var c = tinycolor({r:red,g:green,b:blue});
+                        var pixels = [];
+                        if (!repeat && (ix >= dataWidth || iy >= dataHeight)) {
+                            pixels = [0,0,0];
+                        } else {
+                            ix = ix % dataWidth;
+                            iy = iy % dataHeight;
+                            pixels = This.getPixelFromArray(data,dataWidth,dataHeight,ix,iy,3);
+                        }
+
+                        var c = tinycolor({r:pixels[0],g:pixels[1],b:pixels[2]});
                         g.fillStyle = c.toHexString();
-                        g.fillRect(t,n,1,1);
+                        g.fillRect(x,y,1,1);
                     }
                 }	
             });
@@ -43,7 +182,6 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
         evaluatePattern:function(pattern,values) {
             if (pattern.type == "javascript") {
                 var evaluatedPattern = eval("("+pattern.body+")");
-                //console.log("evaluatedPattern",evaluatedPattern);
 
                 var args = {};
                 if (evaluatedPattern.controls) {
@@ -54,10 +192,8 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
                 $.extend(args,values)
 
                 var patternFunction = typeof(evaluatedPattern.pattern) === "function" ? evaluatedPattern.pattern(args) : evaluatedPattern.pattern;
-                //console.log("patternFunction",patternFunction);
 
                 var patternRenderFunction = patternFunction.render;
-                //console.log("patternRenderFunction",patternRenderFunction);
 
                 var fps = patternFunction.fps || pattern.fps;
                 var pixels = patternFunction.pixels || pattern.pixels;

@@ -30,8 +30,6 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
     $.extend(This.prototype,{
         init:function(image) {
             this.image = image;
-
-            this.image.getContext("2d").translate(0.5, 0.5);
             this.$el = $(template);
 
             this.$el.find(".color").val("#fff").spectrum({
@@ -81,7 +79,10 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
 
             this.zoomScale = [.25,.5,1,2,3,5,10,20];
             this.zoomIndex = this.zoomScale.length-1;
+            var delay = null;
             $(this.drawingArea).on("mousewheel",_.bind(function(e) {
+                if (delay && new Date().getTime()-delay < 150) return;
+                delay = new Date().getTime();
                 var pos = getCursorPosition(this.drawingArea,e);
                 var delta = (e.originalEvent.detail<0 || e.originalEvent.wheelDelta>0) ? 1 : -1;
 
@@ -102,6 +103,10 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
             
             this.updated = true;
             this.repaint();
+        },
+        setImage:function(image) {
+            this.image = image;
+            this.updated = true;
         },
         colorChanged:function() {
             this.color = tinycolor(this.$el.find(".color").val());

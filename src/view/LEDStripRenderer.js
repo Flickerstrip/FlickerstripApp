@@ -141,7 +141,8 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 return;
             }
 
-            this.rendered = util.renderPattern(this.pattern.data,this.pattern.frames,this.pattern.pixels,this.stripLength);
+            //                                 data              width               height              cWidth           chght xpo,rpt
+            this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,true,true);
         },
         getRenderer:function() {
             return this.neopixelRenderer;
