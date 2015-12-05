@@ -1,14 +1,4 @@
 define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum'],function($,tinycolor,template) {
-    function getCursorPosition(canvas, event) {
-        var x, y;
-
-        canoffset = $(canvas).offset();
-        x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
-        y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
-
-        return [x,y];
-    }
-
     function plotLine(g,x0, y0, x1, y1) {
        var dx =  Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
        var dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
@@ -28,14 +18,28 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
     }
 
     $.extend(This.prototype,{
-        init:function(image) {
+        init:function(image,palette) {
             this.image = image;
+            this.palette = palette;
             this.$el = $(template);
+            this.$controls = this.$el.find(".controls");
 
-            this.$el.find(".color").val("#fff").spectrum({
+            var colorOpts = {
+                showInput: true,
+                showInitial: true,
+                preferredFormat: "rgb",
+                showPalette: true,
+                palette: [ ],
+                localStorageKey: "spectrum.colorPallete",
+                maxSelectionSize: 8,
                 change: _.bind(this.colorChanged,this)
-            });
+            };
+
+            this.$controls.find(".fg").val("#fff").spectrum(colorOpts);
+            this.$controls.find(".bg").val("#000").spectrum(colorOpts);
             setTimeout(_.bind(this.colorChanged,this),5);
+
+            this.updatePalette();
 
             this.offset = {x:0,y:0};
 
@@ -43,7 +47,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
 
             this.drawingArea = this.$el.find(".drawingArea").get(0);
             $(this.drawingArea).on("click mouseup mousedown mousemove",_.bind(function(e) {
-                var pos = getCursorPosition(this.drawingArea,e);
+                var pos = util.getCursorPosition(this.drawingArea,e);
                 if (e.type == "mousedown") {
                     this.down = {
                         button:e.button,
@@ -56,6 +60,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
                 }
                 if (e.type == "mouseup") this.down = false;
 
+                var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
                 if (this.down) {
                     if (this.down.button == 2) {
                         var dx = pos[0]-this.down.startX;
@@ -67,7 +72,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
                         var i2pos = this.translateCanvasToImage(this.previousMousePosition[0],this.previousMousePosition[1]);
                         if (ipos != null && i2pos != null) {
                             var g = this.image.getContext("2d");
-                            g.fillStyle = this.color.toHexString();
+                            g.fillStyle = e.shiftKey ? this.bg.toHexString() : this.fg.toHexString();
                             plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
                             $(this).trigger("change");
                             this.updated = true;
@@ -83,7 +88,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
             $(this.drawingArea).on("mousewheel",_.bind(function(e) {
                 if (delay && new Date().getTime()-delay < 150) return;
                 delay = new Date().getTime();
-                var pos = getCursorPosition(this.drawingArea,e);
+                var pos = util.getCursorPosition(this.drawingArea,e);
                 var delta = (e.originalEvent.detail<0 || e.originalEvent.wheelDelta>0) ? 1 : -1;
 
                 var cBefore = this.translateCanvasToImage(pos[0],pos[1],true);
@@ -104,12 +109,47 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
             this.updated = true;
             this.repaint();
         },
+        updatePalette:function() {
+            var palette = this.palette;
+            var $palette = this.$controls.find(".palette").empty();
+            _.each(palette,_.bind(function(color,index) {
+                var c = tinycolor({r:color[0],g:color[1],b:color[2]});
+                var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
+                $panel.on("click contextmenu",_.bind(function(e) {
+                    if (e.button == 2) {
+                        if (e.shiftKey) {
+                            c = this.bg;
+                        } else {
+                            c = this.fg;
+                        }
+                        var rgb = c.toRgb();
+                        this.palette[index] = [rgb.r,rgb.g,rgb.b];
+                        this.updatePalette();
+                    } else {
+                        if (e.shiftKey) {
+                            this.bg = c;
+                            this.updateColorUI();
+                        } else {
+                            this.fg = c;
+                            this.updateColorUI();
+                        }
+                    }
+                    e.preventDefault();
+                },this));
+                $palette.append($panel);
+            },this));
+        },
         setImage:function(image) {
             this.image = image;
             this.updated = true;
         },
+        updateColorUI:function() {
+            this.$controls.find(".fg").spectrum("set", this.fg.toHexString());
+            this.$controls.find(".bg").spectrum("set", this.bg.toHexString());
+        },
         colorChanged:function() {
-            this.color = tinycolor(this.$el.find(".color").val());
+            this.fg = tinycolor(this.$controls.find(".fg").val());
+            this.bg = tinycolor(this.$controls.find(".bg").val());
         },
         translateCanvasToImage:function(x,y,ignoreBounds) {
             var perPixelX = this.zoomScale[this.zoomIndex];
@@ -138,6 +178,7 @@ define(['jquery','tinycolor','text!tmpl/canvasPixelEditor.html','jquery.spectrum
         },
         resizeToParent:function() {
             this.drawingArea.width = this.$el.parent().width();
+            this.drawingArea.height = this.$el.height();
             this.updated = true;
             this.repaint();
         },

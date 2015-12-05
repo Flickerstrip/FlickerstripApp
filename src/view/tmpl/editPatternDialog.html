@@ -15,9 +15,14 @@
             <div class="mbody">
                 <div class="patternPreview"></div>
                 <div class="patternControls">
-                    FPS: <input type="number" class="fps" />
-                    Frames: <input type="number" class="frames" />
-                    Pixels: <input type="number" class="pixels" />
+                    <div class="controls"></div>
+                    <div class="right">
+                        <label>FPS: <input type="number" class="fps" /></label>
+                        <label>Frames: <input type="number" class="frames" /></label>
+                        <label>Pixels: <input type="number" class="pixels" /></label>
+                        <button type="button" class="saveImage btn btn-default btn-xs" title="Save pattern as image" ><span class="glyphicon glyphicon-save"></span></button>&nbsp;
+                        <button type="button" class="loadImage btn btn-default btn-xs" title="Load pattern from image" ><span class="glyphicon glyphicon-folder-open"></span></button>&nbsp;
+                    </div>
                 </div>
                 <div class="editorcontainer"></div>
             </div>

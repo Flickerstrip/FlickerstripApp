@@ -15,7 +15,23 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
         frames:7,
         type:"bitmap",
         body:[0,0,0,0,0,0,0,0,0,251,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,255,0,0,255,170,0,251,255,0,0,0,0,251,255,0,255,170,0,255,0,0,255,255,255,255,0,0,255,170,0,251,255,0,0,0,0,251,255,0,255,170,0,255,0,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,251,255,0,255,170,0,251,255,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,251,255,0,0,0,0,0,0,0,0,0,0],
+        palette:[
+            [0,0,0],
+            [255,255,255],
+            [255,0,0],
+            [255,255,0],
+            [0,255,0],
+            [0,255,255],
+            [0,0,255]
+        ]
     };
+
+    function resizePalette(original,paletteSize) {
+        var palette = $.extend([],original);
+        while(palette.length < paletteSize) palette.push([255,255,255]);
+        while(palette.length > paletteSize) palette.pop();
+        return palette;
+    }
 
     function createCanvas(width,height) {
         var canvas = document.createElement('canvas');
@@ -63,7 +79,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 this.$el.find(".titletext").text(this.pattern.name);
             },this));
 
-            this.$el.find(".patternControls").hide();
+            this.$el.find(".patternControls").addClass("hide");
             this.$el.find(".saveButton").click(_.bind(this.savePatternClicked,this));
 
             if (this.pattern.type == "javascript") {
@@ -76,13 +92,43 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 },this));
             } else if (this.pattern.type == "bitmap") {
                 this.$el.find(".openConsole").hide();
-                this.$el.find(".patternControls").show();
+                this.$el.find(".patternControls").removeClass("hide");
+
+                this.$el.find(".loadImage").click(_.bind(function() {
+                    util.openFileDialog(this.$el,{
+                        accepts:"*.png,*.gif,*.jpg,*.jpeg"
+                    },_.bind(function(path) {
+                        if (!path) return;
+                        this.conduit.request("OpenImage",path,_.bind(function(width,height,pixels) {
+                            var transpose = true;
+                            this.canvas = util.renderPattern(pixels,width,height,null,null,transpose);
+                            this.editor.setImage(this.canvas);
+
+                            this.pattern.frames = transpose ? height : width;
+                            this.pattern.pixels = transpose ? width : height;
+
+                            this.updateEditor();
+                            this.updatePattern();
+                        },this));
+                    },this));
+                            
+                },this));
+                this.$el.find(".saveImage").click(_.bind(function() {
+                    console.log(this.$el);
+                    util.openFileDialog(this.$el,{
+                        nwsaveas:"pattern.png"
+                    },_.bind(function(path) {
+                        var dataUrl = this.canvas.toDataURL();
+                        this.conduit.emit("SaveImage",dataUrl,path);
+                    },this));
+                },this));
 
                 this.pattern = $.extend({},defaultPixelPattern,this.pattern);
                 this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,true,false);
                 $(this.canvas).css("border","1px solid black");
 
-                this.editor = new CanvasPixelEditor(this.canvas);
+                var palette = resizePalette(this.pattern.palette,10);
+                this.editor = new CanvasPixelEditor(this.canvas,palette);
 
                 this.$fps = this.$el.find(".fps");
                 this.$frames = this.$el.find(".frames");
@@ -96,13 +142,14 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                     this.pattern.pixels = parseInt(this.$pixels.val());
 
                     this.updateEditor();
-                    this.updateRendered();
+                    this.updatePattern();
                 },this));
 
                 $(this.editor).on("change",_.bind(function(e) {
                     this.doUpdateDelay();
                 },this));
 
+                this.$el.find(".controls").replaceWith(this.editor.$controls);
                 this.$el.find(".editorcontainer").append(this.editor.$el);
                 setTimeout(_.bind(function() {
                     this.editor.resizeToParent();
@@ -110,24 +157,6 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
 
                 this.pattern.body = util.canvasToBytes(this.canvas);
                 this.updateRendered();
-                var $file = $("<input type='file' accept='*.png,*.gif,*.jpg,*.jpeg'>");
-                $file.appendTo(this.$el.find(".editorcontainer"));
-                $file.change(_.bind(function() {
-                    var path = $file.val();
-                    $file.val("");
-                    if (!path) return;
-                    this.conduit.request("OpenImage",path,_.bind(function(width,height,pixels) {
-                        var transpose = true;
-                        this.canvas = util.renderPattern(pixels,width,height,null,null,transpose);
-                        this.editor.setImage(this.canvas);
-
-                        this.pattern.frames = transpose ? height : width;
-                        this.pattern.pixels = transpose ? width : height;
-
-                        this.updateEditor();
-                        this.updatePattern();
-                    },this));
-                },this));
             }
         },
         updateEditor:function() {

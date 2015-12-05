@@ -102,6 +102,14 @@ extend(This.prototype,{
             this.stripAdded(strip);
         },this));
 
+        this.on("SaveImage",_.bind(function(dataUrl,savePath) {
+            var data = dataUrl.replace(/^data:image\/\w+;base64,/, "");
+            var buf = new Buffer(data, 'base64');
+            fs.writeFile(savePath, buf,function(err) {
+                if (err) console.log("There was an error saving the image!");
+            });
+        },this));
+
         this.on("OpenImage",_.bind(function(callback,imagePath) {
             getPixels(imagePath,function(err,info) {
                 var width = info.shape[0];

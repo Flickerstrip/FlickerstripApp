@@ -1,6 +1,10 @@
 <div>
     <div class="controls">
-        Color:<input class="color"/>
+        <div class="current" title="click to draw with foreground color, shift click to draw with background color">
+            <input class="fg" />
+            <input class="bg" />
+        </div>
+        <div class="palette" title="This is the color pallet, left click to load, right click to set, shift click for background color"></div>
     </div>
-    <canvas class="drawingArea" style='border: 1px solid red'></canvas>
+    <canvas class="drawingArea"></canvas>
 </div>

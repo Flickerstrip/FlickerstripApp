@@ -11,6 +11,9 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
         this.init.apply(this,arguments);
     }
 
+    var padding = {top: 10, right: 2, bottom: 10, left: 2};
+    var ledHeight = 12;
+
     $.extend(This.prototype,{
         init:function(stripLength) {
             var canvas = document.createElement("canvas");
@@ -19,6 +22,17 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 
             this.canvas = canvas;
             this.$el = $(this.canvas);
+
+            this.$el.on("mousemove",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.canvas,e);
+
+                if (pos[1] < padding.top+ledHeight) {
+                    this.$el.attr("title","This is the animated pattern as it appears on the LED strip");
+                } else {
+                    this.$el.attr("title","This shows all frames of the pattern at once");
+                }
+
+            },this));
 
             this.startTime = new Date().getTime();
             this.pattern = null;
@@ -51,44 +65,24 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             if (!(this.pattern && this.rendered)) return;
 
             var imgctx = this.rendered.getContext("2d");
+            var imageData = imgctx.getImageData(0,0,this.rendered.width,this.rendered.height);
 
             g.clearRect(0,0,this.canvas.width,this.canvas.height);
             var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.startTime)/1000)) % this.pattern.frames);
-        
-            var padding = {top: 20, right: 20, bottom: 10, left: 20};
+
             var usableWidth = this.canvas.width - padding.left - padding.right;
             var separation = usableWidth / this.stripLength;
 
+            g.fillStyle = "#000";
+            g.fillRect(padding.left-1,padding.top-1,this.canvas.width-padding.right,ledHeight+2);
+
             //render LED strip at current frame
-            var ledHeight = 6;
-            //g.fillStyle = "black";
-            //g.fillRect(padding.left-1,10-1,this.canvas.width - padding.left - padding.right+1, ledHeight+2);
             for (var i=0; i<this.stripLength; i++) {
-                var data = imgctx.getImageData(currentFrame,i%this.rendered.height, 1, 1).data
-                var c = new tinycolor({r:data[0],g:data[1],b:data[2]});
-                //var c = new tinycolor(this.pattern.render(i,currentFrame));
+                var pixel = util.getPixelFromImageData(imageData,i,currentFrame);
+                var c = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
 
-                var offset = 1;
                 g.fillStyle = tinycolor(c.toString()).toHexString();
-                g.fillRect(padding.left+i*separation,10,2,ledHeight);
-
-//                g.fillStyle = tinycolor(c.toString()).darken(20).toHexString();
-//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-//
-//                offset --;
-//                g.fillStyle = tinycolor(c.toString()).darken(15).toHexString();
-//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-//
-//                offset --;
-//                g.fillStyle = tinycolor(c.toString()).darken(10).toHexString();
-//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-//
-//                offset --;
-//                g.fillStyle = tinycolor(c.toString()).toHexString();
-//                g.fillRect(padding.left+i*separation-offset,10-offset,separation/2+offset*2,separation/2+offset*2);
-
-                //g.fillStyle = "#ccc";
-                //g.strokeRect(padding.left+i*separation,10,separation/2,separation/2);
+                g.fillRect(padding.left+i*separation,padding.top,separation,ledHeight);
             }
 
             //draw the numbers
@@ -110,22 +104,26 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             var patternDuration = this.pattern.frames/this.pattern.fps;
             var renderDuration = patternDuration;
 
-            var loc = {x:padding.left,y:padding.top,width:usableWidth,height:50};
+            var loc = {x:padding.left,y:padding.top+ledHeight+5,width:usableWidth,height:50};
             g.fillStyle = "#000";
             g.fillRect(loc.x-1,loc.y-1,loc.width+2,loc.height+2);
 
-            var durationPerX = renderDuration / loc.width;
-            for (var x=0; x<loc.width; x++) {
-                var ctime = durationPerX * x;
+            var durationPerPixel = renderDuration / loc.height;
+
+            //g.drawImage(this.rendered, 0, 0, this.rendered.width, this.rendered.height,loc.x,loc.y,loc.width,loc.height);
+            g.imageSmoothingEnabled = false;
+            for (var t=0; t<loc.height; t++) {
+                var ctime = durationPerPixel * t;
                 var patternTime = ctime % patternDuration;
                 var frame = patternTime * this.pattern.fps;
-                g.drawImage(this.rendered, Math.floor(frame), 0, 1, this.rendered.height, loc.x+x, loc.y, 1, loc.height);
+                g.drawImage(this.rendered, 0, Math.floor(frame), this.rendered.width, 1, loc.x, loc.y+t, loc.width, 1);
             }
+            g.imageSmoothingEnabled = true;
 
             //draw currently frame line
             g.fillStyle = "#fff";
-            var framePositionX = loc.x + (currentFrame/this.pattern.frames)*loc.width;
-            drawLine(g,framePositionX,loc.y,framePositionX,loc.y+loc.height);
+            var framePositionY = loc.y + (currentFrame/this.pattern.frames)*loc.height;
+            drawLine(g,loc.x,framePositionY,loc.x+loc.width,framePositionY);
         },
         setPattern:function(pattern) {
             this.pattern = pattern;
@@ -142,7 +140,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             }
 
             //                                 data              width               height              cWidth           chght xpo,rpt
-            this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,true,true);
+            this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,false,true);
         },
         getRenderer:function() {
             return this.neopixelRenderer;

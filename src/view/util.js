@@ -226,6 +226,30 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             }
             return pattern;
         },
+        getCursorPosition:function(canvas, event) {
+            var x, y;
+
+            var canoffset = $(canvas).offset();
+            x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
+            y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
+
+            return [x,y];
+        },
+        openFileDialog:function($el,opts,cb) {
+            var win = require('nw.gui').Window.get();
+            var $input = $("<input type='file' />").css("display","none");
+            _.each(opts,function(value,key) {
+                $input.attr(key,value);
+            });
+            function closed() {
+                win.removeListener("focus",closed);
+                setTimeout(function() {
+                    cb($input.val());
+                },100);
+            }
+            win.on("focus",closed);
+            $input.appendTo($el).click();
+        },
         doubleClickEditable:function($el,editCallback) {
             $el.dblclick(_.bind(function(e) {
                 if ($el.find("input").length) return;
