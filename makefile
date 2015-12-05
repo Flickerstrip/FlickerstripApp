@@ -137,7 +137,7 @@ run_android: cordova
 	cd ./build/cordova && cordova run android
 ############ CORDOVA
 
-run: osx-x64
+run: | osx-x64
 	open ./build/nwjs/osx-x64/nwjs.app
 
 .PHONY: linux-x64 osx-x64 win-x64 nwjs_all run clean run_android run_ios cordova

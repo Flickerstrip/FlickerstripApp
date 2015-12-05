@@ -65,21 +65,21 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             if (selectedObjects.length == 0) return;
 
-            var patternObject = selectedObjects[0];
-            this.conduit.request("LoadServerPattern",patternObject.id,_.bind(function(id,body) {
+            var pattern = selectedObjects[0];
+            this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
-                this.$el.find(".deletePattern").toggle(this.user && patternObject.Owner.id == this.user.id);
-                patternObject.body = body;
-                this.selectedPattern = patternObject;
-                var patternSpec = eval("("+body+")");
+                this.$el.find(".deletePattern").toggle(true == (this.user && pattern.Owner.id === this.user.id));
+                pattern.body = body;
+                this.selectedPattern = pattern;
+                if (!pattern.type) pattern.type = "javascript";
+                util.evaluatePattern(this.selectedPattern);
 
-                var pattern = this.getPattern(patternSpec);
-
-                this.stripRenderer.setPattern(pattern);
+                console.log("pattern",pattern);
+                this.stripRenderer.setPattern(pattern.rendered);
 
                 //update titlebar
-                var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
-                this.$el.find(".patternTitle").text(patternObject.name+ " ("+frameInfo+")");
+                var frameInfo = pattern.rendered.frames > 1 ? (pattern.rendered.frames/pattern.rendered.fps).toFixed(2)+"s" : "static";
+                this.$el.find(".patternTitle").text(pattern.name+ " ("+frameInfo+")");
 
                 setTimeout(_.bind(function() {
                     this.stripRenderer.resizeToParent();

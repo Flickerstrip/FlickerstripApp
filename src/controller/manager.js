@@ -245,9 +245,11 @@ extend(This.prototype,{
         var body = content.substring(loc+2);
 
         var pattern = {};
+        console.log(headerraw);
         _.each(headerraw.split("\n"),function(line) {
             if (line == "") return;
-            var tokens = line.split(":");
+            var index = line.indexOf(":");
+            var tokens = [line.substring(0,index),line.substring(index+1)];
             if (tokens[1][0] == "[" || tokens[1][0] == "{") {
                 console.log("parsing json",tokens[1]);
                 //assume json
