@@ -6,6 +6,7 @@
   "showDebugger":false,
   "closeOnEsc":false,
   "patternRepository":"http://flickerstrip.elasticbeanstalk.com",
+  "includedpattern":"base",
   "window": {
     "title": "WiFi LED Control",
     "icon": "icon.png",

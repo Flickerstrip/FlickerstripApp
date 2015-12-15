@@ -22,6 +22,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 
             this.canvas = canvas;
             this.$el = $(this.canvas);
+            this.flicker = 0;
 
             this.$el.on("mousemove",_.bind(function(e) {
                 var pos = util.getCursorPosition(this.canvas,e);
@@ -67,11 +68,13 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             var imgctx = this.rendered.getContext("2d");
             var imageData = imgctx.getImageData(0,0,this.rendered.width,this.rendered.height);
 
-            g.clearRect(0,0,this.canvas.width,this.canvas.height);
             var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.startTime)/1000)) % this.pattern.frames);
 
             var usableWidth = this.canvas.width - padding.left - padding.right;
             var separation = usableWidth / this.stripLength;
+
+            g.clearRect(0,0,this.canvas.width,this.canvas.height);
+
 
             g.fillStyle = "#000";
             g.fillRect(padding.left-1,padding.top-1,this.canvas.width-padding.right,ledHeight+2);
@@ -112,18 +115,41 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 
             //g.drawImage(this.rendered, 0, 0, this.rendered.width, this.rendered.height,loc.x,loc.y,loc.width,loc.height);
             g.imageSmoothingEnabled = false;
-            for (var t=0; t<loc.height; t++) {
-                var ctime = durationPerPixel * t;
-                var patternTime = ctime % patternDuration;
-                var frame = patternTime * this.pattern.fps;
-                g.drawImage(this.rendered, 0, Math.floor(frame), this.rendered.width, 1, loc.x, loc.y+t, loc.width, 1);
+            var lastYDrawn = null;
+            for (var t=0; t<this.pattern.frames; t++) {
+                var frameSize = loc.height/this.pattern.frames;
+                var start = Math.floor(frameSize*t);
+                if (start == lastYDrawn) continue;
+
+                frameSize = Math.floor(frameSize);
+                if (frameSize < 1) frameSize = 1;
+                lastYDrawn = start;
+                //console.log(loc.height,this.pattern.frames,start,frameSize);
+                //console.log(this.rendered.width,this.rendered.height);
+                if (this.pattern.frames > 3 && t == currentFrame) {
+                    var frameData = imgctx.getImageData(0, t, this.rendered.width, 1);
+                    util.invertPixelData(frameData);
+                    var tcanvas = document.createElement("canvas");
+                    tcanvas.width = this.rendered.width;
+                    tcanvas.height = 1;
+                    tcanvas.getContext("2d").putImageData(frameData,0,0,0,0,this.rendered.width,1);
+                    g.fillStyle = "#f00";
+                    g.fillRect(loc.x,loc.y+start,loc.width,frameSize);
+                    g.drawImage(tcanvas,loc.x, loc.y+start, loc.width, frameSize);
+                } else {
+                    g.drawImage(this.rendered, 0, t, this.rendered.width, 1, loc.x, loc.y+start, loc.width, frameSize);
+                }
             }
             g.imageSmoothingEnabled = true;
 
             //draw currently frame line
-            g.fillStyle = "#fff";
+            /*
             var framePositionY = loc.y + (currentFrame/this.pattern.frames)*loc.height;
+            this.flicker ++;
+            g.strokeStyle =  this.flicker > 10 ? "#ffffff" : "#000000";
+            if (this.flicker > 20) this.flicker = 0;
             drawLine(g,loc.x,framePositionY,loc.x+loc.width,framePositionY);
+            */
         },
         setPattern:function(pattern) {
             this.pattern = pattern;

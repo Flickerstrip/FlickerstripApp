@@ -164,7 +164,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             this.$pixels.val(this.pattern.pixels);
             this.$fps.val(this.pattern.fps);
             this.editor.setFps(this.pattern.fps);
-            this.editor.setCanvasSize(this.pattern.frames,this.pattern.pixels);
+            this.editor.setCanvasSize(this.pattern.pixels,this.pattern.frames);
         },
         savePatternClicked:function() {
             this.updatePattern();
@@ -174,7 +174,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             if (this.pattern.type == "javascript") {
                 this.pattern.body = this.editor.getValue();
             } else if (this.pattern.type == "bitmap") {
-                this.pattern.body = util.canvasToBytes(this.canvas,true);
+                this.pattern.body = util.canvasToBytes(this.canvas,false);
             }
 
             this.updateRendered();

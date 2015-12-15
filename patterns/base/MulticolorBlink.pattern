@@ -1,0 +1,27 @@
+id:6
+name:MulticolorBlink
+type:javascript
+createdAt:2015-11-13T04:45:18.000Z
+updatedAt:2015-11-13T04:45:18.000Z
+OwnerId:1
+Owner:{"id":1,"display":"Flickerstrip"}
+index:0
+
+
+({
+    pattern:function() {
+        this.pixels=1;
+        this.fps=10;
+        this.colors = [
+            {r:255,g:0,b:0},
+            {r:0,g:255,b:0},
+            {r:0,g:0,b:255}
+        ];
+        this.frames=this.colors.length;
+        this.render=function(x,t) {
+            return this.colors[t];
+        }
+        return this;
+    }
+})
+

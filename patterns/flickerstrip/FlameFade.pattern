@@ -1,0 +1,37 @@
+name:Flame Fade
+
+
+({
+    pattern:function() {
+        function mix(a,b,r) {
+            if (!b) return a;
+            var i = 1-r;
+            var a = {
+                r:(a.r*i+b.r*r),
+                g:(a.g*i+b.g*r),
+                b:(a.b*i+b.b*r)
+            }
+            return a;
+        }
+        function palletMap(r,colors) {
+            var box = r*(colors.length-1);
+            var pos = box - Math.floor(box);
+            var box = Math.floor(box);
+            return mix(colors[box],colors[box+1],pos);
+        }
+        this.colors=[
+            {r:128,g:0,b:0},
+            {r:255,g:0,b:0},
+            {r:255,g:128,b:0},
+            {r:255,g:255,b:51}
+        ]
+        this.pixels=1;
+        this.frames=100;
+        this.fps=10;
+        this.render=function(x,t) {
+            var f = (Math.cos(Math.PI+((t*2*Math.PI)/this.frames))+1)/2;
+            return palletMap(f,this.colors);
+        }
+        return this;
+    }
+})

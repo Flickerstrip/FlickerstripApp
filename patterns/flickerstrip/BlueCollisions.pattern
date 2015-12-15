@@ -1,0 +1,92 @@
+name:Blue Collisions
+
+
+({
+    pattern:function() {
+        function clone(obj) {
+            if (null == obj || "object" != typeof obj) return obj;
+            var copy = obj.constructor();
+            for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+            }
+            return copy;
+        }
+        function mix(a,b,r) {
+            if (!b) return a;
+            var i = 1-r;
+            var a = {
+                r:(a.r*i+b.r*r),
+                g:(a.g*i+b.g*r),
+                b:(a.b*i+b.b*r)
+            }
+            return a;
+        }
+        this.pixels=150;
+        this.frames=360;
+        this.fps=30;
+
+        function genMove() { return Math.floor(Math.random()*50)-25 }
+        function genSleep() { return Math.floor(Math.random()*10) }
+        
+        var blocks = [];
+        for (var i=0; i<10; i++) {
+            blocks.push({
+                x:Math.floor(Math.random()*this.pixels),
+                size:5,
+                sleep:genSleep(),
+                move: 0
+            });
+        }
+        var rendered=[];
+        var fadePattern=[];
+        for(var x=0; x<this.pixels; x++) fadePattern.push({r:0,g:0,b:0});
+        for(var t=0; t<this.frames/2; t++) {
+            var frame = [];
+            for(var x=0; x<this.pixels; x++) frame.push({r:0,g:0,b:0});
+            for(var x=0; x<this.pixels; x++) {
+                frame[x] = clone(fadePattern[x]);
+                fadePattern[x].r*=.9;
+                fadePattern[x].g*=.9;
+                fadePattern[x].b*=.9;
+                if (fadePattern[x].r < 5) fadePattern[x].r = 0;
+                if (fadePattern[x].g < 5) fadePattern[x].g = 0;
+                if (fadePattern[x].b < 5) fadePattern[x].b = 0;
+            }
+            for(var i=0; i<blocks.length; i++) {
+                var block = blocks[i];
+                for (var l=0; l<block.size; l++) {
+                    frame[block.x+l] = {r:200,g:200,b:255};
+                    fadePattern[block.x+l] = {r:0,g:0,b:255};
+                }
+                if (block.move != 0) {
+                    if (block.x <= 0 && block.move <= 0) block.move = -block.move;
+                    if (block.x+block.size >= this.pixels && block.move >= 0) block.move = -block.move;
+                    var inc = block.move/Math.abs(block.move);
+                    block.x += inc;
+                    block.move -= inc;
+                } else if (block.sleep-- <= 0) {
+                    block.sleep=genSleep();
+                    block.move=genMove();
+                }
+            }
+            blocks.sort(function(a,b) {
+                return a.x-b.x;
+            });
+            for(var i=0; i<blocks.length-1; i++) {
+                var blocka = blocks[i];
+                var blockb = blocks[i+1];
+                if (blocka.x+blocka.size > blockb.x) {
+                    //collision!
+                    blocka.move = -Math.abs(blocka.move)-2;
+                    blockb.move = Math.abs(blockb.move)+2;
+                }
+            }
+            rendered.push(frame);
+        }
+        this.render=function(x,t) {
+            if (t >= rendered.length) t = rendered.length-(t-rendered.length)-1;
+            return rendered[t][x];
+        }
+        return this;
+    }
+})

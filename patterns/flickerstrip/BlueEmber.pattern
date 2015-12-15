@@ -1,0 +1,46 @@
+name:Blue Ember
+
+
+({
+    pattern:function() {
+        function mix(a,b,r) {
+            if (!b) return a;
+            if (!a) return b;
+            var i = 1-r;
+            var a = {
+                r:(a.r*i+b.r*r),
+                g:(a.g*i+b.g*r),
+                b:(a.b*i+b.b*r)
+            }
+            return a;
+        }
+        function palletMap(r,colors) {
+            var box = r*(colors.length-1);
+            var pos = box - Math.floor(box);
+            var box = Math.floor(box);
+            return mix(colors[box],colors[box+1],pos);
+        }
+        this.colors = [
+            {r:193,g:241,b:254},
+            {r:133,g:227,b:253},
+            {r:95,g:215,b:249},
+            {r:65,g:182,b:251},
+            {r:66,g:84,b:255}
+        ];
+        this.pixels=100;
+        this.frames=100;
+        this.fps=30;
+        this.offsets = [];
+        for (var i=0; i<this.pixels; i++) {
+            var x = Math.sin(2*Math.PI*i/this.pixels*2);
+            this.offsets.push(x);
+        }
+        this.render=function(x,t) {
+            var i = (t/this.frames)+(x/this.pixels)+this.offsets[x];
+            var mul = 1;
+            var f = .5*Math.cos(Math.PI+((i*2*Math.PI)*mul))+.5;
+            return palletMap(1-f,this.colors);
+        }
+        return this;
+    }
+})

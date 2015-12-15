@@ -179,6 +179,17 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
                 }	
             });
         },
+        invertPixelData:function(data) {
+            for (var i=0; i<data.data.length; i+=4) {
+                data.data[i] = 255-data.data[i];
+                data.data[i+1] = 255-data.data[i+1];
+                data.data[i+2] = 255-data.data[i+2];
+//                data.data[i] = 255;
+//                data.data[i+1] = 255;
+//                data.data[i+2] = 255;
+            }
+            return data;
+        },
         evaluatePattern:function(pattern,values) {
             if (pattern.type == "javascript") {
                 var evaluatedPattern = eval("("+pattern.body+")");
