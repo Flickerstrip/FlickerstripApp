@@ -38,7 +38,10 @@ clean:
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 ifeq ($(DEBUG),1)
-	cat $@/package.json $@/debug.json | json --deep-merge > $@/out.json
+	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
+else
+	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
 	mv $@/out.json $@/package.json
 endif
 	cp -r ./nwjs/`basename $@`/* $@
@@ -60,8 +63,9 @@ endif
 ./build/nwjs/%/shared: $(SHARED_FILES)
 	rsync $(RSYNC_OPT) --update -ravh ./src/shared `dirname $@`
 
-./build/nwjs/%/patterns: $(PATTERN_FILES)
-	rsync $(RSYNC_OPT) --update -ravh ./patterns `dirname $@`
+./build/nwjs/%/patterns: 
+	mkdir -p $@
+	p=`dirname $@`/package.json; for f in `cat $$p | json -a includedpatterns`; do echo $$f; for i in ./patterns/$$f/*; do echo cp "$$i" $@/;cp "$$i" $@/; done; done
 
 ./build/nwjs/%/view/css/style.css: $(LESS_FILES)
 	mkdir -p `dirname $@`

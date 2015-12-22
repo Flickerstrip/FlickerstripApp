@@ -11,6 +11,8 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
         this.init.apply(this,arguments);
     }
 
+	var frameDebug = false;
+
     var padding = {top: 10, right: 2, bottom: 10, left: 2};
     var ledHeight = 12;
 
@@ -22,7 +24,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 
             this.canvas = canvas;
             this.$el = $(this.canvas);
-            this.flicker = 0;
+			this.frameDebugIndex = 0;
 
             this.$el.on("mousemove",_.bind(function(e) {
                 var pos = util.getCursorPosition(this.canvas,e);
@@ -34,6 +36,12 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 }
 
             },this));
+
+			if (frameDebug) {
+				this.$el.on("click",_.bind(function(e) {
+					this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+				},this));
+			}
 
             this.startTime = new Date().getTime();
             this.pattern = null;
@@ -61,7 +69,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             this.running = true;
         },
         paint:function(g) {
-            if (this.running) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+            if (this.running && !frameDebug) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
             if (!(this.pattern && this.rendered)) return;
 
@@ -69,6 +77,13 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             var imageData = imgctx.getImageData(0,0,this.rendered.width,this.rendered.height);
 
             var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.startTime)/1000)) % this.pattern.frames);
+			if (frameDebug) {
+				if (this.frameDebugIndex >= this.pattern.frames) {
+					this.frameDebugIndex = 0;
+				}
+				currentFrame = this.frameDebugIndex;
+				this.frameDebugIndex++;
+			}
 
             var usableWidth = this.canvas.width - padding.left - padding.right;
             var separation = usableWidth / this.stripLength;
@@ -116,8 +131,10 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             //g.drawImage(this.rendered, 0, 0, this.rendered.width, this.rendered.height,loc.x,loc.y,loc.width,loc.height);
             g.imageSmoothingEnabled = false;
             var lastYDrawn = null;
+			//console.log("START",loc.height,this.pattern.frames,loc.height/this.pattern.frames);
             for (var t=0; t<this.pattern.frames; t++) {
                 var frameSize = loc.height/this.pattern.frames;
+                var oframeSize = frameSize;
                 var start = Math.floor(frameSize*t);
                 if (start == lastYDrawn) continue;
 
@@ -126,7 +143,9 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 lastYDrawn = start;
                 //console.log(loc.height,this.pattern.frames,start,frameSize);
                 //console.log(this.rendered.width,this.rendered.height);
-                if (this.pattern.frames > 3 && t == currentFrame) {
+				var lit = false;
+				var pixelsFromCurrent = Math.abs(Math.floor(oframeSize*t)-Math.floor(oframeSize*currentFrame));
+                if (this.pattern.frames > 3 && (oframeSize < 2 && pixelsFromCurrent<=1 || t == currentFrame)) {
                     var frameData = imgctx.getImageData(0, t, this.rendered.width, 1);
                     util.invertPixelData(frameData);
                     var tcanvas = document.createElement("canvas");
@@ -140,6 +159,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                     g.drawImage(this.rendered, 0, t, this.rendered.width, 1, loc.x, loc.y+start, loc.width, frameSize);
                 }
             }
+			//console.log("count: ",litCount);
             g.imageSmoothingEnabled = true;
 
             //draw currently frame line

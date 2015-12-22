@@ -102,6 +102,18 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             assert(compareArrays(This.getPixelFromImageData(data,1,0),[10,11,12]),"xposed pixel 0,1 matches");
             assert(compareArrays(This.getPixelFromImageData(data,2,0),[19,20,21]),"xposed pixel 0,2 matches");
         },
+		filter:function(image,filterFunction) {
+			var idata = image.getContext("2d").getImageData(0,0,image.width,image.height);
+			var data = idata.data;
+			for (var n=0; n<data.length; n+=4) {
+				var res = filterFunction([data[n],data[n+1],data[n+2],data[n+3]]);
+				for (var i=0; i<4; i++) idata.data[n+i] = res[i];
+			}
+			var newImage = This.renderToCanvas(image.width,image.height,function(g) {
+				g.putImageData(idata,0,0);
+			});
+			return newImage;
+	    },
         renderToCanvas:function (width, height, renderFunction) {
             var buffer = document.createElement('canvas');
             buffer.width = width;
@@ -109,12 +121,16 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             renderFunction(buffer.getContext('2d'));
             return buffer;
         },
-        getPixelFromArray(array,width,height,x,y,bytes) {
+		pixelToIndex:function(width,height,x,y,bytes) {
             if (x > width) return null;
             if (y > height) return null;
             if (x < 0 || y < 0) return null;
 
             var i = bytes*(x+y*width);
+			return i;
+		},
+        getPixelFromArray(array,width,height,x,y,bytes) {
+			var i = This.pixelToIndex(width,height,x,y,bytes);
 
             var pixel = [];
             for (var n=0; n<bytes;n++) {

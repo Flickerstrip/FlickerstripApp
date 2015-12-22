@@ -4,6 +4,13 @@
 define([ "underscore" ],
     function (_) {
         return {
+            parseJson:function(string) {
+				try {
+					return JSON.parse(string);
+				} catch (e) {
+					console.log("caught exception while parsing string",e,string);
+				}
+            },
             symanticToNumeric:function(symantic) {
                 if (!symantic) return null;
                 if (symantic[0] == "v") symantic = symantic.substring(1);

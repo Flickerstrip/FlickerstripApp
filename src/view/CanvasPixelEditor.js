@@ -13,6 +13,8 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
        }
     }
 
+    var displayMargins = {left:40,top:20,right:10,bottom:10}
+
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -48,6 +50,8 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             this.drawingArea = this.$el.find(".drawingArea").get(0);
             $(this.drawingArea).on("click mouseup mousedown mousemove",_.bind(function(e) {
                 var pos = util.getCursorPosition(this.drawingArea,e);
+                pos[0] -= displayMargins.left;
+                pos[1] -= displayMargins.top;
                 if (e.type == "mousedown") {
                     this.down = {
                         button:e.button,
@@ -89,6 +93,8 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 if (delay && new Date().getTime()-delay < 150) return;
                 delay = new Date().getTime();
                 var pos = util.getCursorPosition(this.drawingArea,e);
+                pos[0] -= displayMargins.left;
+                pos[1] -= displayMargins.top;
                 var delta = (e.originalEvent.detail<0 || e.originalEvent.wheelDelta>0) ? 1 : -1;
 
                 var cBefore = this.translateCanvasToImage(pos[0],pos[1],true);
@@ -116,6 +122,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 var c = tinycolor({r:color[0],g:color[1],b:color[2]});
                 var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
                 $panel.on("click contextmenu",_.bind(function(e) {
+                    console.log("clicked",e,this.fg,this.bg);
                     if (e.button == 2) {
                         if (e.shiftKey) {
                             c = this.bg;
@@ -139,7 +146,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 $palette.append($panel);
             },this));
         },
-        setImage:function(image) {
+        setImage:function(pattern) {
             this.image = image;
             this.updated = true;
         },
@@ -186,6 +193,31 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             var g = this.drawingArea.getContext("2d");
             this.paint(g,this.drawingArea.width,this.drawingArea.height);
         },
+        drawImageWithinBounds:function(g,displayBox,image,offsetX,offsetY,perPixelX,perPixelY) {
+            var image_left = Math.max(0,-Math.floor(offsetX/perPixelX)-1);
+            var image_top = Math.max(0,-Math.floor(offsetY/perPixelY)-1);
+            var image_right = Math.min(this.image.width,image_left+1+(Math.min(displayBox.width,displayBox.width-offsetX)/perPixelX));
+            var image_bottom = Math.min(this.image.height,image_top+1+(Math.min(displayBox.height,displayBox.height-offsetY)/perPixelY));
+
+            var view_left = image_left*perPixelX+offsetX;
+            var view_top = image_top*perPixelY+offsetY;
+            var view_right = Math.min(displayBox.width,offsetX + this.image.width * perPixelX);
+            var view_bottom = Math.min(displayBox.height,offsetY + this.image.height * perPixelY);
+
+            g.imageSmoothingEnabled = false;
+
+            g.drawImage(
+                image,
+                image_left, //image X
+                image_top,  //image Y
+                image_right-image_left, //image W
+                image_bottom-image_top, //image H
+                displayBox.x+view_left, //target X
+                displayBox.y+view_top,  //target Y
+                perPixelX*(image_right-image_left), //target W
+                perPixelY*(image_bottom-image_top)  //target H
+            );
+        },
         paint:function(g,width,height) {
             if (!this.destroyed) this.$el.get(0).ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 
@@ -197,20 +229,68 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             var start = new Date().getTime();
             var perPixelX = this.zoomScale[this.zoomIndex];
             var perPixelY = this.zoomScale[this.zoomIndex];
-            var data = this.image.getContext("2d").getImageData(0,0,this.image.width,this.image.height);
+            //var data = this.image.getContext("2d").getImageData(0,0,this.image.width,this.image.height);
 
-            var view_left = Math.max(0,this.offset.x);
-            var view_top = Math.max(0,this.offset.y);
-            var view_right = Math.min(width,this.offset.x + this.image.width * perPixelX);
-            var view_bottom = Math.min(height,this.offset.y + this.image.height * perPixelY);
+            var displayBox = {x:displayMargins.left,y:displayMargins.top,width:width-displayMargins.left-displayMargins.right,height:height-displayMargins.top-displayMargins.bottom};
 
-            var image_left = Math.max(0,-Math.floor(this.offset.x/perPixelX));
-            var image_top = Math.max(0,-Math.floor(this.offset.y/perPixelY));
-            var image_right = Math.min(this.image.width,image_left+(view_right-view_left)/perPixelX);
-            var image_bottom = Math.min(this.image.height,image_top+(view_bottom-view_top)/perPixelY);
+            this.drawImageWithinBounds(g,displayBox,this.image,this.offset.x,this.offset.y,perPixelX,perPixelY);
 
-            g.imageSmoothingEnabled = false;
-            g.drawImage(this.image,image_left,image_top,image_right-image_left,image_bottom-image_top,view_left,view_top,view_right-view_left,view_bottom-view_top);
+            var ghost = util.filter(this.image,function(data) {
+                data[3] *= .5;
+                return data;
+            });
+            //Draw ghosts
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x+perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY);
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y+perPixelY*this.image.height,perPixelX,perPixelY);
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x-perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY);
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y-perPixelY*this.image.height,perPixelX,perPixelY);
+
+            //Draw the image at the correct scale at the origin (debugging)
+            //g.drawImage(this.image,image_left,image_top,image_right-image_left,image_bottom-image_top,0,0,(image_right-image_left)*perPixelX,(image_bottom-image_top)*perPixelY);
+
+            //Draw the view rectangle only
+            //g.fillStyle = "#f00";
+            //g.fillRect(view_left,view_top,view_right-view_left,view_bottom-view_top);
+
+            //clear out gutters
+            g.clearRect(0,0,width,displayBox.y); //top
+            g.clearRect(0,0,displayBox.x,height); //left
+            g.clearRect(displayBox.x+displayBox.width,0,width,height); //right
+            g.clearRect(0,displayBox.y+displayBox.height,width,height); //bottom
+
+            g.strokeStyle = "#666";
+            g.beginPath();
+            g.moveTo(displayBox.x,displayBox.y);
+            g.lineTo(displayBox.x+displayBox.width,displayBox.y);
+            g.lineTo(displayBox.x+displayBox.width,displayBox.y+displayBox.height);
+            g.lineTo(displayBox.x,displayBox.y+displayBox.height);
+            g.lineTo(displayBox.x,displayBox.y);
+            g.stroke();
+
+
+
+
+
+            //draw numbers
+            var xInterval = 1;
+            var yInterval = 1;
+            g.fillStyle = "black";
+            g.textAlign = 'center';
+            g.font = "10px Monaco";
+            var nudgeX = -9;
+            var nudgeY = -6;
+            for (var x=1; x<=this.image.width;x+=xInterval) {
+                g.fillText(x,displayBox.x+this.offset.x+x*perPixelX+nudgeX,12);
+            }
+            g.textAlign = 'right';
+            for (var y=1; y<=this.image.height;y+=yInterval) {
+                var text = Math.round(100*y/this.fps)/100+"s";
+                g.fillText(text,35,displayBox.y+this.offset.y+y*perPixelY+nudgeY);
+            }
+
+
+
+
         },
 		destroy:function() {
 			this.destroyed = true;

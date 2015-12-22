@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,util,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,util,template) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -59,6 +59,8 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             },this));
 
             this.render();
+
+			//this.tempDialog = new EditPatternDialog(this.conduit,this,{"type":"bitmap"}).show();
 
             this.groupDetails = new GroupDetailsPanel(this.conduit,[],this,false);
             this.$el.find(".groupDetails").replaceWith(this.groupDetails.$el);

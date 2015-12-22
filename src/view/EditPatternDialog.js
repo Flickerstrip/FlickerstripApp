@@ -103,6 +103,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                             var transpose = true;
                             this.canvas = util.renderPattern(pixels,width,height,null,null,transpose);
                             this.editor.setImage(this.canvas);
+							this.editor.setFps(this.pattern.fps);
 
                             this.pattern.frames = transpose ? height : width;
                             this.pattern.pixels = transpose ? width : height;

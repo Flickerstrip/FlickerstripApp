@@ -129,7 +129,7 @@ extend(This.prototype,{
 
         this.on("RefreshServerPatterns",_.bind(function(callback) {
             request.get(this.serverLocation+"/pattern",_.bind(function(error,response,data) {
-                var patterns = JSON.parse(data);
+                var patterns = util.parseJson(data);
                 callback(patterns);
             },this));
         },this));
@@ -251,12 +251,12 @@ extend(This.prototype,{
             var tokens = [line.substring(0,index),line.substring(index+1)];
             if (tokens[1][0] == "[" || tokens[1][0] == "{") {
                 //assume json
-                tokens[1] = JSON.parse(tokens[1]);
+                tokens[1] = util.parseJson(tokens[1]);
             }
             pattern[tokens[0]] = tokens[1];
         });
 
-        pattern.body = body[0] == "[" || body[0] == "{" ? JSON.parse(body) : body;
+        pattern.body = body[0] == "[" || body[0] == "{" ? util.parseJson(body) : body;
         return pattern;
     },
     loadPatterns:function() {
@@ -342,7 +342,7 @@ extend(This.prototype,{
         }
         fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
-            var config = JSON.parse(contents);
+            var config = util.parseJson(contents);
             this.config = config;
 
             //load strips
@@ -433,7 +433,7 @@ extend(This.prototype,{
         }
 
         request("http://"+ip+"/status",_.bind(function(error, response, body) {
-            var status = JSON.parse(body);
+            var status = util.parseJson(body);
             this.clientIdentified(ip,status);
         },this));
     },
