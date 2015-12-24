@@ -7,10 +7,11 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
     }
 
     $.extend(This.prototype, {
-        init:function(conduit,gui) {
+        init:function(conduit,gui,strips) {
             this.conduit = conduit;
             this.gui = gui;
             this.$el = $("<div class='loadPatternDialog largemodal'/>");
+            this.strips = strips;
 
             this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
             this.$el = this.$el.children();
@@ -37,6 +38,27 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
 
             $(this.gui).on("PatternsLoaded",_.bind(this.patternsLoaded,this));
             this.patternsLoaded();
+
+            _.each(strips,_.bind(function(strip) {
+                $(strip).on("Strip.StatusUpdated",_.bind(this.updateButtonStatus,this));
+            },this));
+            this.updateButtonStatus();
+        },
+        updateButtonStatus:function() {
+            var allVisible = _.reduce(this.strips,function(memo,item) {return memo = memo && item.visible},true);
+            var $previewButton = this.$el.find(".previewPatternButton");
+            var $loadButton  = this.$el.find(".loadPatternButton");
+
+            $previewButton.toggleClass("disabled",!allVisible);
+            $loadButton.toggleClass("disabled",!allVisible);
+
+            if (allVisible) {
+                $previewButton.attr("title","");
+                $loadButton.attr("title","");
+            } else {
+                $previewButton.attr("title","Strip is disconnected!");
+                $loadButton.attr("title","Strip is disconnected!");
+            }
         },
         patternsLoaded:function() {
             this.$el.addClass("deselected");
@@ -108,7 +130,6 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         },
         loadPatternButtonClicked:function(e) {
             if ($(e.target).is(".disabled")) return;
-            this.hide();
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
                 util.evaluatePattern(this.selectedPatternObject,this.controlView ? this.controlView.getValues() : null);

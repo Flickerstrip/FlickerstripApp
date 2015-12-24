@@ -433,6 +433,7 @@ extend(This.prototype,{
         }
 
         request("http://"+ip+"/status",_.bind(function(error, response, body) {
+            if (error) return console.log("Failed to connect to "+ip);
             var status = util.parseJson(body);
             this.clientIdentified(ip,status);
         },this));

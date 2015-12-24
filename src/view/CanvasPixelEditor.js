@@ -132,6 +132,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                         var rgb = c.toRgb();
                         this.palette[index] = [rgb.r,rgb.g,rgb.b];
                         this.updatePalette();
+                        $(this).trigger("PaletteUpdated",[this.palette]);
                     } else {
                         if (e.shiftKey) {
                             this.bg = c;
@@ -146,7 +147,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 $palette.append($panel);
             },this));
         },
-        setImage:function(pattern) {
+        setImage:function(image) {
             this.image = image;
             this.updated = true;
         },
@@ -174,6 +175,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             this.fps = fps;
         },
         setCanvasSize:function(width,height) {
+            if (!this.image) return;
             var ctx = this.image.getContext("2d");
             var data = ctx.getImageData(0,0,this.image.width,this.image.height);
             this.image.width = width;
@@ -220,6 +222,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
         },
         paint:function(g,width,height) {
             if (!this.destroyed) this.$el.get(0).ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+            if (!this.image) return;
 
             if (!this.updated) return;
             this.updated = false;

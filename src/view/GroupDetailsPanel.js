@@ -119,14 +119,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.conduit.emit("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-            var patternDialog = new LoadPatternDialog(this.conduit,this.gui);
-            var allVisible = _.reduce(this.strips,function(memo,item) {return memo = memo && item.visible},true);
-            if (!allVisible) {
-                patternDialog.$el.find(".previewPatternButton").addClass("disabled");
-                patternDialog.$el.find(".loadPatternButton").addClass("disabled");
-            }
-            $(patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
-            patternDialog.show();
+            this.patternDialog = new LoadPatternDialog(this.conduit,this.gui,this.strips);
+            $(this.patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
+            this.patternDialog.show();
         },
         uploadFirmwareClicked:function(e) {
             this.conduit.emit("UploadFirmware",this.strip.id);
@@ -137,9 +132,19 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
                 var progressDialog = new ProgressDialog(true);
                 progressDialog.show();
-                $(strip).one("Strip.UploadPatternComplete",function() {
+                $(strip).one("Strip.UploadPatternComplete",_.bind(function() {
+                    this.patternDialog.hide();
                     progressDialog.hide();
-                });
+                },this));
+
+                function hideIfNotVisible(status) {
+                    if (status.visible == false) {
+                        progressDialog.hide();
+                        $(strip).off("Strip.StatusUpdated",hideIfNotVisible);
+                    }
+                }
+
+                $(strip).on("Strip.StatusUpdated",hideIfNotVisible);
             }
         },
         forgetPatternClicked:function(e) {

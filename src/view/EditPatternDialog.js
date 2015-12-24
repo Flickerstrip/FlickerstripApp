@@ -71,6 +71,11 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 this.stripRenderer.resizeToParent();
             },this),5);
 
+            $(window).on("resize",_.bind(function() {
+                this.stripRenderer.resizeToParent();
+                this.editor.resizeToParent();
+            },this));
+
             this.$el.find(".titletext").text(this.pattern.name);
             this.$el.find(".titletext").click(_.bind(function() {
                 var name = prompt("Pattern name",this.pattern.name);
@@ -115,7 +120,6 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                             
                 },this));
                 this.$el.find(".saveImage").click(_.bind(function() {
-                    console.log(this.$el);
                     util.openFileDialog(this.$el,{
                         nwsaveas:"pattern.png"
                     },_.bind(function(path) {
@@ -125,17 +129,23 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 },this));
 
                 this.pattern = $.extend({},defaultPixelPattern,this.pattern);
-                this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,true,false);
-                $(this.canvas).css("border","1px solid black");
-
                 var palette = resizePalette(this.pattern.palette,10);
-                this.editor = new CanvasPixelEditor(this.canvas,palette);
-
+                this.editor = new CanvasPixelEditor(null,palette);
+                $(this.editor).on("PaletteUpdated",_.bind(function(e,palette) {
+                    console.log("palette updated",arguments);
+                    this.pattern.palette = palette;
+                },this));
+                
                 this.$fps = this.$el.find(".fps");
                 this.$frames = this.$el.find(".frames");
                 this.$pixels = this.$el.find(".pixels");
 
                 this.updateEditor();
+
+                $(this.canvas).css("border","1px solid black");
+
+                this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,false,false);
+                this.editor.setImage(this.canvas);
 
                 this.$el.find(".patternControls input").change(_.bind(function() {
                     this.pattern.fps = parseFloat(this.$fps.val());
