@@ -208,7 +208,11 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
         },
         evaluatePattern:function(pattern,values) {
             if (pattern.type == "javascript") {
-                var evaluatedPattern = eval("("+pattern.body+")");
+                try {
+                    var evaluatedPattern = eval("("+pattern.body+")");
+                } catch (e) {
+                    console.log("Error evaluating pattern",pattern.body);
+                }
 
                 var args = {};
                 if (evaluatedPattern.controls) {

@@ -67,11 +67,20 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
 
             var pattern = selectedObjects[0];
             this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
+                if (pattern.type == "bitmap") {
+                    body = Buffer(body,"base64");
+                    var arr = [];
+                    for(var i = 0; i < body.length; i++){
+                      arr.push(body[i]);
+                    };
+                    body = arr;
+                }
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
                 this.$el.find(".deletePattern").toggle(true == (this.user && pattern.Owner.id === this.user.id));
                 pattern.body = body;
                 this.selectedPattern = pattern;
                 if (!pattern.type) pattern.type = "javascript";
+                console.log("evaluating pattern..",this.selectedPattern);
                 util.evaluatePattern(this.selectedPattern);
 
                 console.log("pattern",pattern);

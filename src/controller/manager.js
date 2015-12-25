@@ -186,8 +186,13 @@ extend(This.prototype,{
         this.on("UploadPattern",_.bind(function(callback,pattern) {
             var data = {
                 "name":pattern.name,
-                "type":"javascript",
+                "type":pattern.type,
                 "data":pattern.body,
+            }
+            if (pattern.type == "bitmap") {
+                data["fps"] = pattern.fps;
+                data["frames"] = pattern.frames;
+                data["pixels"] = pattern.pixels;
             }
             var opt = {
                 url:this.serverLocation+"/pattern/create",
