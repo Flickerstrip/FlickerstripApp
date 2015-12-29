@@ -84,6 +84,11 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 this.$el.find(".titletext").text(this.pattern.name);
             },this));
 
+            this.$el.find(".previewPatternButton").click(_.bind(function() {
+                util.evaluatePattern(this.pattern,null);
+                this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.pattern,true);
+            },this));
+
             this.$el.find(".patternControls").addClass("hide");
             this.$el.find(".saveButton").click(_.bind(this.savePatternClicked,this));
 
