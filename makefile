@@ -32,6 +32,13 @@ clean:
 ./build/nwjs/linux-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+ifeq ($(DEBUG),1)
+	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
+else
+	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
+endif
 	cp -r ./nwjs/`basename $@`/* $@
 
 ./build/nwjs/osx-x64: $(SRC_FILES)
@@ -49,6 +56,13 @@ endif
 ./build/nwjs/win-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+ifeq ($(DEBUG),1)
+	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
+else
+	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
+	mv $@/out.json $@/package.json
+endif
 	cp -r ./nwjs/`basename $@`/* $@
 
 ./build/nwjs/%/node_modules: ./buildcache/node_modules
