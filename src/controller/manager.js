@@ -12,7 +12,6 @@ var path = require("path");
 var util = require("../shared/util");
 var async = require("async");
 var pjson = require('../package.json');
-var version = require('../version.js');
 var getPixels = require("get-pixels")
 
 var This = function() {
@@ -285,6 +284,32 @@ extend(This.prototype,{
                 this.conduit.emit("PatternsLoaded",this.patterns);
             },this));
         },this));
+    },
+    checkForUpdates:function() {
+        request({
+            url:"https://api.github.com/repos/Flickerstrip/FlickerstripApp/releases",
+            json:true,
+            headers: {
+                "User-Agent":"Flickerstrip-Dashboard",
+            }
+        },_.bind(function(error,response,releases) {
+            if (error) {
+                console.log("Failed to load flickerstrip app release information: ",error.code);
+                return;
+            }
+            releases.sort(function(b,a) {
+                return util.symanticToNumeric(a["tag_name"]) - util.symanticToNumeric(b["tag_name"]);
+            });
+            this.appReleases = releases;
+            var latest = releases[0];
+            var tagName = latest["tag_name"];
+            console.log(tagName,pjson.version);
+            console.log(util.symanticToNumeric(tagName),util.symanticToNumeric(pjson.version));
+            if (util.symanticToNumeric(tagName) > util.symanticToNumeric(pjson.version)) {
+                console.log("Newer version available!");
+            }
+        },this));
+        
     },
     loadFirmwareReleaseInfo:function() {
         request({

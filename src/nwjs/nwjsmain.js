@@ -19,14 +19,10 @@ requirejs.config({
         "view":"..",
         "tmpl":"../tmpl"
     }
-//    packages: [{
-//        name: "codemirror",
-//        location: "cm",
-//        main: "lib/codemirror"
-//    }];
 });
 
 var win = nw.Window.get();
+win.title = "Flickerstrip - "+pjson.version;
 var nativeMenuBar = new nw.Menu({ type: "menubar" });
 try {
     nativeMenuBar.createMacBuiltin("My App");

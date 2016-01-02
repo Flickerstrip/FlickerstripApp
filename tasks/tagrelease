@@ -49,8 +49,8 @@ esac
 
 echo "Next version will be: $NEXT_REVISION"
 
-echo "module.exports = \"$NEXT_REVISION\";" > version.js
-git add version.js
+sed -i '' 's/"version".*/"version":"'${NEXT_REVISION#"v"}'",/' src/nwjs/default.json 
+git add src/nwjs/default.json
 git commit -m "Preparing for release of $NEXT_REVISION"
 git tag -a $NEXT_REVISION -m "Releasing revision $NEXT_REVISION"
 git push origin $NEXT_REVISION
