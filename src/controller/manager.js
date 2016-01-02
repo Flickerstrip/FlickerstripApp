@@ -12,6 +12,7 @@ var path = require("path");
 var util = require("../shared/util");
 var async = require("async");
 var pjson = require('../package.json');
+var version = require('../version.js');
 var getPixels = require("get-pixels")
 
 var This = function() {
@@ -34,6 +35,7 @@ extend(This.prototype,{
         },this));
 
         this.loadFirmwareReleaseInfo();
+        this.checkForUpdates();
 
         this.loadPatterns();
 

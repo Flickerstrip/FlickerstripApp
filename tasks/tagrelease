@@ -49,8 +49,8 @@ esac
 
 echo "Next version will be: $NEXT_REVISION"
 
-echo "const char GIT_CURRENT_VERSION[] = \"$NEXT_REVISION\";" > version.h
-git add version.h
+echo "module.exports = \"$NEXT_REVISION\";" > version.js
+git add version.js
 git commit -m "Preparing for release of $NEXT_REVISION"
 git tag -a $NEXT_REVISION -m "Releasing revision $NEXT_REVISION"
 git push origin $NEXT_REVISION
