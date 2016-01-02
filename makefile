@@ -32,6 +32,7 @@ clean:
 ./build/nwjs/linux-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp ./updater.sh $@/updater.sh
 ifeq ($(DEBUG),1)
 	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
 	mv $@/out.json $@/package.json
@@ -57,6 +58,7 @@ endif
 ./build/nwjs/win-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp ./updater.bat $@/updater.bat
 ifeq ($(DEBUG),1)
 	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
 	mv $@/out.json $@/package.json

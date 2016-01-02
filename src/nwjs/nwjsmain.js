@@ -112,7 +112,11 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 child_process = require("child_process"),
                 nwgui = require('nw.gui'),
                 win = nwgui.Window.get();
-                processPath = path.join(process.cwd(),"updater.sh");
+                if (os.platform() == "win32") {
+                    processPath = path.join(process.cwd(),"updater.bat");
+                } else {
+                    processPath = path.join(process.cwd(),"updater.sh");
+                }
                 console.log("ppath",processPath);
                 child = child_process.spawn(processPath,[updatePath], {detached:true});
                 child.unref();
