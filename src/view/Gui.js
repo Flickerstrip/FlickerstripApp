@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,util,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,util,template) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -58,7 +58,15 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 this.patterns = patterns;
             },this));
 
+            $(this).on("UpdateAvailable",_.bind(this.updateAvailable,this));
+
             this.render();
+            NotificationManager.setWindow(window);
+
+            /*this.$el.append($("<button>Clickme</button>").click(_.bind(function() {
+                //this.conduit.emit("Restart");
+            },this)));
+            */
 
 			//this.tempDialog = new EditPatternDialog(this.conduit,this,{"type":"bitmap"}).show();
 
@@ -90,6 +98,14 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
                 },100);
                 //jxcore("gui_RedirectToSettings").call();
             },this));
+        },
+        updateAvailable:function(e,version) {
+            console.log(arguments);
+            var buttons = [$("<button class='btn btn-primary' data-dismiss='alert'>Update</button></div>"),$("<button class='btn btn-default' data-dismiss='alert'>Hide</button></div>")]
+            buttons[0].click(_.bind(function() {
+                this.conduit.emit("InstallUpdate",version);
+            },this));
+            NotificationManager.notify("info","Version <strong>"+version+"</strong> is available.",30000,buttons);
         },
         releaseUpdated:function(e,release) {
             this.latestRelease = release;

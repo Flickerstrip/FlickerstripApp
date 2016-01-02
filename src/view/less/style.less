@@ -491,6 +491,37 @@ input.seamless {
     }
 }
 
+//Notifications
+.notifications {
+    position: fixed;
+    top: 5px;
+    right: 5px;
+    min-width: 400px;
+    z-index: 1000;
+    padding: 5px;
+    >* {
+        display: none;
+    }
+
+    .alert {
+        .flex-display;
+        .justify-content(flex-start);
+        .align-items(center);
+        .flex-direction(row);
+
+        .alertbody {
+            .flex(1 1 auto);
+        }
+
+        .alertbuttons {
+            .flex(0 0 auto);
+            >* {
+                margin: 0px 3px;
+            }
+        }
+    }
+}
+
 /*
 
 .navigationBar {

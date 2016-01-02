@@ -21,7 +21,7 @@ clean:
 	mkdir ./buildcache
 
 ./buildcache/node_modules: | ./buildcache
-	cp ./src/nwjs/package.json ./buildcache/package.json
+	cat src/nwjs/default.json src/nwjs/user.json | json --deep-merge > ./buildcache/package.json
 	cd ./buildcache/ && npm install
 	rm ./buildcache/package.json
 
@@ -44,6 +44,7 @@ endif
 ./build/nwjs/osx-x64: $(SRC_FILES)
 	mkdir -p $@
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp ./updater.sh $@/updater.sh
 ifeq ($(DEBUG),1)
 	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
 	mv $@/out.json $@/package.json

@@ -22,7 +22,7 @@ requirejs.config({
 });
 
 var win = nw.Window.get();
-win.title = "Flickerstrip - "+pjson.version;
+win.title = "Flickerstrip - v"+pjson.version;
 var nativeMenuBar = new nw.Menu({ type: "menubar" });
 try {
     nativeMenuBar.createMacBuiltin("My App");
@@ -88,6 +88,37 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 if (key.indexOf("_") === 0) return false;
                 return value;
             }));
+
+            if (args[0].name == "Restart") {
+                var child,
+                child_process = require("child_process"),
+                nwgui = require('nw.gui'),
+                win = nwgui.Window.get();
+                if (process.platform == "darwin")  {
+                    child = child_process.spawn("open", ["-n", "-a", process.execPath.match(/^([^\0]+?\.app)\//)[1]], {detached:true});
+                } else {
+                    child = child_process.spawn(process.execPath, [], {detached: true});
+                }
+                child.unref();
+                win.hide();
+                gui.App.quit();
+            }
+
+            if (args[0].name == "Update") {
+                console.log("doing update!");
+                console.log(args);
+                var updatePath = args[0].args[0];
+                var child,
+                child_process = require("child_process"),
+                nwgui = require('nw.gui'),
+                win = nwgui.Window.get();
+                processPath = path.join(process.cwd(),"updater.sh");
+                console.log("ppath",processPath);
+                child = child_process.spawn(processPath,[updatePath], {detached:true});
+                child.unref();
+                win.hide();
+                nwgui.App.quit();
+            }
 
             gui.eventHandler.apply(gui,args);
         }
