@@ -1,0 +1,10 @@
+{
+  "showDebugger":true,
+  "closeOnEsc":true,
+  "_patternRepository":"http://localhost:3000",
+  "patternRepository":"http://flickerstrip.elasticbeanstalk.com",
+  "includedpatterns":"base flickerstrip other",
+  "window": {
+    "toolbar":true
+  }
+}

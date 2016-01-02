@@ -1,7 +1,7 @@
 *.swp
 *.swo
-build
-buildcache
+/build
+/buildcache
 known_strips.json
 node_modules/
 .DS_Store
@@ -11,6 +11,6 @@ nw.pak
 miniterm.py
 npm-debug.log
 .refactorix
-nwjs/
+/nwjs/
 credentials.txt
-releases/
+/releases/
