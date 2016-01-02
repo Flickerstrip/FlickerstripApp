@@ -5,6 +5,7 @@ var ShutdownHandler = require("./controller/ShutdownHandler");
 var Configuration = require("./controller/configuration.js");
 var path = require("path");
 var pjson = require('./package.json');
+var os = require("os");
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
 
@@ -118,7 +119,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                     processPath = path.join(process.cwd(),"updater.sh");
                 }
                 console.log("ppath",processPath);
-                child = child_process.spawn(processPath,[updatePath], {detached:true});
+                child = child_process.spawn(processPath,[updatePath], {detached:true,cwd:process.cwd(),stdio:'ignore'});
                 child.unref();
                 win.hide();
                 nwgui.App.quit();

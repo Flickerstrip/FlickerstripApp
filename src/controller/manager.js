@@ -301,42 +301,19 @@ extend(This.prototype,{
             downloadName = "FlickerstripApp-Linux64-"+version+".zip";
         }
 
-        //var unpackDirectory = path.join(os.tmpdir(),util.generateGuid());
-        //fs.mkdirSync(unpackDirectory);
-        var unpackDirectory = "/var/folders/st/h452tm5d6rq99tf8bpqgz0hr0000gn/T/3707a70b-d7dd-5cea-23ef-e4422a3e5970";
+        var unpackDirectory = path.join(os.tmpdir(),util.generateGuid());
+        fs.mkdirSync(unpackDirectory);
+        //var unpackDirectory = 'C:\\Users\\Julian\\AppData\\Local\\Temp\\71024787-c519-9a6b-d233-6e65473a954b';
 
         var zipPath = path.join(unpackDirectory,downloadName);
-        //var f = fs.createWriteStream(zipPath);
+        var f = fs.createWriteStream(zipPath);
         console.log("installing update",unpackDirectory);
         var downloadedSize = 0;
 
-        function fileFilter(relativePath) {
-            if (relativePath == "nwjs.app") return false;
-            if (relativePath == "nwjc") return false;
-            if (relativePath.split(path.sep)[0] == "patterns") return false;
-            return true;
-        }
-
-        //TODO make this work
+		var self = this;
         function updateFiles() {
             var folderPath = path.join(unpackDirectory,path.parse(zipPath).name);
-            console.log("this",this);
-            this.conduit.emit("Update",folderPath);
-            /*
-            ncp(folderPath, path.join(process.cwd(),"test"), {
-                clobber: true,
-                filter:function(name) {
-                    var relativePath = path.relative(folderPath,name);
-                    var ret = fileFilter(relativePath);
-                    if (!ret) console.log("FALSE",name,relativePath);
-                    return ret;
-                },
-            }, _.bind(function (err) {
-                if (err) return console.error(err);
-                console.log("done updating.. restarting now..");
-                //this.conduit.emit("Restart");
-            },this));
-            */
+            self.conduit.emit("Update",folderPath);
         }
 
         function unpackZip() {
@@ -376,11 +353,12 @@ extend(This.prototype,{
                 });
             });
         }
-        //unpackZip();
-        _.bind(updateFiles,this)();
-        return;
+		
         request("https://github.com/Flickerstrip/FlickerstripApp/releases/download/"+version+"/"+downloadName,function() {
-            unpackZip();
+			console.log("download complete.. unpacking zip");
+			setTimeout(function() {
+				unpackZip();
+			},1000);
         })
         .on("data",function(chunk) {
             downloadedSize += chunk.length;
