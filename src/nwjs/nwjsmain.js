@@ -6,6 +6,7 @@ var Configuration = require("./controller/configuration.js");
 var path = require("path");
 var pjson = require('./package.json');
 var os = require("os");
+var child_process = require("child_process");
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
 
@@ -58,6 +59,47 @@ win.on('close',function() {
     closedOnce = true;
 });
 
+function handleSpecialCommands(command) {
+    if (command.name == "OpenConsole") {
+        var win = nw.Window.get();
+        var dev = win.showDevTools();
+        dev.moveTo(0,win.height+40);
+        dev.height =  window.screen.availHeight - win.height - 20;
+        dev.width =  window.screen.availWidth;
+        win.focus();
+    }
+
+    if (command.name == "OpenLink") {
+        nw.Shell.openExternal( command.args[0] );
+    }
+
+    if (command.name == "Restart") {
+        var child;
+        if (process.platform == "darwin")  {
+            child = child_process.spawn("open", ["-n", "-a", process.execPath.match(/^([^\0]+?\.app)\//)[1]], {detached:true});
+        } else {
+            child = child_process.spawn(process.execPath, [], {detached: true});
+        }
+        child.unref();
+        win.hide();
+        gui.App.quit();
+    }
+
+    if (command.name == "Update") {
+        var updatePath = command.args[0];
+        var child;
+        if (os.platform() == "win32") {
+            processPath = path.join(process.cwd(),"updater.bat");
+        } else {
+            processPath = path.join(process.cwd(),"updater.sh");
+        }
+        child = child_process.spawn(processPath,[updatePath], {detached:true,cwd:process.cwd(),stdio:'ignore'});
+        child.unref();
+        win.hide();
+        nwgui.App.quit();
+    }
+}
+
 var $$ = require('jquery');
 requirejs(['jquery','./view/Gui.js'],function($,Gui) {
     $$(document).ready(function() {
@@ -67,20 +109,14 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
 
         var gui, manager;
 
+
         function guiEmit() {
             var args = JSON.parse(JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
                 if (key.indexOf("_") === 0) return false;
                 return value;
             }));
 
-            if (args[0].name == "OpenConsole") {
-                var win = nw.Window.get();
-                var dev = win.showDevTools();
-                dev.moveTo(0,win.height+40);
-                dev.height =  window.screen.availHeight - win.height - 20;
-                dev.width =  window.screen.availWidth;
-                win.focus();
-            }
+            handleSpecialCommands(args[0]);
 
             manager.eventHandler.apply(manager,args);
         }
@@ -90,40 +126,7 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
                 return value;
             }));
 
-            if (args[0].name == "Restart") {
-                var child,
-                child_process = require("child_process"),
-                nwgui = require('nw.gui'),
-                win = nwgui.Window.get();
-                if (process.platform == "darwin")  {
-                    child = child_process.spawn("open", ["-n", "-a", process.execPath.match(/^([^\0]+?\.app)\//)[1]], {detached:true});
-                } else {
-                    child = child_process.spawn(process.execPath, [], {detached: true});
-                }
-                child.unref();
-                win.hide();
-                gui.App.quit();
-            }
-
-            if (args[0].name == "Update") {
-                console.log("doing update!");
-                console.log(args);
-                var updatePath = args[0].args[0];
-                var child,
-                child_process = require("child_process"),
-                nwgui = require('nw.gui'),
-                win = nwgui.Window.get();
-                if (os.platform() == "win32") {
-                    processPath = path.join(process.cwd(),"updater.bat");
-                } else {
-                    processPath = path.join(process.cwd(),"updater.sh");
-                }
-                console.log("ppath",processPath);
-                child = child_process.spawn(processPath,[updatePath], {detached:true,cwd:process.cwd(),stdio:'ignore'});
-                child.unref();
-                win.hide();
-                nwgui.App.quit();
-            }
+            handleSpecialCommands(args[0]);
 
             gui.eventHandler.apply(gui,args);
         }

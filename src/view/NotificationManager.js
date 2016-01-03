@@ -9,9 +9,7 @@ function($,_) {
             this.$el = $("<div class='notifications'/>");
         },
         setWindow:function(window) {
-            console.log("set window");
             this.window = window;
-            console.log("adding to body",window.document.body,this.$el);
             $(window.document.body).append(this.$el);
         },
         //success info warning danger

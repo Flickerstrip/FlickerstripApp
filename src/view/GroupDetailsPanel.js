@@ -130,7 +130,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
                 this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
-                var progressDialog = new ProgressDialog(true);
+                var progressDialog = new ProgressDialog("Uploading Pattern",true);
                 progressDialog.show();
                 $(strip).one("Strip.UploadPatternComplete",_.bind(function() {
                     this.patternDialog.hide();

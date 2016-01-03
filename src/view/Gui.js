@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,util,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,util,template) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -36,6 +36,7 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
         stripListComponent:null,
         stripRenderer:null,
         activePattern:null,
+        progress:null,
         init:function(document,send) {
             this.$el = $(document.body);
             this.$el.addClass("theme1");
@@ -59,6 +60,26 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             },this));
 
             $(this).on("UpdateAvailable",_.bind(this.updateAvailable,this));
+
+            $(this).on("ShowProgress",_.bind(function(e,text,waiting) {
+                if (!this.progress) {
+                    this.progress = new ProgressDialog(text,waiting).show();
+                } else {
+                    this.progress.update(0);
+                    this.progress.set(text,waiting);
+                }
+            },this));
+
+            $(this).on("UpdateProgress",_.bind(function(e,percent) {
+                if (!this.progress) return;
+                this.progress.update(percent);
+            },this));
+
+            $(this).on("HideProgress",_.bind(function(e) {
+                if (!this.progress) return;
+                this.progress.hide();
+                this.progress = null;
+            },this));
 
             this.render();
             NotificationManager.setWindow(window);
@@ -100,7 +121,6 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             },this));
         },
         updateAvailable:function(e,version) {
-            console.log(arguments);
             var buttons = [$("<button class='btn btn-primary' data-dismiss='alert'>Update</button></div>"),$("<button class='btn btn-default' data-dismiss='alert'>Hide</button></div>")]
             buttons[0].click(_.bind(function() {
                 this.conduit.emit("InstallUpdate",version);
@@ -213,6 +233,10 @@ function($,_, gutil, tinycolor, ControlsView, LEDStripRenderer, SelectList, Grou
             var selectList = new SelectList([],this.stripElementRenderer,this,null,this.stripElementGroupRenderer);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
+
+            this.$el.find(".reportIssue").click(_.bind(function() {
+                this.conduit.emit("OpenLink","https://github.com/Flickerstrip/FlickerstripApp/issues");
+            },this));
 
             var self = this;
             $.contextMenu( 'destroy' );

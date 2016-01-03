@@ -37,7 +37,7 @@
     "get-pixels":"3.2.3",
     "yauzl":"2.4.1",
     "mkdirp":"0.5.1",
-    "ncp":"2.0.0"
+    "request-progress":"0.4.0"
   },
   "repository": {
     "type": "git",

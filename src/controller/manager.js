@@ -16,7 +16,7 @@ var os = require("os");
 var getPixels = require("get-pixels")
 var yauzl = require("yauzl");
 var mkdirp = require("mkdirp");
-var ncp = require('ncp').ncp;
+var progress = require('request-progress');
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -149,9 +149,6 @@ extend(This.prototype,{
 
         this.on("GetUser",_.bind(function(callback) {
             callback(this.config.user);
-        },this));
-
-        this.on("OpenConsole",_.bind(function() {
         },this));
 
         this.on("CreateUser",_.bind(function(callback,email,password,display) {
@@ -307,25 +304,23 @@ extend(This.prototype,{
 
         var zipPath = path.join(unpackDirectory,downloadName);
         var f = fs.createWriteStream(zipPath);
-        console.log("installing update",unpackDirectory);
-        var downloadedSize = 0;
 
-		var self = this;
         function updateFiles() {
+            this.conduit.emit("HideProgress");
             var folderPath = path.join(unpackDirectory,path.parse(zipPath).name);
-            self.conduit.emit("Update",folderPath);
+            this.conduit.emit("Update",folderPath);
         }
 
         function unpackZip() {
-            console.log("done downloading");
-            yauzl.open(zipPath, {lazyEntries: true}, function(err, zipfile) {
+            this.conduit.emit("ShowProgress","Unpacking...",false);
+            yauzl.open(zipPath, {lazyEntries: true},_.bind(function(err, zipfile) {
                 if (err) throw err;
                 zipfile.readEntry();
                 var entriesTotal = zipfile.entryCount;
                 var entriesRead = 0;
-                zipfile.on("entry", function(entry) {
+                zipfile.on("entry",_.bind(function(entry) {
                     entriesRead++;
-                    //console.log(entriesRead+"/"+entriesTotal); TODO display status
+                    this.conduit.emit("UpdateProgress",Math.floor(100*entriesRead/entriesTotal));
                     if (/\/$/.test(entry.fileName)) {
                         // directory file names end with '/' 
                         mkdirp(path.join(unpackDirectory,entry.fileName), function(err) {
@@ -346,27 +341,19 @@ extend(This.prototype,{
                             });
                         });
                     }
-                });
-                zipfile.once("end", function() {
-                    console.log("Unzipping complete!");
-                    updateFiles();
-                });
-            });
+                },this));
+                zipfile.once("end",_.bind(updateFiles,this));
+            },this));
         }
 		
-        request("https://github.com/Flickerstrip/FlickerstripApp/releases/download/"+version+"/"+downloadName,function() {
-			console.log("download complete.. unpacking zip");
-			setTimeout(function() {
-				unpackZip();
-			},1000);
-        })
-        .on("data",function(chunk) {
-            downloadedSize += chunk.length;
-            //update status
-        })
-        .on("response",function() {
-            console.log("response",arguments);
-        }).pipe(f);
+        this.conduit.emit("ShowProgress","Downloading Version <strong>"+version+"</strong>",false);
+        progress(request("https://github.com/Flickerstrip/FlickerstripApp/releases/download/"+version+"/"+downloadName,_.bind(function() {
+			setTimeout(_.bind(unpackZip,this),300);
+        },this)))
+        .on("progress",_.bind(function(state) {
+            this.conduit.emit("UpdateProgress",state.percent);
+        },this))
+        .pipe(f);
         //https://github.com/Flickerstrip/FlickerstripApp/releases/download/v0.3.1/FlickerstripApp-Linux64-v0.3.1.zip
     },
     checkForUpdates:function() {
@@ -381,14 +368,12 @@ extend(This.prototype,{
                 console.log("Failed to load flickerstrip app release information: ",error.code);
                 return;
             }
-            console.log("releases",releases);
             releases.sort(function(b,a) {
                 return util.symanticToNumeric(a["tag_name"]) - util.symanticToNumeric(b["tag_name"]);
             });
             this.appReleases = releases;
             var latest = releases[0];
             var tagName = latest["tag_name"];
-            this.conduit.emit("UpdateAvailable",tagName);
             if (util.symanticToNumeric(tagName) > util.symanticToNumeric(pjson.version)) {
                 this.conduit.emit("UpdateAvailable",tagName);
             }

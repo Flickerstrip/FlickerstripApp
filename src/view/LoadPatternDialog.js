@@ -75,7 +75,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         uploadPattern:function() {
             if (!this.selectedPatternObject) return;
 
-            var progress = new ProgressDialog(true).show();
+            var progress = new ProgressDialog("Uploading pattern",true).show();
             this.conduit.request("UploadPattern",this.selectedPatternObject,_.bind(function() {
                 progress.hide();
                 this.$el.find(".uploadPattern").text("Uploaded!").addClass("disabled");

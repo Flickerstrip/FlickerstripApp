@@ -4,12 +4,18 @@ define(["jquery","view/util.js","text!../tmpl/progressDialog.html"],function($,u
     }
 
     $.extend(This.prototype, {
-        init:function(waiting) {
+        init:function(text,waiting) {
             this.$el = $("<div class='progressDialog'/>");
-            this.waiting = waiting;
 
             this.$el.append(template);
 
+            this.set(text,waiting);
+        },
+        set:function(text,waiting) {
+            this.waiting = waiting;
+            this.text = text;
+
+            if (this.text) this.$el.find(".mtitle").html(text);
             if (this.waiting) this.$el.find(".progress-bar").css("width","100%").text("");
         },
         update:function(percent) {
