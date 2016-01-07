@@ -271,7 +271,7 @@ input.seamless {
     background-color: #9cf;
 }
 .listElement:hover {
-    background-color: #ccc;
+    background-color: #eee;
 }
 //////////////////////////// Widgets /////////////////////////
 
@@ -338,11 +338,29 @@ input.seamless {
     transition: none;
 }
 
+.stripListing .listElement {
+	padding-right: 0px;
+}
 .powerButton {
     color: black;
+	&:hover,&:focus {
+		background-color: #ddd;
+	}
     &.on {
-        color: green;
+        color: #0f0;
+		&:hover,&:focus {
+			background-color: #ddd;
+		}
     }
+
+	height: 100%;
+	width:70px;
+	border-top: none;
+	border-bottom: none;
+	border-right: none;
+	border-radius: 0;
+	margin-left: 8px;
+
 }
 
 .patternConfiguration {

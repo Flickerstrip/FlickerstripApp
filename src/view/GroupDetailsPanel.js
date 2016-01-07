@@ -69,6 +69,10 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             } else if (this.strips.length == 1) {
                 var strip = this.strips[0];
 
+				var renderedPatternHash = _.pluck(strip.patterns,"name").join("\t");
+				if (renderedPatternHash == this.renderedPatternHash) return; //most times the patterns are identical
+				this.renderedPatternHash = renderedPatternHash;
+
                 //update header
                 var $header = this.$el.find(".stripHeader");
                 $header.find(".identifierValue").text(strip.id);
@@ -178,7 +182,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
                 //$select.on("click",_.bind(this.selectPatternClicked,this));
 
-                if (platform == "mobile") {
+                if (false && platform == "mobile") {
                     $el.touchwipe({
                          wipeRight: _.bind(function() {
                             if ($el.hasClass("showDeleteButton")) {

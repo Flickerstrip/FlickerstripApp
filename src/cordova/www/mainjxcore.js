@@ -44,8 +44,8 @@ function jxcore_ready() {
             console.log = log;
             platform = "mobile";
 
-            $(document).on("touchmove", function(evt) { evt.preventDefault() });
-            $(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
+            //$(document).on("touchmove", function(evt) { evt.preventDefault() });
+            //$(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
 
             try {
                 gui = new Gui(window,function() {
@@ -63,7 +63,7 @@ function jxcore_ready() {
         });
     }
 
-    var instant = true; //set this to true to debug initialization
+    var instant = true; //set this to false to debug initialization
     if (instant) {
         init();
     } else {

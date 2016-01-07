@@ -9,7 +9,7 @@ define(['jquery'],function($) {
         },
         init:function(data,renderer,rendererthis,opts,grouprenderer) {
             this.rendererthis = rendererthis;
-            this.$el = $("<ul class='list-group'/>");
+            this.$el = $("<ul class='list-group scrollable'/>");
             this.$el.attr("tabindex","0");
             this.$el.css("user-select","none");
             this.selectedIndexes = [];
