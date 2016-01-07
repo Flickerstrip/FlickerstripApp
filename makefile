@@ -25,8 +25,8 @@ clean:
 	cd ./buildcache/ && npm install
 	rm ./buildcache/package.json
 
-./buildcache/jxcore_cordova: | ./buildcache
-	cd ./buildcache && git clone https://github.com/jxcore/jxcore-cordova
+#./buildcache/jxcore-cordova: | ./buildcache
+#cd ./buildcache && git clone https://github.com/jxcore/jxcore-cordova
 
 ############ NWJS
 ./build/nwjs/linux-x64: $(SRC_FILES)
@@ -34,11 +34,9 @@ clean:
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 	cp ./updater.sh $@/updater.sh
 ifeq ($(DEBUG),1)
-	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/debug.json | json --deep-merge > $@/package.json
 else
-	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/user.json | json --deep-merge > $@/package.json
 endif
 	cp -r ./nwjs/`basename $@`/* $@
 
@@ -47,11 +45,9 @@ endif
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 	cp ./updater.sh $@/updater.sh
 ifeq ($(DEBUG),1)
-	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/debug.json | json --deep-merge > $@/package.json
 else
-	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/user.json | json --deep-merge > $@/package.json
 endif
 	cp -r ./nwjs/`basename $@`/* $@
 
@@ -60,11 +56,9 @@ endif
 	rsync $(RSYNC_OPT) ./src/nwjs/* $@
 	cp ./updater.bat $@/updater.bat
 ifeq ($(DEBUG),1)
-	cat $@/default.json $@/debug.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/debug.json | json --deep-merge > $@/package.json
 else
-	cat $@/default.json $@/user.json | json --deep-merge > $@/out.json
-	mv $@/out.json $@/package.json
+	cat ./src/default.json ./src/user.json | json --deep-merge > $@/package.json
 endif
 	cp -r ./nwjs/`basename $@`/* $@
 
@@ -98,58 +92,90 @@ nwjs_all: linux-x64 osx-x64 win-x64
 
 
 ############ CORDOVA
-cordova_prepare:
-	mkdir -p ./build/cordova
-	mkdir -p ./build/cordova/www/jxcore
+./build/cordova: ./build/cordova/www ./build/cordova/config.xml | ./build/cordova/plugins ./build/cordova/platforms
 
+#Download jxcore
+./buildcache/io.jxcore.node.jx: | ./buildcache
+	cd ./buildcache && wget http://az836273.vo.msecnd.net/0.0.8/io.jxcore.node.jx
+
+#Download node modules
 ./build/cordova/www/jxcore/node_modules: | ./buildcache/node_modules
+	mkdir -p ./build/cordova/www/jxcore
 	cp -r ./buildcache/node_modules ./build/cordova/www/jxcore/
 
-cordova_update: cordova_prepare | ./build/cordova/www/jxcore/node_modules
-	rsync $(RSYNC_OPT) ./src/controller ./build/cordova/www/jxcore
-	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www/jxcore
-	rsync $(RSYNC_OPT) ./src/view ./build/cordova/www/ --exclude less
-	rsync $(RSYNC_OPT) ./src/cordova/www ./build/cordova/
-	rsync $(RSYNC_OPT) ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
+#update config.xml
+./build/cordova/config.xml: ./src/cordova/cordovaconfig.xml
+	cp ./src/cordova/cordovaconfig.xml ./build/cordova/config.xml
 
-coreExtensions: ./build/cordova/jxcore-cordova ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java ./build/cordova/jxcore-cordova/plugin.xml
+./build/cordova/www/jxcore/package.json: ./src/user.json ./src/default.json
+	mkdir -p ./build/cordova/www/jxcore
+	cat ./src/default.json ./src/user.json | json --deep-merge > $@
 
-./build/cordova/jxcore-cordova/plugin.xml: ./src/cordova/plugin.xml
-	cp ./src/cordova/plugin.xml ./build/cordova/jxcore-cordova/plugin.xml
-	-rm -rf ./build/cordova/plugins
-	-rm -rf ./build/cordova/platforms
-
-./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h: ./src/cordova/ios/JXcoreExtension.h
-	cp ./src/cordova/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h
-	-rm -rf ./build/cordova/plugins
-	-rm -rf ./build/cordova/platforms
-
-./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m: ./src/cordova/ios/JXcoreExtension.m
-	cp ./src/cordova/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m
-	-rm -rf ./build/cordova/plugins
-	-rm -rf ./build/cordova/platforms
-
-./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java: ./src/cordova/android/JXcoreExtension.java
-	cp ./src/cordova/android/JXcoreExtension.java ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java
-	-rm -rf ./build/cordova/plugins
-	-rm -rf ./build/cordova/platforms
-
-./build/cordova/jxcore-cordova: | cordova_prepare ./buildcache/jxcore-cordova
-	cp -r ./buildcache/jxcore-cordova ./build/cordova/
-	rm ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java ./build/cordova/jxcore-cordova/plugin.xml
-
-./build/cordova/plugins: | ./build/cordova/jxcore-cordova
-	cd ./build/cordova && cordova plugin add jxcore-cordova
-	cd ./build/cordova && cordova plugin add cordova-plugin-statusbar
-
-./build/cordova/platforms: | cordova_update
-	cd ./build/cordova && cordova platforms add android ios
-
+#update application code
 ./build/cordova/www/view/css/style.css: $(LESS_FILES)
 	mkdir -p ./build/cordova/www/view/css/
 	lessc ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
 
-cordova: cordova_update ./build/cordova/www/view/css/style.css coreExtensions | ./build/cordova/plugins ./build/cordova/platforms
+./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules $(CONTROLLER_FILES) $(SHARED_FILES) $(VIEW_FILES)
+	mkdir -p ./build/cordova/www
+	rsync $(RSYNC_OPT) ./src/controller ./build/cordova/www/jxcore
+	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www/jxcore
+	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www
+	rsync $(RSYNC_OPT) ./src/view ./build/cordova/www/ --exclude less
+	rsync $(RSYNC_OPT) ./src/cordova/www ./build/cordova/
+
+####### Plugins
+./build/cordova/plugins: ./build/cordova/plugins/cordova-plugin-statusbar ./build/cordova/plugins/io.jxcore.node
+
+./build/cordova/plugins/cordova-plugin-statusbar:
+	cd ./build/cordova && cordova plugin add cordova-plugin-statusbar
+
+./build/cordova/plugins/io.jxcore.node:
+	cd ./build/cordova && jxc install ../../buildcache/io.jxcore.node.jx
+
+####### Platforms
+./build/cordova/platforms: ./build/cordova/platforms/ios ./build/cordova/platforms/android
+
+./build/cordova/platforms/ios:
+	cd ./build/cordova && cordova platforms add ios
+
+./build/cordova/platforms/android:
+	cd ./build/cordova && cordova platforms add android
+
+#coreExtensions: ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java ./build/cordova/jxcore-cordova/plugin.xml
+
+#./build/cordova/jxcore-cordova/plugin.xml: ./src/cordova/plugin.xml
+#cp ./src/cordova/plugin.xml ./build/cordova/jxcore-cordova/plugin.xml
+#-rm -rf ./build/cordova/plugins
+#-rm -rf ./build/cordova/platforms
+
+#./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h: ./src/cordova/ios/JXcoreExtension.h
+#cp ./src/cordova/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h
+#-rm -rf ./build/cordova/plugins
+#-rm -rf ./build/cordova/platforms
+
+#./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m: ./src/cordova/ios/JXcoreExtension.m
+#cp ./src/cordova/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m
+#-rm -rf ./build/cordova/plugins
+#-rm -rf ./build/cordova/platforms
+
+#./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java: ./src/cordova/android/JXcoreExtension.java
+#cp ./src/cordova/android/JXcoreExtension.java ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java
+#-rm -rf ./build/cordova/plugins
+#-rm -rf ./build/cordova/platforms
+
+#./build/cordova/jxcore-cordova: | cordova_prepare ./buildcache/jxcore-cordova
+#cp -r ./buildcache/jxcore-cordova ./build/cordova/
+#rm ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.h ./build/cordova/jxcore-cordova/src/ios/JXcoreExtension.m ./build/cordova/jxcore-cordova/src/android/java/io/jxcore/node/JXcoreExtension.java ./build/cordova/jxcore-cordova/plugin.xml
+
+#./build/cordova/plugins: | ./buildcache/io.jxcore.node.jx
+#cd ./build/cordova && jxc install ../../buildcache/io.jxcore.node.jx
+#cd ./build/cordova && cordova plugin add cordova-plugin-statusbar
+
+#./build/cordova/platforms: | cordova_update
+#cd ./build/cordova && cordova platforms add android ios
+
+cordova: ./build/cordova
 
 run_ios: cordova
 	cd ./build/cordova && cordova run ios
