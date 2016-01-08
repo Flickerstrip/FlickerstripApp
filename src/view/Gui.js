@@ -235,6 +235,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $stripList.append(selectList.$el);
 
             this.$el.find(".reportIssue").click(_.bind(function() {
+                console.log("report issue clicked!");
                 this.conduit.emit("OpenLink","https://github.com/Flickerstrip/FlickerstripApp/issues");
             },this));
 

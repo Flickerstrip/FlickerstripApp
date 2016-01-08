@@ -39,6 +39,13 @@ function jxcore_ready() {
         return false;
     }
 
+    function handleSpecialCommands(command) {
+        log("handling command",command.name);
+        if (command.name == "OpenLink") {
+            cordova.InAppBrowser.open(command.args[0], '_system');
+        }
+    }
+
     function init() {
         requirejs(['jquery','view/Gui.js'],function($,Gui) {
             console.log = log;
@@ -53,6 +60,10 @@ function jxcore_ready() {
                         if (key && key.indexOf && key.indexOf("_") === 0) return false;
                         return value;
                     });
+
+                    log("got message: "+JSON.stringify(arguments[0]));
+                    handleSpecialCommands(arguments[0]);
+
                     jxcore("guiEventReceived").call(args);
                 });
             } catch (e) {

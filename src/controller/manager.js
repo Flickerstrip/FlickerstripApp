@@ -26,8 +26,8 @@ nutil.inherits(This,EventEmitter);
 extend(This.prototype,{
     strips:[],
     firmwareReleases:[],
-    init:function(config,send,platform) {
-        this.config = config;
+    init:function(folderConfig,send,platform) {
+        this.folderConfig = folderConfig;
         this.platform = platform;
         this.serverLocation = pjson.patternRepository;
         this.conduit = util.createConduit(send);
@@ -61,8 +61,8 @@ extend(This.prototype,{
             var releaseTag = this.firmwareReleases[0]["tag_name"];
             console.log("uploading firmware: ",releaseTag);
             this.downloadFirmware(releaseTag,_.bind(function() {
-                console.log(this.config.firmwareFolder,releaseTag);
-                strip.uploadFirmware(path.join(this.config.firmwareFolder,releaseTag+".bin"));
+                console.log(this.folderConfig.firmwareFolder,releaseTag);
+                strip.uploadFirmware(path.join(this.folderConfig.firmwareFolder,releaseTag+".bin"));
             },this));
         },this));
 
@@ -243,7 +243,7 @@ extend(This.prototype,{
             if (pattern.path) fs.unlinkSync(pattern.path);
 
             var name = pattern.name.replace(/[^a-zA-z0-9]/,"");
-            fs.writeFile(path.join(this.config.patternFolder,name+".pattern"),out,"utf8",_.bind(function(err) {
+            fs.writeFile(path.join(this.folderConfig.patternFolder,name+".pattern"),out,"utf8",_.bind(function(err) {
                 this.loadPatterns();
             },this));
         },this));
@@ -269,9 +269,10 @@ extend(This.prototype,{
         return pattern;
     },
     loadPatterns:function() {
-        fs.readdir(this.config.patternFolder,_.bind(function(err,files) {
+        fs.readdir(this.folderConfig.patternFolder,_.bind(function(err,files) {
+            if (err) return console.log("ERROR READING DIR",err);
             async.map(files,_.bind(function(file,callback) {
-                fs.readFile(path.join(this.config.patternFolder,file),'utf8',callback);
+                fs.readFile(path.join(this.folderConfig.patternFolder,file),'utf8',callback);
             },this),_.bind(function(err,results) {
                 this.patterns = [];
                 _.each(_.zip(files,results),_.bind(function(info) {
@@ -280,7 +281,7 @@ extend(This.prototype,{
                     if (filename[0] == '.') return;
                     var pattern = this.populatePattern(content);
 
-                    pattern.path = path.join(this.config.patternFolder,filename);
+                    pattern.path = path.join(this.folderConfig.patternFolder,filename);
                     this.patterns.push(pattern);
                 },this));
 
@@ -410,10 +411,10 @@ extend(This.prototype,{
         },this));
     },
     downloadFirmware:function(release,cb) {
-         if (!fs.existsSync(this.config.firmwareFolder)){
-            fs.mkdirSync(this.config.firmwareFolder);
+         if (!fs.existsSync(this.folderConfig.firmwareFolder)){
+            fs.mkdirSync(this.folderConfig.firmwareFolder);
         }
-        var binPath = path.join(this.config.firmwareFolder,release+".bin");
+        var binPath = path.join(this.folderConfig.firmwareFolder,release+".bin");
         if (fs.existsSync(binPath)) {
             if (cb) cb(false);
             return;
@@ -439,11 +440,11 @@ extend(This.prototype,{
         }
     },
     loadConfig:function(cb) {
-        if (!fs.existsSync(this.config.configLocation)) {
+        if (!fs.existsSync(this.folderConfig.configLocation)) {
             if (cb) cb();
             return;
         }
-        fs.readFile(this.config.configLocation, "ascii", _.bind(function(err,contents) {
+        fs.readFile(this.folderConfig.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             var config = util.parseJson(contents);
             this.config = config;
@@ -484,7 +485,7 @@ extend(This.prototype,{
             }
             return value;
         });
-        fs.writeFile(this.config.configLocation,text,function(err) {
+        fs.writeFile(this.folderConfig.configLocation,text,function(err) {
             if (err) console.err("Failed to write strip data",err);
             if (cb && typeof(cb) == "function") cb();
         });
