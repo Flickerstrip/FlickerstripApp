@@ -28,6 +28,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             return false;
         },
         update:function() {
+		    if (!this.strip) return;
             var name = this.strip.name || "Unknown Strip";
             this.$el.find(".name").text(name);
 

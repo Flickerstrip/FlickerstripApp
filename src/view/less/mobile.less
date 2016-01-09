@@ -208,6 +208,45 @@ body {
 		}
 	}
 }
+
+.patternSelectionPanel {
+	.flex-display;
+	.flex-direction(column);
+	.body {
+		.flex(1 1 auto);
+		.flex-display;
+		.flex-direction(row);
+		.align-items(stretch);
+		.nextToPreview {
+			.flex(1 1 auto);
+			.flex-display;
+			.flex-direction(column);
+
+			.serverPatterns {
+				.flex(1 1 auto);
+				.flexExpandContent;
+			}
+
+			.buttons {
+				.flex(0 0 auto);
+				.flex-display;
+				.flex-direction(row);
+				>* {
+					.flex(1 1 auto);
+				}
+
+				.previewPatternButton {
+					margin-right: 10px;
+				}
+			}
+		}
+		.preview {
+			.flex(0 0 auto);
+			padding-left: 10px;
+			width: 20px;
+		}
+	}
+}
 /////////////////////////////////////////////////////////////
 
 .progressDialog {

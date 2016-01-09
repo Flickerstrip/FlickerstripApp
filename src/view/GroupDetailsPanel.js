@@ -1,4 +1,4 @@
-define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -123,9 +123,16 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.conduit.emit("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-            this.patternDialog = new LoadPatternDialog(this.conduit,this.gui,this.strips);
-            $(this.patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
-            this.patternDialog.show();
+		    console.log("load pattern clicked",MobileLoadPatternDialog);
+            if (platform == "mobile") {
+				this.patternDialog = new MobileLoadPatternDialog(this.conduit,this.gui);
+				$(this.patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
+				this.patternDialog.show();
+			} else {
+				this.patternDialog = new LoadPatternDialog(this.conduit,this.gui,this.strips);
+				$(this.patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));
+				this.patternDialog.show();
+			}
         },
         uploadFirmwareClicked:function(e) {
             this.conduit.emit("UploadFirmware",this.strip.id);

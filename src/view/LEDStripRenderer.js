@@ -55,12 +55,21 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             this.repaint();
         },
         resizeToParent:function() {
-            this.canvas.width = this.$el.parent().width();
-            this.repaint();
+		    if (platform == "mobile") {
+				this.canvas.height = this.$el.parent().height();
+				this.canvas.width = 10;
+			} else {
+				this.canvas.width = this.$el.parent().width();
+			}
+			this.repaint();
         },
         repaint:function() {
             var g = this.canvas.getContext("2d");
-            this.paint(g);
+			if (platform == "mobile") {
+				this.paintMobile(g);
+			} else {
+				this.paint(g);
+			}
         },
         stop:function() {
             this.running = false;
@@ -171,6 +180,35 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             drawLine(g,loc.x,framePositionY,loc.x+loc.width,framePositionY);
             */
         },
+		paintMobile:function(g) {
+            if (this.running && !frameDebug) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+
+            if (!(this.pattern && this.rendered)) return;
+
+            var imgctx = this.rendered.getContext("2d");
+            var imageData = imgctx.getImageData(0,0,this.rendered.width,this.rendered.height);
+
+            var currentFrame = Math.floor((this.pattern.fps*((new Date().getTime() - this.startTime)/1000)) % this.pattern.frames);
+
+            var usableHeight = this.canvas.height;
+            var separation = usableHeight / this.stripLength;
+
+            g.clearRect(0,0,this.canvas.width,this.canvas.height);
+
+            //render LED strip at current frame
+            for (var i=0; i<this.stripLength; i++) {
+                var pixel = util.getPixelFromImageData(imageData,i,currentFrame);
+                var c = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
+
+                g.fillStyle = tinycolor(c.toString()).toHexString();
+                g.fillRect(
+						0,
+						i*separation,
+						ledHeight,
+						separation
+						);
+            }
+		},
         setPattern:function(pattern) {
             this.pattern = pattern;
             this.updatePatternCache();
@@ -185,6 +223,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 return;
             }
 
+			console.log("rendered data",this.pattern.data[0],this.pattern.data[1],this.pattern.data[2],this.pattern.data[3],this.pattern.data[4]);
             //                                 data              width               height              cWidth           chght xpo,rpt
             this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,false,true);
         },

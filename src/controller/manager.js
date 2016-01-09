@@ -32,6 +32,7 @@ extend(This.prototype,{
         this.serverLocation = pjson.patternRepository;
         this.conduit = util.createConduit(send);
 
+        this.config = {};
         this.loadConfig(_.bind(function() {
             this.discovery = new DiscoveryServer();
             this.discovery.on("DiscoveredClient",_.bind(this.clientDiscovered,this));

@@ -211,6 +211,7 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
                 try {
                     var evaluatedPattern = eval("("+pattern.body+")");
                 } catch (e) {
+					throw e;
                     console.log("Error evaluating pattern",pattern.body);
                 }
 

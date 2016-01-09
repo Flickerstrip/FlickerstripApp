@@ -117,7 +117,7 @@ nwjs_all: linux-x64 osx-x64 win-x64
 	mkdir -p ./build/cordova/www/view/css/
 	lessc ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
 
-./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules $(CONTROLLER_FILES) $(SHARED_FILES) $(VIEW_FILES) ./src/cordova/www/mainjxcore.js
+./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules $(SRC_FILES)
 	mkdir -p ./build/cordova/www
 	rsync $(RSYNC_OPT) ./src/controller ./build/cordova/www/jxcore
 	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www/jxcore
