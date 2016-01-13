@@ -43,11 +43,12 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             this.conduit = util.createConduit(send);
 
             $(document).on('show.bs.modal', function (e) {
-                var zIndex = 1040 + (10 * $('.modal:visible').length);
-                var $el = $(e.target);
-                $el.css('z-index', zIndex);
-                $el.children().css("z-index",zIndex+1);
                 setTimeout(function() {
+                    var visibleModals = $(document.body).find('.modal:visible').length;
+                    var zIndex = 1040 + (10 * visibleModals);
+                    var $el = $(e.target);
+                    $el.css('z-index', zIndex);
+                    $el.children().css("z-index",zIndex+1);
                     $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
                 }, 5);
             });

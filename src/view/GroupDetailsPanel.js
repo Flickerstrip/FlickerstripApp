@@ -123,7 +123,6 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.conduit.emit("SelectPattern",this.strip.id,pattern.index);
         },
         loadPatternClicked:function(e) {
-		    console.log("load pattern clicked",MobileLoadPatternDialog);
             if (platform == "mobile") {
 				this.patternDialog = new MobileLoadPatternDialog(this.conduit,this.gui);
 				$(this.patternDialog).on("LoadPatternClicked",_.bind(this.savePattern,this));

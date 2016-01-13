@@ -8,7 +8,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         init:function(conduit,gui,strips) {
             this.conduit = conduit;
             this.gui = gui;
-            this.$el = $("<div class='loadPatternDialog largemodal'/>");
+            this.$el = $("<div class='loadPatternDialog modal largemodal'/>");
             this.strips = strips;
 
             this.$el.append(platform == "mobile" ? mobile_template : desktop_template);
