@@ -15,38 +15,58 @@ function($,tinycolor,util,desktop_template) {
             this.$el.append(desktop_template);
             this.$el = this.$el.children();
 
-            this.$email = this.$el.find("#email");
-            this.$password = this.$el.find("#password");
+			this.showLogin();
 
-            this.$el.find(".loginCreate").click(_.bind(this.loginClicked,this));
+            this.$el.find(".loginButton").click(_.bind(this.loginClicked,this));
+            this.$el.find(".createAccountLink").click(_.bind(this.showCreateAccount,this));
+            this.$el.find(".createButton").click(_.bind(this.createUserClicked,this));
 
             this.$el.find(".hideButton").click(_.bind(function() {
                 this.hide()
             },this));
         },
+		showCreateAccount:function() {
+			this.$el.find(".login").hide();
+		    this.$el.find(".error").empty();
+			this.$el.find(".create").show();
+		},
+		showLogin:function() {
+		    this.$el.find(".error").empty();
+			this.$el.find(".create").hide();
+			this.$el.find(".login").show();
+		},
         loginClicked:function() {
-            var email = this.$email.val();
-            var password = this.$password.val();
+            var email = this.$el.find(".login #email").val();
+            var display = this.$el.find(".login #display").val();
+            var password = this.$el.find(".login #password").val();
             this.conduit.request("VerifyUser",email,password,_.bind(function(success,user) {
                 if (!success) {
-                    this.$el.addClass("displayPrompt");
-                    this.$el.find(".createAccount").one("click",_.bind(function() {
-                        var display = this.$el.find("#display").val();
-                        this.conduit.request("CreateUser",email,password,display,_.bind(function(success,user) {
-                            if (success) {
-                                this.hide();
-                                $(this).trigger("Login",[email,password,user.id]);
-                            } else {
-                                this.$el.find(".error").text("Login/Create failed");
-                            }
-                        },this));
-                    },this));
+					this.$el.find(".error").text("User/Password not found!");
                 } else {
                     this.hide();
                     $(this).trigger("Login",[email,password,user.id]);
                 }
             },this));
         },
+		createUserClicked:function() {
+            var email = this.$el.find(".create #email").val();
+            var display = this.$el.find(".create #display").val();
+            var password = this.$el.find(".create #password").val();
+            var confirmPassword = this.$el.find(".create #confirmPassword").val();
+			if (confirmPassword != password) {
+				this.$el.find(".error").text("Passwords do not match!");
+				return;
+			}
+			var display = this.$el.find("#display").val();
+			this.conduit.request("CreateUser",email,password,display,_.bind(function(success,user) {
+				if (success) {
+					this.hide();
+					$(this).trigger("Login",[email,password,user.id]);
+				} else {
+					this.$el.find(".error").text("Login/Create failed");
+				}
+			},this));
+	    },
         show:function() {
             if (platform == "mobile") {
                 var $mainContainer = $(document.body).find(".mainContainer");

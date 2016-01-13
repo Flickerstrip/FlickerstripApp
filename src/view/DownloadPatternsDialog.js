@@ -10,7 +10,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
         init:function(conduit,gui) {
             this.conduit = conduit;
             this.gui = gui;
-            this.$el = $("<div class='downloadPatternDialog largemodal'/>");
+            this.$el = $("<div class='downloadPatternDialog modal largemodal'/>");
 
             this.$el.append(desktop_template);
             this.$el = this.$el.children();

@@ -223,7 +223,6 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 return;
             }
 
-			console.log("rendered data",this.pattern.data[0],this.pattern.data[1],this.pattern.data[2],this.pattern.data[3],this.pattern.data[4]);
             //                                 data              width               height              cWidth           chght xpo,rpt
             this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,false,true);
         },

@@ -122,7 +122,6 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 var c = tinycolor({r:color[0],g:color[1],b:color[2]});
                 var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
                 $panel.on("click contextmenu",_.bind(function(e) {
-                    console.log("clicked",e,this.fg,this.bg);
                     if (e.button == 2) {
                         if (e.shiftKey) {
                             c = this.bg;

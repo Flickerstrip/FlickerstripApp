@@ -12,7 +12,6 @@
             </div>
             <div class="mbody">
                 <div class="login">
-                    <span class="redtext">Your password is transmitted and stored on your computer unencrypted, please use a throwaway.. like "cheese"</span>
                     <div class="form-group">
                         <label for="email">Email address</label>
                         <input type="email" class="form-control" id="email" placeholder="Email">
@@ -24,20 +23,35 @@
                     <div class="form-group">
                         <span class="error"></span>
                     </div>
-                    <div class="form-group">
-                        <button type="button" class="loginCreate btn btn-success">Login/Create</button>
-                    </div>
                 </div>
-                <div class="display">
-                    Choose a display name
+                <div class="create">
+                    <span class="redtext">Your password is transmitted and stored on your computer in plain text, please use a throwaway.. like "cheese"</span>
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        <input type="email" class="form-control" id="email" placeholder="Email">
+                    </div>
                     <div class="form-group">
                         <label for="display">Display Name</label>
                         <input type="text" class="form-control" id="display" placeholder="Display Name">
                     </div>
                     <div class="form-group">
-                        <button type="button" class="createAccount btn btn-success">Create Account</button>
+                        <label for="password">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Password">
+                    </div>
+                    <div class="form-group">
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Retype Password">
+                    </div>
+                    <div class="form-group">
+                        <span class="error"></span>
                     </div>
                 </div>
+            </div>
+            <div class="login mfooter">
+				<a href="#" class="createAccountLink floatLeft" style='margin-top: 9px'>Create Account</a>
+				<button type="button" class="loginButton btn btn-primary">Login</button>
+            </div>
+            <div class="create mfooter">
+				<button type="button" class="createButton btn btn-primary">Create Account</button>
             </div>
         </div>
     </div>
