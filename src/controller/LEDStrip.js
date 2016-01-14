@@ -106,7 +106,6 @@ extend(This.prototype,{
             }
         }
         if (!notimeout) opt.timeout = 2000;
-        console.log("req",opt);
         request(opt,_.bind(function(error, response, body) {
             this.startWatchdogTimer();
             if (error) {
@@ -132,11 +131,9 @@ extend(This.prototype,{
         this.sendCommand("config/name",null,{"name":name});
 	},
 	setCycle:function(seconds) {
-        console.log("setting cycle....",seconds);
         this.sendCommand("config/cycle?value="+parseInt(seconds));
 	},
 	setGroup:function(name) {
-        console.log("setting group!",this.id,name);
         this.sendCommand("config/group",null,{"name":name});
 	},
 	setBrightness:function(brightness) {
