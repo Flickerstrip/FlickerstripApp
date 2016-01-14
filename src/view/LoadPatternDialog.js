@@ -25,6 +25,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.$el.find(".createPatternAdvanced").click(_.bind(this.createPatternAdvancedClicked,this));
             this.$el.find(".uploadPattern").click(_.bind(this.uploadPatternClicked,this));
             this.$el.find(".editPattern").click(_.bind(this.editPatternClicked,this));
+            this.$el.find(".duplicatePattern").click(_.bind(this.duplicatePatternClicked,this));
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
             this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
@@ -94,6 +95,17 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
                     this.uploadPattern();
                 }
             },this));
+        },
+        duplicatePatternClicked:function(e) {
+            var pattern = this.selectedPatternObject;
+            var newName = prompt("Pick a new name for your pattern.",pattern.name+" Copy");
+            if (newName === null) return;
+            var newPattern = JSON.parse(JSON.stringify(pattern));
+            newPattern.name = newName;
+            delete newPattern.path;
+            delete newPattern.rendered;
+            delete newPattern.index;
+            this.conduit.emit("SavePattern",newPattern);
         },
         createPatternClicked:function(e) {
             this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
