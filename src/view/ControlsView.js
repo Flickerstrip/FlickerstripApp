@@ -45,6 +45,7 @@ define(['jquery','tinycolor','jquery.spectrum'],function($,tinycolor) {
                     setTimeout(_.bind(function() {
                         $input.spectrum({
                             color: control.default,
+                            preferredFormat: "hex",
                             change: function(color) {
                                 $(self).trigger("Change",[$(this)]);
                             }
