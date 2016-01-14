@@ -48,7 +48,9 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
 
             this.generateList([
                 {"key":"Name","value":name,"click":_.bind(this.renameStrip,this)},
+                {"key":"Change Pattern Frequency","value":!this.strip.cycle?"Disabled":this.strip.cycle,"click":_.bind(this.setCycle,this)},
                 {"key":"MAC Address","value":this.strip.id},
+                {"key":"IP Address","value":this.strip.ip ? this.strip.ip : "Disconnected"},
                 {"key":"Firmware Version","value":firmware},
                 {"key":"Used Space","value":this.strip.memory.used},
                 {"key":"Available Space","value":this.strip.memory.free},
@@ -70,6 +72,13 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             this.strip.name = newName;
             this.conduit.emit("RenameStrip",this.strip.id,newName);
             $(this.strip).trigger("NameUpdated",this.strip.id,newName);
+        },
+        setCycle:function() {
+            var seconds = prompt("Enter a delay (in seconds) before switching patterns. (0 to disable)",this.strip.cycle?this.strip.cycle:0);
+            if (seconds === null || seconds === undefined) return;
+            this.strip.cycle = seconds;
+            this.conduit.emit("SetCycle",this.strip.id,seconds);
+            this.update();
         },
         generateList:function(arr,$els) {
             _.each(arr,function(item) {

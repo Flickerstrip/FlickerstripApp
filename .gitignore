@@ -1,3 +1,4 @@
+.agignore
 *.swp
 *.swo
 /build

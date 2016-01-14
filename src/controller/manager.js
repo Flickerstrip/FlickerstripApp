@@ -73,6 +73,11 @@ extend(This.prototype,{
 			strip.forgetPattern(index);
 		},this));
 
+        this.on("SetCycle",_.bind(function(id,seconds) {
+            var strip = this.getStrip(id);
+            strip.setCycle(seconds);
+        },this));
+
         this.on("RenameStrip",_.bind(function(id,newname) {
             this.setStripName(id,newname);
         },this));
@@ -452,6 +457,7 @@ extend(This.prototype,{
 
             //load strips
             this.strips = [];
+            if (!this.config || !this.config.strips) return;
             _.each(this.config.strips,_.bind(function(strip) {
                 var lstrip = new LEDStrip();
                 for (var key in strip) {
@@ -530,7 +536,7 @@ extend(This.prototype,{
     clientDiscovered:function(ip) {
         var found = null;
         _.each(this.strips,function(strip,index) {
-            if (strip._ip == ip) found = strip;
+            if (strip.ip == ip) found = strip;
         });
         if (found != null) {
             found.setVisible(true);
@@ -554,7 +560,7 @@ extend(This.prototype,{
             this.saveConfig();
             this.stripAdded(strip);
         } else {
-            strip._ip = ip;
+            strip.ip = ip;
             strip.receivedStatus(status);
             strip.setVisible(true);
         }

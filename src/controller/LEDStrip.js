@@ -27,7 +27,7 @@ util.inherits(This,EventEmitter);
 extend(This.prototype,{
 	init:function(id,ip) {
         this.id = id;
-        this._ip = ip;
+        this.ip = ip;
         this._busy = false;
         this._queue = [];
 	},
@@ -52,8 +52,8 @@ extend(This.prototype,{
         }
 
         if (!visible && updated) {
-            console.log("Client disconnected: "+this._ip);
-            this._ip = null;
+            console.log("Client disconnected: "+this.ip);
+            this.ip = null;
             this._busy = false;
             this._queue = [];
             this.stopWatchdogTimer();
@@ -65,7 +65,7 @@ extend(This.prototype,{
         fs.readFile(path,_.bind(function(err,data) {
             var hexSize = data.length
             console.log("Uploading Firmware: ",path,hexSize);
-            request.put({uri:"http://"+this._ip+"/update",body:data}).on("end",_.bind(function(error, response, body) {
+            request.put({uri:"http://"+this.ip+"/update",body:data}).on("end",_.bind(function(error, response, body) {
                 console.log("upload complete!");
             },this));
         },this));
@@ -75,6 +75,7 @@ extend(This.prototype,{
         this.setVisible(true);
         this.status = true;
         status.visible = this.visible;
+        status.ip = this.ip;
         this.emit("Strip.StatusUpdated",status);
     },
     handleQueue:function() {
@@ -84,7 +85,7 @@ extend(This.prototype,{
         this.sendCommand.apply(this,args);
     },
     sendCommand:function(command,cb,data,notimeout) {
-        if (!this._ip) {
+        if (!this.ip) {
             console.log("ERROR: sending command to disconnected strip");
             return;
         }
@@ -95,7 +96,7 @@ extend(This.prototype,{
         this._busy = true;
         this.stopWatchdogTimer();
         var opt = {
-            uri:"http://"+this._ip+"/"+command
+            uri:"http://"+this.ip+"/"+command
         };
         if (data) {
             if (typeof data === 'object' && !(data instanceof Buffer)) { 
@@ -105,6 +106,7 @@ extend(This.prototype,{
             }
         }
         if (!notimeout) opt.timeout = 2000;
+        console.log("req",opt);
         request(opt,_.bind(function(error, response, body) {
             this.startWatchdogTimer();
             if (error) {
@@ -127,8 +129,11 @@ extend(This.prototype,{
         this.sendCommand("status",_.bind(this.receivedStatus,this));
     },
 	setName:function(name) {
-        console.log("setting name....");
         this.sendCommand("config/name",null,{"name":name});
+	},
+	setCycle:function(seconds) {
+        console.log("setting cycle....",seconds);
+        this.sendCommand("config/cycle?value="+parseInt(seconds));
 	},
 	setGroup:function(name) {
         console.log("setting group!",this.id,name);
