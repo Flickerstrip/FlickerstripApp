@@ -32,6 +32,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             this.refreshPatterns();
 
             this.$el.find(".deletePattern").click(_.bind(this.deletePatternClicked,this));
+            this.$el.find(".previewPattern").click(_.bind(this.previewPatternClicked,this));
 
             this.$el.find(".downloadPattern").click(_.bind(this.doDownloadPattern,this));
         },
@@ -55,6 +56,10 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             }
             if (typeof(patternSpec.pattern) === "function") return patternSpec.pattern(args);
             return patternSpec.pattern;
+        },
+        previewPatternClicked:function() {
+            util.evaluatePattern(this.selectedPattern,null);
+            this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.selectedPattern,true);
         },
         deletePatternClicked:function() {
             if (!this.selectedPattern) return;
@@ -80,10 +85,8 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
                 pattern.body = body;
                 this.selectedPattern = pattern;
                 if (!pattern.type) pattern.type = "javascript";
-                console.log("evaluating pattern..",this.selectedPattern);
                 util.evaluatePattern(this.selectedPattern);
 
-                console.log("pattern",pattern);
                 this.stripRenderer.setPattern(pattern.rendered);
 
                 //update titlebar

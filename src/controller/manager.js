@@ -53,7 +53,10 @@ extend(This.prototype,{
         this.on("LoadPattern",_.bind(function(id,renderedPattern,isPreview) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
-            strip.loadPattern(renderedPattern,isPreview);
+            this.conduit.emit("ShowProgress","Uploading",true);
+            strip.loadPattern(renderedPattern,isPreview,_.bind(function() {
+                this.conduit.emit("HideProgress");
+            },this));
         },this));
 
         this.on("UploadFirmware",_.bind(function(id) {

@@ -137,7 +137,6 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 var palette = resizePalette(this.pattern.palette,10);
                 this.editor = new CanvasPixelEditor(null,palette);
                 $(this.editor).on("PaletteUpdated",_.bind(function(e,palette) {
-                    console.log("palette updated",arguments);
                     this.pattern.palette = palette;
                 },this));
                 

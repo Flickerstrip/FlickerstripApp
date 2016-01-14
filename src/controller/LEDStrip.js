@@ -144,7 +144,7 @@ extend(This.prototype,{
     toggle:function(value) {
         this.sendCommand(value ? "power/on" : "power/off");
     },
-    loadPattern:function(renderedPattern,isPreview) {
+    loadPattern:function(renderedPattern,isPreview,callback) {
         var frames = renderedPattern.rendered.frames;
         var pixels = renderedPattern.rendered.pixels;
         var fps = renderedPattern.rendered.fps;
@@ -169,6 +169,7 @@ extend(This.prototype,{
 
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function() {
             this.emit("Strip.UploadPatternComplete");
+            if (callback) callback();
         },this),concatted,true);
 
         if (!isPreview) this.requestStatus();

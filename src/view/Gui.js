@@ -236,7 +236,6 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $stripList.append(selectList.$el);
 
             this.$el.find(".reportIssue").click(_.bind(function() {
-                console.log("report issue clicked!");
                 this.conduit.emit("OpenLink","https://github.com/Flickerstrip/FlickerstripApp/issues");
             },this));
 
@@ -294,7 +293,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
-                $el.append($("<span class='version'></span>").text(strip.firmware));
+                //$el.append($("<span class='version'></span>").text(strip.firmware));
                 var $ver = $el.find(".version");
                 setVersionClass($ver,strip.firmware,this.latestRelease);
                 $(strip).on("LatestReleaseUpdated",_.bind(function() {

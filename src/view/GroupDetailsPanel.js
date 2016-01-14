@@ -140,21 +140,9 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
                 this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
-                var progressDialog = new ProgressDialog("Uploading Pattern",true);
-                progressDialog.show();
                 $(strip).one("Strip.UploadPatternComplete",_.bind(function() {
                     this.patternDialog.hide();
-                    progressDialog.hide();
                 },this));
-
-                function hideIfNotVisible(status) {
-                    if (status.visible == false) {
-                        progressDialog.hide();
-                        $(strip).off("Strip.StatusUpdated",hideIfNotVisible);
-                    }
-                }
-
-                $(strip).on("Strip.StatusUpdated",hideIfNotVisible);
             }
         },
         forgetPatternClicked:function(e) {
