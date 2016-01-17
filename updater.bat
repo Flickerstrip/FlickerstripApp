@@ -1,4 +1,4 @@
-timeout /t 3
+timeout /t 5
 
 robocopy "%1" .
 start "" ".\nw.exe"
