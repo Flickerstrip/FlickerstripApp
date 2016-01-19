@@ -135,7 +135,7 @@ nwjs_all: linux-x64 osx-x64 win-x64
 	cd ./build/cordova && cordova plugin add ../../buildcache/io.jxcore.node
 
 ./build/cordova/plugins/cordova-plugin-inappbrowser:
-	cd ./build/cordova && cordova plugin add ../../buildcache/cordova-plugin-inappbrowser
+	cd ./build/cordova && cordova plugin add cordova-plugin-inappbrowser
 
 ####### Platforms
 ./build/cordova/platforms: | ./build/cordova/platforms/ios ./build/cordova/platforms/android

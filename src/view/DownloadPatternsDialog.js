@@ -1,5 +1,3 @@
-var sandbox = require("sandbox");
-
 define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/downloadPatternDialog.html"],
 function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desktop_template) {
     var This = function() {

@@ -9,6 +9,7 @@ define([ "underscore" ],
 					return JSON.parse(string);
 				} catch (e) {
 					console.log("caught exception while parsing string",e,string);
+                    return null;
 				}
             },
             symanticToNumeric:function(symantic) {

@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.example.fo" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>LEDControl</name>
+    <name>Flickerstrip</name>
     <description>
-        LED control
+        Control your Flickerstrips from your mobile device.
     </description>
-    <author email="admin@reflowster.com" href="http://reflowster.com">
-        Reflowster Tram
+    <author email="admin@flickerstrip.com" href="http://flickerstrip.com">
+        Julian Hartline
     </author>
     <content src="index.html" />
     <access origin="*" />

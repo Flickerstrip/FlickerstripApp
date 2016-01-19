@@ -1,4 +1,3 @@
-var sandbox = require("sandbox");
 var JSHINT = require("jshint").JSHINT;
 
 define(["jquery","tinycolor","ace/ace","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/CanvasPixelEditor","text!tmpl/editPatternDialog.html"],

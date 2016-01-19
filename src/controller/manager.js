@@ -70,6 +70,14 @@ extend(This.prototype,{
             },this));
         },this));
 
+        this.on("AllChangeMode",_.bind(function() {
+            _.each(this.strips,function(s) {
+                var select = s.selectedPattern+1;
+                if (select >= s.patterns.length) select = 0;
+                s.selectPattern(select);
+            });
+        },this));
+
 		this.on("ForgetPattern",_.bind(function(id,index) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
@@ -108,7 +116,6 @@ extend(This.prototype,{
         },this));
         ///////////////////////////////////////// Strip actions
 
-        //this.on("CreateDummy",_.bind(function() {
         this.on("CreateDummy",_.bind(function() {
             strip = new LEDStrip("du:mm:yy:st:ri:ps",null);
             this.strips.push(strip);
@@ -455,24 +462,34 @@ extend(This.prototype,{
         }
         fs.readFile(this.folderConfig.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
-            var config = util.parseJson(contents);
-            this.config = config;
+            console.log("loading json config file",contents);
+            try {
+                var config = util.parseJson(contents);
+                this.config = config;
 
-            //load strips
-            this.strips = [];
-            if (!this.config || !this.config.strips) return;
-            _.each(this.config.strips,_.bind(function(strip) {
-                var lstrip = new LEDStrip();
-                for (var key in strip) {
-                    if (key.indexOf("_") === 0) continue;
-                    if (strip.hasOwnProperty(key)) {
-                        lstrip[key] = strip[key];
-                    }
+                //load strips
+                this.strips = [];
+                if (!this.config || !this.config.strips) {
+                    this.config = {};
+                    console.log("returning");
+                    if (cb) cb();
+                    return;
                 }
-                this.strips.push(lstrip);
-                lstrip.visible = false;
-                this.stripAdded(lstrip);
-            },this));
+                _.each(this.config.strips,_.bind(function(strip) {
+                    var lstrip = new LEDStrip();
+                    for (var key in strip) {
+                        if (key.indexOf("_") === 0) continue;
+                        if (strip.hasOwnProperty(key)) {
+                            lstrip[key] = strip[key];
+                        }
+                    }
+                    this.strips.push(lstrip);
+                    lstrip.visible = false;
+                    this.stripAdded(lstrip);
+                },this));
+            } catch (e) {
+                console.log("error loading config file",e);
+            }
             if (cb) cb();
         },this));
     },

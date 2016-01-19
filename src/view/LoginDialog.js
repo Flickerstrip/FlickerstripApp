@@ -1,5 +1,3 @@
-var sandbox = require("sandbox");
-
 define(["jquery","tinycolor","view/util.js","text!tmpl/loginDialog.html"],
 function($,tinycolor,util,desktop_template) {
     var This = function() {
