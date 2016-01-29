@@ -61,8 +61,6 @@ win.on('close',function() {
 
 function handleSpecialCommands(command) {
     if (command.name == "OpenConsole") {
-        var win = nw.Window.get();
-        var dev = win.showDevTools();
         dev.moveTo(0,win.height+40);
         dev.height =  window.screen.availHeight - win.height - 20;
         dev.width =  window.screen.availWidth;
@@ -81,8 +79,7 @@ function handleSpecialCommands(command) {
             child = child_process.spawn(process.execPath, [], {detached: true});
         }
         child.unref();
-        win.hide();
-        gui.App.quit();
+        nw.App.quit();
     }
 
     if (command.name == "Update") {
@@ -95,8 +92,7 @@ function handleSpecialCommands(command) {
         }
         child = child_process.spawn(processPath,[updatePath], {detached:true,cwd:process.cwd(),stdio:'ignore'});
         child.unref();
-        win.hide();
-        nwgui.App.quit();
+        nw.App.quit();
     }
 }
 

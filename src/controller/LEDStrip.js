@@ -185,6 +185,9 @@ extend(This.prototype,{
         if (!isPreview) this.requestStatus();
     },
     selectPattern:function(index) {
+        if (index < 0) index = 0;
+        if (index > this.patterns.length-1) index = this.patterns.length-1;
+        this.selectedPattern = index;
         this.sendCommand("pattern/select?index="+index);
     },
 	forgetPattern:function(index) {

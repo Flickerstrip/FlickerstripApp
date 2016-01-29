@@ -22,7 +22,7 @@ extend(This.prototype,{
         this.doSearch()
     },
     handleResponse:function (headers, statusCode, rinfo) {
-        if (headers.SERVER.indexOf("Flickerstrip") != -1) {
+        if (headers.SERVER && headers.SERVER.indexOf("Flickerstrip") != -1) {
             this.emit("DiscoveredClient",rinfo.address);
         }
     },

@@ -289,11 +289,9 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 this.conduit.emit("CreateDummy");
             },this));
 
-            /*
             this.$el.find(".changeMode").click(_.bind(function() {
-                this.conduit.emit("AllChangeMode");
+                this.conduit.emit("Restart");
             },this));
-            */
         },
         stripElementGroupRenderer:function(header) {
             return $("<li class='list-group-item groupHeader' data-name='"+header+"'>"+header+"</li>");
