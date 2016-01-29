@@ -70,12 +70,12 @@ extend(This.prototype,{
             },this));
         },this));
 
-        this.on("AllChangeMode",_.bind(function() {
-            _.each(this.strips,function(s) {
-                var select = s.selectedPattern+1;
-                if (select >= s.patterns.length) select = 0;
-                s.selectPattern(select);
-            });
+        this.on("NextPattern",_.bind(function(id) {
+		    var strip = this.getStrip(id);
+            if (!strip) return;
+            var select = strip.selectedPattern+1;
+            if (select >= strip.patterns.length) select = 0;
+            strip.selectPattern(select);
         },this));
 
 		this.on("ForgetPattern",_.bind(function(id,index) {

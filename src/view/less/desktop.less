@@ -262,6 +262,7 @@ body {
 .groupDetails {
     .multiple,
     .paneldisabled { display: none; }
+    .groupselect { display: none; }
 }
 
 .paneldisabled {
@@ -285,6 +286,12 @@ body {
     .nextToBrightnessBar { display: none; }
 
     .paneldisabled { .flex-display; }
+}
+
+.groupDetails.group-selected {
+    .groupselect { display: block; }
+    .multiselect { display: none; }
+    .nextToBrightnessBar { display: none; }
 }
 
 .groupDetails.one-selected {

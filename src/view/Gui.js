@@ -121,6 +121,18 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 //jxcore("gui_RedirectToSettings").call();
             },this));
         },
+        setSelectedGroup:function(groupName) {
+            var self = this;
+            var selectedIds = _.pluck(this.selectedStrips,"id");
+            this.$el.find(".listElement").each(function() {
+                var strip = $(this).data("object");
+                if (_.contains(selectedIds,strip.id)) {
+                    $(this).data("group",groupName);
+                    self.conduit.emit("SetGroup",strip.id,groupName);
+                }
+            });
+            this.selectList.refreshGroupings();
+        },
         updateAvailable:function(e,version) {
             var buttons = [$("<button class='btn btn-primary' data-dismiss='alert'>Update</button></div>"),$("<button class='btn btn-default' data-dismiss='alert'>Hide</button></div>")]
             buttons[0].click(_.bind(function() {
@@ -277,9 +289,11 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 this.conduit.emit("CreateDummy");
             },this));
 
+            /*
             this.$el.find(".changeMode").click(_.bind(function() {
                 this.conduit.emit("AllChangeMode");
             },this));
+            */
         },
         stripElementGroupRenderer:function(header) {
             return $("<li class='list-group-item groupHeader' data-name='"+header+"'>"+header+"</li>");

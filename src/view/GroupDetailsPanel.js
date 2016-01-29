@@ -40,6 +40,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
             this.statusUpdated();
 
             this.$el.find(".createGroupFromSelected").click(_.bind(this.createGroupClicked,this));
+            this.$el.find(".groupNextPattern").click(_.bind(this.groupNextPattern,this));
 
             this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
 
@@ -50,12 +51,15 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.conduit.emit("DisconnectStrip",this.strip.id);
             },this));
         },
+        groupNextPattern:function() {
+            _.each(this.strips,_.bind(function(strip) {
+                this.conduit.emit("NextPattern",strip.id);
+            },this));
+        },
         createGroupClicked:function() {
             var groupName = prompt("Enter a name for your group");
             if (groupName == null) return;
-            _.each(this.strips,_.bind(function(strip) {
-                this.conduit.emit("SetGroup",strip.id,groupName);
-            },this));
+            this.gui.setSelectedGroup(groupName);
         },
         showDetailsClicked:function() {
             this.detailsDialog = new StripDetailsDialog(this.conduit,this.strips,this.gui);
