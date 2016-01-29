@@ -136,9 +136,19 @@ extend(This.prototype,{
 	setGroup:function(name) {
         this.sendCommand("config/group",null,{"name":name});
 	},
+    removeFromQueue(command) {
+        var newQueue = [];
+        _.each(this._queue,function(queued) {
+            if (!queued[0].startsWith("brightness")) {
+                newQueue.push(queued);
+            }
+        });
+        this._queue = newQueue;
+    },
 	setBrightness:function(brightness) {
         if (brightness < 0) brightness = 0;
         if (brightness > 100) brightness = 100;
+        this.removeFromQueue("brightness");
         this.sendCommand("brightness?value="+brightness);
 	},
     toggle:function(value) {

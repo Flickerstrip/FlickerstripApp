@@ -462,7 +462,6 @@ extend(This.prototype,{
         }
         fs.readFile(this.folderConfig.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
-            console.log("loading json config file",contents);
             try {
                 var config = util.parseJson(contents);
                 this.config = config;

@@ -59,6 +59,7 @@ define(['jquery'],function($) {
         },
         refreshGroupings:function() {
             var groupMap = {};
+            groupMap[""] = [];
             this.$el.find(".listElement").each(function() {
                 var group = $(this).data("group");
                 group = group || "";
@@ -78,7 +79,7 @@ define(['jquery'],function($) {
             var index = 0;
             _.each(keys,_.bind(function(group) {
                 var header = group == "" ? "Ungrouped" : group;
-                if (this.grouprenderer && keys.length > 1) {
+                if (this.grouprenderer && keys.length > 1 && groupMap[group].length > 0) {
                     var $groupHeader = this.grouprenderer(header);
                     $groupHeader.click(_.bind(function() {
                         //group clicked

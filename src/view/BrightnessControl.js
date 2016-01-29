@@ -35,6 +35,8 @@ define(['jquery',"view/util.js"],function($,util) {
         barClicked:function(e) {
             var posY = $(this.$bar).offset().top;
             var value = Math.floor(100*(1-((e.pageY - posY) / $(this.$bar).height())));
+            if (value > 100) value = 100;
+            if (value < 0) value = 0;
 
             var changed = this.setBrightness(value);
             if (changed) {

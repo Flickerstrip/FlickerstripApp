@@ -244,9 +244,10 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $.contextMenu({
                 selector: ".listElement",
                     items: {
-                        foo: {name: "Forget Strip", callback:function(key, opt){
+                        forgetStrip: {name: "Forget Strip", callback:function(key, opt){
                             var obj = $(this).data("object");
-                            self.send("ForgetStrip",[obj.id]);
+                            self.conduit.emit("ForgetStrip",[obj.id]);
+                            self.selectList.refreshGroupings();
                         }},
                         //bar: {name: "Boo", callback: function(key, opt){ console.log("bar arguments: ",arguments); }},
                     }
@@ -255,12 +256,14 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $.contextMenu({
                 selector: ".groupHeader[data-name!='Ungrouped']",
                     items: {
-                        foo: {name: "Delete group", callback:function(key, opt){
+                        deleteGroup: {name: "Delete group", callback:function(key, opt){
                             var group = $(this).data("name");
                             self.$el.find(".listElement").each(function() {
                                 if ($(this).data("group") == group) {
-                                    $(this).data("group","");
-                                    self.send("SetGroup",$(this).data("object").id,"");
+                                    if ($(this).data("object").visible) {
+                                        $(this).data("group","");
+                                        self.conduit.emit("SetGroup",$(this).data("object").id,"");
+                                    }
                                 }
                             });
                             self.selectList.refreshGroupings();
