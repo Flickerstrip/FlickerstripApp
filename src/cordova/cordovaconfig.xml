@@ -23,12 +23,20 @@
     <preference name="StatusBarStyle" value="lightcontent" />
     <platform name="android">
         <allow-intent href="market:*" />
+
+		<!-- SEE: https://cordova.apache.org/docs/en/latest/config_ref/images.html -->
+		<icon src="resources/icons/icon36x36.png" density="ldpi" />
+		<icon src="resources/icons/icon48x48.png" density="mdpi" />
+		<icon src="resources/icons/icon72x72.png" density="hdpi" />
+		<icon src="resources/icons/icon96x96.png" density="xhdpi" />
+		<icon src="resources/icons/icon180x180.png" density="xxhdpi" />
+		<icon src="resources/icons/icon192x192.png" density="xxxhdpi" />
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
 
-		<!-- images are determined by width and height. The following are supported -->
+		<!-- SEE: https://cordova.apache.org/docs/en/latest/config_ref/images.html -->
 		<splash src="resources/icons/splash320x480.png" width="320" height="480"/>
 		<splash src="resources/icons/splash640x960.png" width="640" height="960"/>
 		<splash src="resources/icons/splash768x1024.png" width="768" height="1024"/>
