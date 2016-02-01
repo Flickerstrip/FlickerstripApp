@@ -259,53 +259,6 @@ body {
     overflow-y:scroll;
 }
 
-.groupDetails {
-    .multiple,
-    .paneldisabled { display: none; }
-    .groupselect { display: none; }
-}
-
-.paneldisabled {
-    .well;
-    .well-lg;
-    margin-bottom: 0;
-    .flex(1 1 auto) !important;
-    .align-items(center);
-    .justify-content(center);
-
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-    color: #999;
-}
-
-.groupDetails.none-selected {
-    .brightnessControl,
-    .multiselect,
-    .progress,
-    .nextToBrightnessBar { display: none; }
-
-    .paneldisabled { .flex-display; }
-}
-
-.groupDetails.group-selected {
-    .groupselect { display: block; }
-    .multiselect { display: none; }
-    .nextToBrightnessBar { display: none; }
-}
-
-.groupDetails.one-selected {
-    .multiselect { display: none; }
-}
-
-.groupDetails.multiple-selected {
-    .brightnessControl,
-    .progress,
-    .nextToBrightnessBar { display: none; }
-
-    .multiselect { display: block; }
-}
-
 .forgetPattern,
 .selectPattern {
     .btn-xs;

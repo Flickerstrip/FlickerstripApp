@@ -138,7 +138,8 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             buttons[0].click(_.bind(function() {
                 this.conduit.emit("InstallUpdate",version);
             },this));
-            NotificationManager.notify("info","Version <strong>"+version+"</strong> is available.",30000,buttons);
+            if (platform == "mobile") buttons.shift();
+            NotificationManager.notify("info","Version <strong>"+version+"</strong> is available.",20000,buttons);
         },
         releaseUpdated:function(e,release) {
             this.latestRelease = release;
