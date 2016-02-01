@@ -31,6 +31,15 @@
 		<icon src="resources/icons/icon96x96.png" density="xhdpi" />
 		<icon src="resources/icons/icon180x180.png" density="xxhdpi" />
 		<icon src="resources/icons/icon192x192.png" density="xxxhdpi" />
+
+		<splash src="resources/icons/splash640x960.png" density="port-xhdpi" />
+		<splash src="resources/icons/splash480x800.png" density="port-hdpi" />
+		<splash src="resources/icons/splash320x480.png" density="port-mdpi" />
+		<splash src="resources/icons/splash240x320.png" density="port-ldpi" />
+		<splash src="resources/icons/splash960x640.png" density="land-xhdpi" />
+		<splash src="resources/icons/splash800x480.png" density="land-hdpi" />
+		<splash src="resources/icons/splash480x320.png" density="land-mdpi" />
+		<splash src="resources/icons/splash320x240.png" density="land-ldpi" />
     </platform>
     <platform name="ios">
         <allow-intent href="itms:*" />
