@@ -25,9 +25,6 @@ clean:
 	cd ./buildcache/ && npm install
 	rm ./buildcache/package.json
 
-#./buildcache/jxcore-cordova: | ./buildcache
-#cd ./buildcache && git clone https://github.com/jxcore/jxcore-cordova
-
 ############ NWJS
 ./build/nwjs/linux-x64: $(SRC_FILES)
 	mkdir -p $@
@@ -92,7 +89,7 @@ nwjs_all: linux-x64 osx-x64 win-x64
 
 
 ############ CORDOVA
-./build/cordova: ./build/cordova/www ./build/cordova/config.xml jxcoreExtensions ./build/cordova/plugins ./build/cordova/platforms
+./build/cordova: ./build/cordova/www ./build/cordova/config.xml jxcoreExtensions ./build/cordova/plugins ./build/cordova/platforms ./build/cordova/resources
 
 #Download jxcore
 ./buildcache/io.jxcore.node: | ./buildcache
@@ -124,6 +121,9 @@ nwjs_all: linux-x64 osx-x64 win-x64
 	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www
 	rsync $(RSYNC_OPT) ./src/view ./build/cordova/www/ --exclude less
 	rsync $(RSYNC_OPT) ./src/cordova/www ./build/cordova/
+
+./build/cordova/resources: ./src/cordova/resources/*
+	rsync $(RSYNC_OPT) ./src/cordova/resources ./build/cordova
 
 ####### Plugins
 ./build/cordova/plugins: | ./build/cordova/plugins/cordova-plugin-statusbar ./build/cordova/plugins/io.jxcore.node ./build/cordova/plugins/cordova-plugin-inappbrowser
