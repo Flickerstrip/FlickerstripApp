@@ -21,6 +21,7 @@
     <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="StatusBarBackgroundColor" value="#000000" />
     <preference name="StatusBarStyle" value="lightcontent" />
+	<preference name="SplashScreenDelay" value="500" />
     <platform name="android">
         <allow-intent href="market:*" />
 
