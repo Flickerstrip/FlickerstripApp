@@ -157,7 +157,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.$el.toggleClass("deselected",selectedObjects.length == 0);
             if (selectedObjects.length == 0) return;
 
-            this.$el.find(".uploadPattern").text("Share Pattern").removeClass("disabled");
+            this.$el.find(".uploadPattern").text("Share Lightwork").removeClass("disabled");
 
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
@@ -187,7 +187,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
                     this.$config.removeClass("nocontrols");
                 } else {
                     this.$config.addClass("nocontrols");
-                    this.$config.text("No controls for this pattern");
+                    this.$config.text("No controls for this Lightwork");
                 }
             },this),5);
         },
