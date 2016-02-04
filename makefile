@@ -129,6 +129,9 @@ nwjs_all: linux-x64 osx-x64 win-x64
 ./build/cordova/resources: ./src/cordova/resources/*
 	rsync $(RSYNC_OPT) ./src/cordova/resources ./build/cordova
 
+./build/cordova/build.json:
+	cp ./src/cordova/build.json ./build/cordova/build.json
+
 ####### Plugins
 ./build/cordova/plugins: | ./build/cordova/plugins/cordova-plugin-statusbar ./build/cordova/plugins/io.jxcore.node ./build/cordova/plugins/cordova-plugin-inappbrowser
 
@@ -179,5 +182,11 @@ run_android: cordova
 
 run: | osx-x64
 	open ./build/nwjs/osx-x64/nwjs.app
+
+android_release: cordova ./build/cordova/build.json
+	cd ./build/cordova && cordova build --release android
+
+	
+	
 
 .PHONY: linux-x64 osx-x64 win-x64 nwjs_all run clean run_android run_ios cordova

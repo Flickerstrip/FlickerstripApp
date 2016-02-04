@@ -1,0 +1,14 @@
+{
+     "android": {
+         "debug": {
+             "keystore": "../../signing/Flickerstrip-android.keystore",
+             "alias": "FlickerstripAndroid",
+             "keystoreType": ""
+         },
+         "release": {
+             "keystore": "../../signing/Flickerstrip-android.keystore",
+             "alias": "FlickerstripAndroid",
+             "keystoreType": ""
+         }
+     }
+ }
