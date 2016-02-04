@@ -51,6 +51,7 @@ echo "Next version will be: $NEXT_REVISION"
 
 sed -i '' 's/"version".*/"version":"'${NEXT_REVISION#"v"}'",/' src/default.json 
 sed -i '' 's/version="[^"]*"/version="'${NEXT_REVISION#"v"}'"/' src/cordova/cordovaconfig.xml
+git add src/cordova/cordovaconfig.xml
 git add src/default.json
 git commit -m "Preparing for release of $NEXT_REVISION"
 git tag -a $NEXT_REVISION -m "Releasing revision $NEXT_REVISION"
