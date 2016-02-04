@@ -186,6 +186,11 @@ run: | osx-x64
 android_release: cordova ./build/cordova/build.json
 	cd ./build/cordova && cordova build --release android
 
+ios_release: cordova ./build/cordova/build.json
+	cd ./build/cordova && cordova build ios --device
+
+release_all: nwjs_all android_release ios_release
+
 	
 	
 
