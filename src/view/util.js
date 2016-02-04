@@ -258,14 +258,14 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             }
             return pattern;
         },
-        getCursorPosition:function(canvas, event) {
+        getCursorPosition:function(canvas, event,marginLeft,marginTop) {
             var x, y;
 
             var canoffset = $(canvas).offset();
             x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
             y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
 
-            return [x,y];
+            return [x-marginLeft,y-marginTop];
         },
         openFileDialog:function($el,opts,cb) {
             var win = require('nw.gui').Window.get();

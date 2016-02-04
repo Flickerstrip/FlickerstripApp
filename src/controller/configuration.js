@@ -10,10 +10,11 @@ var This = function() {
 
 util.inherits(This,EventEmitter);
 extend(This.prototype,{
-	init:function(configLocation,firmwareFolder,patternFolder) {
+	init:function(configLocation,firmwareFolder,userPatternFolder,basicPatternFolder) {
         this.configLocation = configLocation;
         this.firmwareFolder = firmwareFolder;
-        this.patternFolder = patternFolder;
+        this.userPatternFolder = userPatternFolder;
+		this.basicPatternFolder = basicPatternFolder;
 	},
 });
 

@@ -1,4 +1,4 @@
- define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","jquery.touchwipe.min"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog) {
+ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","hammer"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog,Hammer) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -180,23 +180,17 @@
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
                 //$select.on("click",_.bind(this.selectPatternClicked,this));
 
-                if (false && platform == "mobile") {
-                    $el.touchwipe({
-                         wipeRight: _.bind(function() {
-                            if ($el.hasClass("showDeleteButton")) {
-                                $el.removeClass("showDeleteButton");
-                            } else {
-                                this.$el.find(".listElement").removeClass("showDeleteButton");
-                                $el.addClass("showDeleteButton");
-                            }
-                         },this),
-                         wipeLeft: _.bind(function() {
+                if (platform == "mobile") {
+                    new Hammer($el.get(0)).on("panright",_.bind(function() {
+                        if ($el.hasClass("showDeleteButton")) {
                             $el.removeClass("showDeleteButton");
-                         },this),
-                         min_move_x: 20,
-                         min_move_y: 20,
-                         preventDefaultEvents: true
-                    });
+                        } else {
+                            this.$el.find(".listElement").removeClass("showDeleteButton");
+                            $el.addClass("showDeleteButton");
+                        }
+                    },this)).on("panleft",_.bind(function() {
+                        $el.removeClass("showDeleteButton");
+                    },this));
                 }
                 //$el.append($select);
                 $el.append($("<span class='name'></span>").text(pattern.name));

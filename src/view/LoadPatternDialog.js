@@ -62,7 +62,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         patternsLoaded:function() {
             this.$el.addClass("deselected");
 
-            this.patternOptions = new SelectList(this.gui.patterns,this.patternOptionRenderer,{multiple:false});
+            this.patternOptions = new SelectList(this.gui.userPatterns,this.patternOptionRenderer,{multiple:false});
             this.$choices.empty().append(this.patternOptions.$el);
 
             this.$el.find(".patternTitle").empty();

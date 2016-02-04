@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,util,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","view/TopBar.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,TopBar,util,template) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -57,7 +57,10 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $(this).on("StripRemoved",_.bind(this.stripRemoved,this));
             $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
             $(this).on("PatternsLoaded",_.bind(function(e,patterns) {
-                this.patterns = patterns;
+                this.userPatterns = patterns;
+            },this));
+            $(this).on("BasicPatternsLoaded",_.bind(function(e,patterns) {
+                this.basicPatterns = patterns;
             },this));
 
             $(this).on("UpdateAvailable",_.bind(this.updateAvailable,this));
@@ -265,6 +268,9 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                         //bar: {name: "Boo", callback: function(key, opt){ console.log("bar arguments: ",arguments); }},
                     }
             });
+
+            this.topBar = new TopBar(this.conduit,this);
+            this.$el.find(".topbar").append(this.topBar.$el);
 
             $.contextMenu({
                 selector: ".groupHeader[data-name!='Ungrouped']",

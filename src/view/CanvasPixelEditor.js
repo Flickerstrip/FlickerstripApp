@@ -1,4 +1,4 @@
-define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html','jquery.spectrum'],function($,tinycolor,util,template) {
+define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html','hammer','jquery.spectrum'],function($,tinycolor,util,template,Hammer) {
     function plotLine(g,x0, y0, x1, y1) {
        var dx =  Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
        var dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;
@@ -21,6 +21,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
     $.extend(This.prototype,{
         init:function(image,palette) {
+			window.cpe = this;
             this.image = image;
             this.palette = palette;
             this.$el = $(template);
@@ -38,7 +39,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             };
 
             this.$controls.find(".fg").val("#fff").spectrum(colorOpts);
-            this.$controls.find(".bg").val("#000").spectrum(colorOpts);
+            if (platform != "mobile") this.$controls.find(".bg").val("#000").spectrum(colorOpts);
             setTimeout(_.bind(this.colorChanged,this),5);
 
             this.updatePalette();
@@ -49,9 +50,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
             this.drawingArea = this.$el.find(".drawingArea").get(0);
             $(this.drawingArea).on("click mouseup mousedown mousemove",_.bind(function(e) {
-                var pos = util.getCursorPosition(this.drawingArea,e);
-                pos[0] -= displayMargins.left;
-                pos[1] -= displayMargins.top;
+                var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
                 if (e.type == "mousedown") {
                     this.down = {
                         button:e.button,
@@ -67,9 +66,10 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
                 if (this.down) {
                     if (this.down.button == 2) {
+						if (!this.down.startX || !this.down.startY) return;
                         var dx = pos[0]-this.down.startX;
                         var dy = pos[1]-this.down.startY;
-                        this.updated = true;
+						this.requestFrame();
                         this.offset = {x:this.down.params.offset.x+dx,y:this.down.params.offset.y+dy};
                     } else {
                         var ipos = this.translateCanvasToImage(pos[0],pos[1]);
@@ -79,42 +79,50 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                             g.fillStyle = e.shiftKey ? this.bg.toHexString() : this.fg.toHexString();
                             plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
                             $(this).trigger("change");
-                            this.updated = true;
+							this.requestFrame();
                         }
                     }
                 }
                 this.previousMousePosition = pos;
             },this));
 
-            this.zoomScale = [.25,.5,1,2,3,5,10,20];
-            this.zoomIndex = this.zoomScale.length-1;
+			this.zoomFactor = 20;
+			this.zoomBounds = {min:5,max:60};
+
             var delay = null;
             $(this.drawingArea).on("mousewheel",_.bind(function(e) {
-                if (delay && new Date().getTime()-delay < 150) return;
-                delay = new Date().getTime();
-                var pos = util.getCursorPosition(this.drawingArea,e);
-                pos[0] -= displayMargins.left;
-                pos[1] -= displayMargins.top;
-                var delta = (e.originalEvent.detail<0 || e.originalEvent.wheelDelta>0) ? 1 : -1;
+				var delta = e.originalEvent.detail || e.originalEvent.wheelDelta;
+                var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
 
-                var cBefore = this.translateCanvasToImage(pos[0],pos[1],true);
-
-                this.zoomIndex += delta;
-                if (this.zoomIndex < 0) this.zoomIndex = 0;
-                if (this.zoomIndex >= this.zoomScale.length) this.zoomIndex = this.zoomScale.length-1;
-
-                var cAfter = this.translateCanvasToImage(pos[0],pos[1],true);
-                var perPixelX = this.zoomScale[this.zoomIndex];
-                var perPixelY = this.zoomScale[this.zoomIndex];
-                this.offset.x += (cAfter[0] - cBefore[0])*perPixelX;
-                this.offset.y += (cAfter[1] - cBefore[1])*perPixelY;
-
-                this.updated = true;
+				this.doZoom(delta,pos[0],pos[1]);
             },this));
-            
-            this.updated = true;
+
+			new Hammer(this.drawingArea).on("pinch",_.bind(function(e) {
+				console.log("pinch",e);
+			}));
+
+			this.requestFrame();
             this.repaint();
         },
+		doZoom:function(delta,x,y) {
+			var cBefore = this.translateCanvasToImage(x,y,true);
+
+			var zoomSpeed = 1.003;
+			var amount = Math.pow(zoomSpeed,delta);
+
+			console.log(delta,this.zoomFactor,amount,this.zoomFactor*amount);
+			this.zoomFactor = this.zoomFactor * amount;
+			this.zoomFactor = Math.max(this.zoomFactor,this.zoomBounds.min);
+			this.zoomFactor = Math.min(this.zoomFactor,this.zoomBounds.max);
+
+			var cAfter = this.translateCanvasToImage(x,y,true);
+			var perPixelX = this.zoomFactor;
+			var perPixelY = this.zoomFactor;
+			this.offset.x += (cAfter[0] - cBefore[0])*perPixelX;
+			this.offset.y += (cAfter[1] - cBefore[1])*perPixelY;
+
+			this.requestFrame();
+		},
         updatePalette:function() {
             var palette = this.palette;
             var $palette = this.$controls.find(".palette").empty();
@@ -148,7 +156,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
         },
         setImage:function(image) {
             this.image = image;
-            this.updated = true;
+			this.requestFrame();
         },
         updateColorUI:function() {
             this.$controls.find(".fg").spectrum("set", this.fg.toHexString());
@@ -159,8 +167,8 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             this.bg = tinycolor(this.$controls.find(".bg").val());
         },
         translateCanvasToImage:function(x,y,ignoreBounds) {
-            var perPixelX = this.zoomScale[this.zoomIndex];
-            var perPixelY = this.zoomScale[this.zoomIndex];
+            var perPixelX = this.zoomFactor;
+            var perPixelY = this.zoomFactor;
             var ix = (x - this.offset.x) / perPixelX;
             var iy = (y - this.offset.y) / perPixelY;
             if (ignoreBounds) return [ix,iy];
@@ -182,14 +190,17 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             ctx.fillStyle = "#000";
             ctx.fillRect(0,0,width,height);
             ctx.putImageData(data,0,0);
-            this.updated = true;
+			this.requestFrame();
         },
         resizeToParent:function() {
             this.drawingArea.width = this.$el.parent().width();
             this.drawingArea.height = this.$el.height();
-            this.updated = true;
+			this.requestFrame();
             this.repaint();
         },
+        requestFrame:function() {
+			this.$el.get(0).ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+		},
         repaint:function() {
             var g = this.drawingArea.getContext("2d");
             this.paint(g,this.drawingArea.width,this.drawingArea.height);
@@ -205,7 +216,10 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             var view_right = Math.min(displayBox.width,offsetX + this.image.width * perPixelX);
             var view_bottom = Math.min(displayBox.height,offsetY + this.image.height * perPixelY);
 
-            g.imageSmoothingEnabled = false;
+			g.mozImageSmoothingEnabled = false;
+			g.webkitImageSmoothingEnabled = false;
+			g.msImageSmoothingEnabled = false;
+			g.imageSmoothingEnabled = false;
 
             g.drawImage(
                 image,
@@ -220,17 +234,13 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             );
         },
         paint:function(g,width,height) {
-            if (!this.destroyed) this.$el.get(0).ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
             if (!this.image) return;
-
-            if (!this.updated) return;
-            this.updated = false;
 
             g.clearRect(0,0,width,height);
 
             var start = new Date().getTime();
-            var perPixelX = this.zoomScale[this.zoomIndex];
-            var perPixelY = this.zoomScale[this.zoomIndex];
+            var perPixelX = this.zoomFactor;
+            var perPixelY = this.zoomFactor;
             //var data = this.image.getContext("2d").getImageData(0,0,this.image.width,this.image.height);
 
             var displayBox = {x:displayMargins.left,y:displayMargins.top,width:width-displayMargins.left-displayMargins.right,height:height-displayMargins.top-displayMargins.bottom};
@@ -270,9 +280,6 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             g.stroke();
 
 
-
-
-
             //draw numbers
             var xInterval = 1;
             var yInterval = 1;
@@ -289,10 +296,6 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 var text = Math.round(100*y/this.fps)/100+"s";
                 g.fillText(text,35,displayBox.y+this.offset.y+y*perPixelY+nudgeY);
             }
-
-
-
-
         },
 		destroy:function() {
 			this.destroyed = true;

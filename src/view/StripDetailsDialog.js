@@ -1,4 +1,4 @@
-define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html","jquery.touchwipe.min"],function($,util,mobile_template,desktop_template) {
+define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html"],function($,util,mobile_template,desktop_template) {
 
     var This = function() {
         this.init.apply(this,arguments);

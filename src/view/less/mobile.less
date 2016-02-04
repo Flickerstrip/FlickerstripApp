@@ -35,7 +35,7 @@ body {
     height: 100vh;
 }
 
-.stripListing, .groupDetails, .patternSelectionPanel, .patternConfigPanel {
+.stripListing, .groupDetails, .patternSelectionPanel, .patternConfigPanel, .mobilePanel {
     position: absolute;
     -webkit-transition: left .5s;
     transition: left .5s;
@@ -220,44 +220,106 @@ body {
     font-size: 18px;
 }
 
-.patternSelectionPanel {
+.preview {
+    .flex(0 0 auto);
+    padding-left: 10px;
+    width: 20px;
+}
+
+.nextToPreview {
+    .flex(1 1 auto);
+    .flex-display;
+    .flex-direction(column);
+}
+
+.mobilePanel .body.bodyWithPreview {
+    .flex(1 1 auto);
+    .flex-display;
+    .flex-direction(row);
+    .align-items(stretch);
+}
+
+.mobilePanel {
 	.flex-display;
 	.flex-direction(column);
 	.body {
-		.flex(1 1 auto);
-		.flex-display;
-		.flex-direction(row);
-		.align-items(stretch);
-		.nextToPreview {
-			.flex(1 1 auto);
-			.flex-display;
-			.flex-direction(column);
+        .flex(1 1 auto);
+        .flex-display;
+        .flex-direction(column);
 
-			.serverPatterns {
-				.flex(1 1 auto);
-				.flexExpandContent;
-                overflow-x: scroll;
-			}
+        .flexFixed {
+            .flex(0 0 auto);
+        }
 
-			.buttons {
-				.flex(0 0 auto);
-				.flex-display;
-				.flex-direction(row);
-				>* {
-					.flex(1 1 auto);
-				}
+        .flexExpand {
+            .flex(1 1 auto);
+            .flexExpandContent;
+            overflow-x: scroll;
+        }
 
-				.previewPatternButton {
-					margin-right: 10px;
-				}
-			}
-		}
-		.preview {
-			.flex(0 0 auto);
-			padding-left: 10px;
-			width: 20px;
-		}
+        .tabs {
+            .flex(0 0 auto);
+        }
+        .buttons {
+            .flex(0 0 auto);
+            .flex-display;
+            .flex-direction(row);
+            >* {
+                .flex(1 1 auto);
+                margin-right: 10px;
+            }
+
+            >*:last-child {
+                margin-right: 0px;
+            }
+        }
 	}
+}
+
+.patternControls {
+    .flex-direction(column);
+
+    .saveImage { display: none; }
+    .loadImage { display: none; }
+
+    label {
+        border-radius: 3px;
+        padding: 1px 1px;
+        margin: 1px 1px;
+    }
+
+    input {
+        width: 30px;
+        height: 20px;
+    }
+
+    .right {
+        order: 0;
+        .flex(0 0 auto);
+    }
+
+    .controls {
+        order: 1;
+    }
+
+    .current .sp-preview {
+        width: 60px;
+        height: 60px;
+    }
+
+    .bg {
+        display: none;
+    }
+
+    .palette {
+        display: block;
+        .color {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+        }
+
+    }
 }
 /////////////////////////////////////////////////////////////
 

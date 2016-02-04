@@ -1,4 +1,4 @@
-<div class="patternSelectionPanel">
+<div class="patternSelectionPanel mobilePanel">
     <div class="navigationBar">
         <div class="navigationButtons">
             <button class="hideButton btn btn-default navbar-btn"><span class="glyphicon glyphicon-triangle-left"></span></button>
@@ -7,12 +7,14 @@
             <h4 class="titletext flexone">Choose Lightwork</h4>
         </div>
     </div>
-    <div class="body">
+    <div class="body bodyWithPreview">
         <div class="nextToPreview">
-            <div class="serverPatterns">
-            </div>
+            <div class="tabs flexFixed"></div>
+
+            <button type="button" class="btn btn-default createPattern flexFixed">Create Lightwork</button>
+            <div class="patternlist flexExpand"></div>
             
-            <div class="buttons">
+            <div class="buttons flexFixed">
                 <button type="button" class="btn btn-success previewPatternButton">Preview</button>
                 <button type="button" class="btn btn-primary loadPatternButton">Load</button>
             </div>

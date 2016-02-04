@@ -57,6 +57,7 @@ extend(This.prototype,{
             this._busy = false;
             this._queue = [];
             this.stopWatchdogTimer();
+			console.log(this);
             this.emit("Strip.StatusUpdated",{"visible":false});
         }
     },

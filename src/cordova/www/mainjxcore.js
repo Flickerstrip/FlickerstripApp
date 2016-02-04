@@ -10,7 +10,6 @@ function jxcore_ready() {
         baseUrl: "./view/lib",
         "shim": {
             "jquery.contextMenu"  : ["jquery"],
-            "jquery.touchwipe.min"  : ["jquery"],
             "jquery.spectrum"  : ["jquery"]
         },
         paths: {

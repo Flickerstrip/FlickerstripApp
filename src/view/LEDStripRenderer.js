@@ -52,8 +52,14 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             var millis = new Date().getTime();
             var self = this;
 
+			this.runningTimer = null;
+
             this.repaint();
         },
+		setTimer:function(fps) {
+			if (this.runningTimer != null) clearInterval(this.runningTimer);
+			if (fps != null) this.runningTimer = setInterval(_.bind(this.requestFrame,this),1000.0/fps);
+		},
         resizeToParent:function() {
 		    if (platform == "mobile") {
 				this.canvas.height = this.$el.parent().height();
@@ -72,14 +78,17 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
 			}
         },
         stop:function() {
+			this.setTimer(null);
             this.running = false;
         },
         start:function() {
+			if (this.pattern && this.pattern.fps) this.setTimer(this.pattern.fps);
             this.running = true;
         },
+		requestFrame:function() {
+            this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
+		},
         paint:function(g) {
-            if (this.running && !frameDebug) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
-
             if (!(this.pattern && this.rendered)) return;
 
             var imgctx = this.rendered.getContext("2d");
@@ -138,7 +147,11 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             var durationPerPixel = renderDuration / loc.height;
 
             //g.drawImage(this.rendered, 0, 0, this.rendered.width, this.rendered.height,loc.x,loc.y,loc.width,loc.height);
-            g.imageSmoothingEnabled = false;
+			g.mozImageSmoothingEnabled = false;
+			g.webkitImageSmoothingEnabled = false;
+			g.msImageSmoothingEnabled = false;
+			g.imageSmoothingEnabled = false;
+
             var lastYDrawn = null;
 			//console.log("START",loc.height,this.pattern.frames,loc.height/this.pattern.frames);
             for (var t=0; t<this.pattern.frames; t++) {
@@ -212,6 +225,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
         setPattern:function(pattern) {
             this.pattern = pattern;
             this.updatePatternCache();
+			this.start();
         },
         updatePatternCache:function() {
             var rendered = {};

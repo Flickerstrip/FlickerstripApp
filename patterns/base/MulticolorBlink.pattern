@@ -1,12 +1,5 @@
-id:6
 name:MulticolorBlink
 type:javascript
-createdAt:2015-11-13T04:45:18.000Z
-updatedAt:2015-11-13T04:45:18.000Z
-OwnerId:1
-Owner:{"id":1,"display":"Flickerstrip"}
-index:0
-
 
 ({
     pattern:function() {

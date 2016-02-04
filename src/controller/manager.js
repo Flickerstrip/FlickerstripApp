@@ -118,6 +118,7 @@ extend(This.prototype,{
 
         this.on("CreateDummy",_.bind(function() {
             strip = new LEDStrip("du:mm:yy:st:ri:ps",null);
+            strip.patterns = [{"name":"default"}];
             this.strips.push(strip);
             strip.setVisible(false);
             this.stripAdded(strip);
@@ -285,23 +286,39 @@ extend(This.prototype,{
         return pattern;
     },
     loadPatterns:function() {
-        fs.readdir(this.folderConfig.patternFolder,_.bind(function(err,files) {
-            if (err) return console.log("ERROR READING DIR",err);
+        this.loadFolderPatterns(this.folderConfig.userPatternFolder,_.bind(function(patterns) {
+            this.userPatterns = patterns;
+            this.conduit.emit("PatternsLoaded",this.userPatterns);
+        },this));
+        if (this.folderConfig.basicPatternFolder) { //only happens in mobile.. atm
+            console.log("loading basic patterns",this.folderConfig.basicPatternFolder);
+            this.loadFolderPatterns(this.folderConfig.basicPatternFolder,_.bind(function(patterns) {
+                this.basicPatterns = patterns;
+                this.conduit.emit("BasicPatternsLoaded",this.basicPatterns);
+            },this));
+        }
+    },
+    loadFolderPatterns(fpath,cb) {
+        fs.readdir(fpath,_.bind(function(err,files) {
+            if (err) {
+                return console.log("ERROR READING DIR",path,err);
+                cb(null);
+            }
             async.map(files,_.bind(function(file,callback) {
-                fs.readFile(path.join(this.folderConfig.patternFolder,file),'utf8',callback);
+                fs.readFile(path.join(fpath,file),'utf8',callback);
             },this),_.bind(function(err,results) {
-                this.patterns = [];
+                var patterns = [];
                 _.each(_.zip(files,results),_.bind(function(info) {
                     var filename=info[0];
                     var content=info[1];
                     if (filename[0] == '.') return;
                     var pattern = this.populatePattern(content);
 
-                    pattern.path = path.join(this.folderConfig.patternFolder,filename);
-                    this.patterns.push(pattern);
+                    pattern.path = path.join(fpath,filename);
+                    patterns.push(pattern);
                 },this));
 
-                this.conduit.emit("PatternsLoaded",this.patterns);
+                cb(patterns);
             },this));
         },this));
     },

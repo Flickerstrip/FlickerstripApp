@@ -114,13 +114,17 @@ nwjs_all: linux-x64 osx-x64 win-x64
 	mkdir -p ./build/cordova/www/view/css/
 	lessc ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
 
-./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules $(SRC_FILES)
+./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules ./build/cordova/www/jxcore/patterns $(SRC_FILES)
 	mkdir -p ./build/cordova/www
 	rsync $(RSYNC_OPT) ./src/controller ./build/cordova/www/jxcore
 	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www/jxcore
 	rsync $(RSYNC_OPT) ./src/shared ./build/cordova/www
 	rsync $(RSYNC_OPT) ./src/view ./build/cordova/www/ --exclude less
 	rsync $(RSYNC_OPT) ./src/cordova/www ./build/cordova/
+
+./build/cordova/www/jxcore/patterns:
+	rsync $(RSYNC_OPT) ./patterns/base/* $@
+
 
 ./build/cordova/resources: ./src/cordova/resources/*
 	rsync $(RSYNC_OPT) ./src/cordova/resources ./build/cordova

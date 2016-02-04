@@ -1,5 +1,5 @@
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/loadPatternDialogMobile.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,template) {
+define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/EditPatternDialog.js","view/Tabs.js","text!tmpl/loadPatternDialogMobile.html"],
+function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,EditPatternDialog,Tabs,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -14,6 +14,31 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,temp
             this.$el = this.$el.children();
 			this.$preview = this.$el.find(".preview");
 
+            this.tabs = new Tabs({
+                "basic":{"label":"Basic","default":true},
+                "user":{"label":"User"},
+                "server":{"label":"Shared"}
+            });
+
+            this.$el.find(".createPattern").hide().click(_.bind(function() {
+                this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
+                this.stripRenderer.stop();
+                $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                    console.log("saving pattern!");
+                    this.conduit.emit("SavePattern",pattern);
+                    this.editPatternDialog.hide();
+                    this.stripRenderer.start();
+                },this));
+            },this));
+
+            $(this.tabs).on("select",_.bind(function(e,key) {
+                this.$el.find(".createPattern").toggle(key == "user");
+                if (key == "basic") this.showPatterns(this.gui.basicPatterns);
+                if (key == "user") this.showPatterns(this.gui.userPatterns);
+                if (key == "server") this.refreshPatterns();
+            },this));
+            this.$el.find(".tabs").append(this.tabs.$el);
+
 			this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternClicked,this));
 			this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternClicked,this));
 
@@ -24,16 +49,19 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,temp
             var ledCount = 150;
             this.stripRenderer = new LEDStripRenderer(ledCount);
             this.$preview.empty().append(this.stripRenderer.$el);
-            this.$el.find(".serverPatterns").addClass("empty");
-            this.refreshPatterns();
+            this.$el.find(".patternlist").addClass("empty");
         },
         refreshPatterns:function() {
             this.$el.find(".right").addClass("deselected");
             this.conduit.request("RefreshServerPatterns",_.bind(function(patterns) {
-                this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
-                this.$el.find(".serverPatterns").empty().append(this.patternSelect.$el).removeClass("empty");
-                $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
+                this.showPatterns(patterns);
             },this));
+        },
+        showPatterns:function(patterns) {
+            console.log("showing patterns",patterns);
+            this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
+            this.$el.find(".patternlist").empty().append(this.patternSelect.$el).removeClass("empty");
+            $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
         },
         getPattern:function(patternSpec) { //TODO dedupe me
             var args = {};
@@ -83,11 +111,13 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,temp
         patternOptionRenderer:function(pattern,$el) {
             if ($el) {
                 $el.find(".name").text(pattern.name);
-                $el.find(".aside").text(pattern.Owner.display);
+                var aside = pattern.Owner ? pattern.Owner.display : "";
+                $el.find(".aside").text(aside); 
             } else {
                 $el = $("<ul class='list-group-item listElement' />");
                 $el.append($("<span class='name'></span>").text(pattern.name));
-                $el.append($("<span class='aside'></span>").text(pattern.Owner.display));
+                var aside = pattern.Owner ? pattern.Owner.display : "";
+                $el.append($("<span class='aside'></span>").text(aside));
             }
             return $el;
         },

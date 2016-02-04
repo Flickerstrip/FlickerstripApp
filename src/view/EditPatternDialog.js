@@ -1,7 +1,5 @@
-var JSHINT = require("jshint").JSHINT;
-
-define(["jquery","tinycolor","ace/ace","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/CanvasPixelEditor","text!tmpl/editPatternDialog.html"],
-function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,CanvasPixelEditor,desktop_template) {
+define(["jquery","tinycolor","ace/ace","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/CanvasPixelEditor","text!tmpl/editPatternDialog.html","text!tmpl/editPatternDialogMobile.html"],
+function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,CanvasPixelEditor,desktop_template,mobile_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -52,7 +50,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
 			this.widgets = [];
             this.$el = $("<div class='editPatternDialog'/>");
 
-            this.$el.append(desktop_template);
+            this.$el.append(platform == "desktop" ? desktop_template : mobile_template);
             this.$el = this.$el.children();
 
             this.$el.find(".hideButton").click(_.bind(function() {
@@ -225,12 +223,20 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             return this;
         },
 
+        destroy:function() {
+            if (this.stripRenderer) this.stripRenderer.destroy();
+        },
+
         hide:function() {
-            var $body = $(document.body);
+            if (platform == "desktop") {
                 this.$el.modal('hide');
                 this.$el.remove();
-            if (this.stripRenderer) this.stripRenderer.destroy();
-            return this;
+            } else if (platform == "mobile") {
+                setInterval(_.bind(function() { //delay until the animation finishes
+                    this.$el.remove();
+                },this),500);
+            }
+            this.destroy();
         }
     });
 
