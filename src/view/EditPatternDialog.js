@@ -59,7 +59,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
 
             //util.testFunctions();
 
-            if (!this.pattern.name) this.pattern.name = "New Pattern";
+            if (!this.pattern.name) this.pattern.name = "New Lightwork";
 
             this.$preview = this.$el.find(".patternPreview");
             this.stripRenderer = new LEDStripRenderer(150);

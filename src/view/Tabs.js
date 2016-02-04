@@ -18,14 +18,12 @@ define(['jquery','underscore'],function($,_) {
             },this));
             this.$el.find("a").click(_.bind(function(e) {
                 var $el = $(e.target).closest("li");
-                console.log($el,$el.data("info"));
                 $(this).trigger("select",$el.data("info").key);
                 this.$el.find("li").removeClass("active");
                 $el.addClass("active");
                 e.preventDefault();
                 e.stopPropagation();
             },this));
-            this.$el.find(".active a").click();
         }
     });
 

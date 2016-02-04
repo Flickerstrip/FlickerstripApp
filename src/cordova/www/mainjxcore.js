@@ -1,3 +1,4 @@
+var defaultLogger = console.log;
 function jxcore_ready() {
     var gui = null;
 
@@ -47,7 +48,7 @@ function jxcore_ready() {
 
     function init() {
         requirejs(['jquery','view/Gui.js'],function($,Gui) {
-            console.log = log;
+            //console.log = log;
             platform = "mobile";
 
             //$(document).on("touchmove", function(evt) { evt.preventDefault() });

@@ -262,8 +262,16 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             var x, y;
 
             var canoffset = $(canvas).offset();
-            x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
-            y = event.clientY + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
+			var ex,ey;
+			try {
+				ex = event.clientX || (event.center && event.center.x) || (event.originalEvent.touches && event.originalEvent.touches[0].clientX);
+				ey = event.clientY || (event.center && event.center.y) || (event.originalEvent.touches && event.originalEvent.touches[0].clientY);
+			} catch(e) {
+				return null;
+			}
+					
+            x = ex + document.body.scrollLeft + document.documentElement.scrollLeft - Math.floor(canoffset.left);
+            y = ey + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
 
             return [x-marginLeft,y-marginTop];
         },

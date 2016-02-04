@@ -33,9 +33,19 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 preferredFormat: "rgb",
                 showPalette: true,
                 palette: [ ],
-                localStorageKey: "spectrum.colorPallete",
+                localStorageKey: "spectrum.storage",
+				clickoutFiresChange: true,
                 maxSelectionSize: 8,
-                change: _.bind(this.colorChanged,this)
+                change: _.bind(this.colorChanged,this),
+				show:_.bind(function(e) {
+					var $el = $(e.target);
+					$("<div class='block'></div>").on("click touchstart",_.bind(function() {
+						$el.spectrum("hide");
+					},this)).appendTo(this.$el);
+				},this),
+				hide:_.bind(function() {
+					this.$el.find(".block").remove();
+				},this)
             };
 
             this.$controls.find(".fg").val("#fff").spectrum(colorOpts);
@@ -49,42 +59,48 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 			this.destroyed = false;
 
             this.drawingArea = this.$el.find(".drawingArea").get(0);
-            $(this.drawingArea).on("click mouseup mousedown mousemove",_.bind(function(e) {
-                var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
-                if (e.type == "mousedown") {
-                    this.down = {
-                        button:e.button,
-                        startX:pos[0],
-                        startY:pos[1],
-                        params:{
-                            offset:this.offset
-                        }
-                    }
-                }
-                if (e.type == "mouseup") this.down = false;
+			$(this.drawingArea).on(platform == "desktop" ? "click mouseup mousedown mousemove" : "touchstart touchend touchmove",_.bind(function(e) {
+				if (e.originalEvent.touches && e.originalEvent.touches.length > 1) return;
+				var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
+				if (!this.previousMousePosition) this.previousMousePosition = pos;
+				if (e.type == "mousedown" || e.type == "touchstart") {
+					this.down = {
+						button:e.button,
+						startX:pos[0],
+						startY:pos[1],
+						params:{
+							offset:this.offset
+						}
+					}
+				}
+				if (e.type == "mouseup" || e.type == "touchend") {
+					this.down = false;
+					this.previousMousePosition = null;
+					return;
+				} 
 
-                var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
-                if (this.down) {
-                    if (this.down.button == 2) {
+				var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
+				if (this.down) {
+					if (this.down.button == 2) {
 						if (!this.down.startX || !this.down.startY) return;
-                        var dx = pos[0]-this.down.startX;
-                        var dy = pos[1]-this.down.startY;
+						var dx = pos[0]-this.down.startX;
+						var dy = pos[1]-this.down.startY;
+						this.offset = {x:this.down.params.offset.x+dx,y:this.down.params.offset.y+dy};
 						this.requestFrame();
-                        this.offset = {x:this.down.params.offset.x+dx,y:this.down.params.offset.y+dy};
-                    } else {
-                        var ipos = this.translateCanvasToImage(pos[0],pos[1]);
-                        var i2pos = this.translateCanvasToImage(this.previousMousePosition[0],this.previousMousePosition[1]);
-                        if (ipos != null && i2pos != null) {
-                            var g = this.image.getContext("2d");
-                            g.fillStyle = e.shiftKey ? this.bg.toHexString() : this.fg.toHexString();
-                            plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
-                            $(this).trigger("change");
+					} else {
+						var ipos = this.translateCanvasToImage(pos[0],pos[1]);
+						var i2pos = this.translateCanvasToImage(this.previousMousePosition[0],this.previousMousePosition[1]);
+						if (ipos != null && i2pos != null) {
+							var g = this.image.getContext("2d");
+							g.fillStyle = e.shiftKey ? this.bg.toHexString() : this.fg.toHexString();
+							plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
+							$(this).trigger("change");
 							this.requestFrame();
-                        }
-                    }
-                }
-                this.previousMousePosition = pos;
-            },this));
+						}
+					}
+				}
+				this.previousMousePosition = pos;
+			},this));
 
 			this.zoomFactor = 20;
 			this.zoomBounds = {min:5,max:60};
@@ -97,9 +113,57 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 				this.doZoom(delta,pos[0],pos[1]);
             },this));
 
-			new Hammer(this.drawingArea).on("pinch",_.bind(function(e) {
-				console.log("pinch",e);
-			}));
+			this.pinch = null;
+			new Hammer(this.drawingArea)
+				.on("pinchstart",_.bind(function(e) {
+					var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
+					var ipos = this.translateCanvasToImage(pos[0],pos[1],true);
+				    this.pinch = {
+						center: {x:ipos[0],y:ipos[1]},
+						initialOffset: {x:this.offset.x,y:this.offset.y},
+						initialZoomFactor:this.zoomFactor
+					};
+				},this))
+				.on("pinch",_.bind(function(e) {
+					var pos = util.getCursorPosition(this.drawingArea,e,displayMargins.left,displayMargins.top);
+					if (!this.pinch) return;
+
+					this.zoomFactor = this.pinch.initialZoomFactor * e.scale;
+
+					this.offset = this.pinch.initialOffset;
+					var cAfter = this.translateCanvasToImage(pos[0],pos[1],true);
+					this.offset = {
+						x:this.pinch.initialOffset.x + (cAfter[0] - this.pinch.center.x) * this.zoomFactor,
+						y:this.pinch.initialOffset.y + (cAfter[1] - this.pinch.center.y) * this.zoomFactor
+					};
+
+					this.requestFrame();
+
+					/*
+					var g = this.drawingArea.getContext("2d");
+					g.strokeStyle = "#ff0000";
+					g.beginPath();
+					g.moveTo(0,0);
+					g.lineTo(displayMargins.left + this.offset.x + this.pinch.center.x*this.zoomFactor,displayMargins.top + this.offset.y + this.pinch.center.y*this.zoomFactor);
+					g.stroke();
+
+					g.strokeStyle = "#00ff00";
+					g.beginPath();
+					g.moveTo(50,0);
+					g.lineTo(displayMargins.left + this.offset.x + cAfter[0]*this.zoomFactor,displayMargins.top + this.offset.y + cAfter[1]*this.zoomFactor);
+					g.stroke();
+
+					g.strokeStyle = "#0000ff";
+					g.beginPath();
+					g.moveTo(100,0);
+					g.lineTo(displayMargins.left+pos[0],displayMargins.top+pos[1]);
+					g.stroke();
+					*/
+				},this))
+				.on("pinchend",_.bind(function(e) {
+					this.pinch = null;
+				},this))
+				.get('pinch').set({ enable: true });
 
 			this.requestFrame();
             this.repaint();
@@ -110,7 +174,6 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 			var zoomSpeed = 1.003;
 			var amount = Math.pow(zoomSpeed,delta);
 
-			console.log(delta,this.zoomFactor,amount,this.zoomFactor*amount);
 			this.zoomFactor = this.zoomFactor * amount;
 			this.zoomFactor = Math.max(this.zoomFactor,this.zoomBounds.min);
 			this.zoomFactor = Math.min(this.zoomFactor,this.zoomBounds.max);
@@ -129,8 +192,9 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             _.each(palette,_.bind(function(color,index) {
                 var c = tinycolor({r:color[0],g:color[1],b:color[2]});
                 var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
-                $panel.on("click contextmenu",_.bind(function(e) {
-                    if (e.button == 2) {
+				var handler = _.bind(function(e) {
+					console.log(e);
+                    if (e.type == "press" || e.button == 2) {
                         if (e.shiftKey) {
                             c = this.bg;
                         } else {
@@ -150,7 +214,11 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                         }
                     }
                     e.preventDefault();
-                },this));
+					e.stopPropagation();
+					return false;
+                },this);
+				if (platform == "desktop") $panel.on("click contextmenu",handler);
+				if (platform == "mobile") new Hammer($panel.get(0)).on("tap press",handler);
                 $palette.append($panel);
             },this));
         },
@@ -208,8 +276,9 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
         drawImageWithinBounds:function(g,displayBox,image,offsetX,offsetY,perPixelX,perPixelY) {
             var image_left = Math.max(0,-Math.floor(offsetX/perPixelX)-1);
             var image_top = Math.max(0,-Math.floor(offsetY/perPixelY)-1);
-            var image_right = Math.min(this.image.width,image_left+1+(Math.min(displayBox.width,displayBox.width-offsetX)/perPixelX));
-            var image_bottom = Math.min(this.image.height,image_top+1+(Math.min(displayBox.height,displayBox.height-offsetY)/perPixelY));
+            var image_right = Math.min(image.width,image_left+1+(Math.min(displayBox.width,displayBox.width-offsetX)/perPixelX));
+            var image_bottom = Math.min(image.height,image_top+1+(Math.min(displayBox.height,displayBox.height-offsetY)/perPixelY));
+
 
             var view_left = image_left*perPixelX+offsetX;
             var view_top = image_top*perPixelY+offsetY;
@@ -221,6 +290,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 			g.msImageSmoothingEnabled = false;
 			g.imageSmoothingEnabled = false;
 
+			if(image_right-image_left == 0 || image_bottom - image_top == 0) return;
             g.drawImage(
                 image,
                 image_left, //image X
@@ -252,10 +322,10 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 return data;
             });
             //Draw ghosts
-            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x+perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY);
-            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y+perPixelY*this.image.height,perPixelX,perPixelY);
-            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x-perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY);
-            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y-perPixelY*this.image.height,perPixelX,perPixelY);
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x+perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY); //right ghost
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y+perPixelY*this.image.height,perPixelX,perPixelY); //bottom ghost
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x-perPixelX*this.image.width,this.offset.y,perPixelX,perPixelY); //left ghost
+            this.drawImageWithinBounds(g,displayBox,ghost,this.offset.x,this.offset.y-perPixelY*this.image.height,perPixelX,perPixelY); //top ghost
 
             //Draw the image at the correct scale at the origin (debugging)
             //g.drawImage(this.image,image_left,image_top,image_right-image_left,image_bottom-image_top,0,0,(image_right-image_left)*perPixelX,(image_bottom-image_top)*perPixelY);

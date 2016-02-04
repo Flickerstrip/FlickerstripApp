@@ -24,7 +24,6 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
                 this.stripRenderer.stop();
                 $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
-                    console.log("saving pattern!");
                     this.conduit.emit("SavePattern",pattern);
                     this.editPatternDialog.hide();
                     this.stripRenderer.start();
@@ -38,6 +37,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 if (key == "server") this.refreshPatterns();
             },this));
             this.$el.find(".tabs").append(this.tabs.$el);
+            this.showPatterns(this.gui.basicPatterns);
 
 			this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternClicked,this));
 			this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternClicked,this));

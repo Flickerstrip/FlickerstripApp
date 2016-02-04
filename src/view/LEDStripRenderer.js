@@ -89,6 +89,19 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
 		},
         paint:function(g) {
+			if (this.analytics == true) {
+				var stime = new Date().getTime();
+				
+				if (!this.watch) this.watch = new Date().getTime();
+				if (new Date().getTime() - this.watch > 1000) {
+					console.log("fps",this.i);
+					this.i = 0;
+					this.watch = null;
+				}
+				this.i++;
+			}
+
+
             if (!(this.pattern && this.rendered)) return;
 
             var imgctx = this.rendered.getContext("2d");
@@ -192,10 +205,13 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             if (this.flicker > 20) this.flicker = 0;
             drawLine(g,loc.x,framePositionY,loc.x+loc.width,framePositionY);
             */
+
+			if (this.analytics) {
+				var etime = new Date().getTime();
+				console.log("took: ",etime-stime);
+			}
         },
 		paintMobile:function(g) {
-            if (this.running && !frameDebug) this.canvas.ownerDocument.defaultView.requestAnimationFrame(_.bind(this.repaint,this));
-
             if (!(this.pattern && this.rendered)) return;
 
             var imgctx = this.rendered.getContext("2d");
