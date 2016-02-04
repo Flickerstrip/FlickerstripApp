@@ -13,18 +13,25 @@ define(['jquery','underscore'],function($,_) {
                 var $el = $("<li><a href='#'>"+info.label+"</a></li>");
                 info.key = key;
                 $el.data("info",info);
-                if (info.default === true) $el.addClass("active");
+                if (info.default === true) {
+                    $el.addClass("active");
+                    this.selected = info;
+                }
                 this.$el.append($el);
             },this));
             this.$el.find("a").click(_.bind(function(e) {
                 var $el = $(e.target).closest("li");
+                this.selected = $el.data("info");
                 $(this).trigger("select",$el.data("info").key);
                 this.$el.find("li").removeClass("active");
                 $el.addClass("active");
                 e.preventDefault();
                 e.stopPropagation();
             },this));
-        }
+        },
+        getSelectedKey:function() {
+            return this.selected.key;
+        },
     });
 
     return This;

@@ -207,7 +207,7 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             return data;
         },
         evaluatePattern:function(pattern,values) {
-            if (pattern.type == "javascript") {
+            if (!pattern.type || pattern.type == "javascript") {
                 try {
                     var evaluatedPattern = eval("("+pattern.body+")");
                 } catch (e) {

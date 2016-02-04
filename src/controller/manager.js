@@ -260,8 +260,25 @@ extend(This.prototype,{
             if (pattern.path) fs.unlinkSync(pattern.path);
 
             var name = pattern.name.replace(/[^a-zA-z0-9]/,"");
-            fs.writeFile(path.join(this.folderConfig.patternFolder,name+".pattern"),out,"utf8",_.bind(function(err) {
-                this.loadPatterns();
+            var usePath = this.folderConfig.userPatternFolder ||  this.folderConfig.basicPatternFolder;
+
+            var self = this;
+            function createPattern() {
+                fs.writeFile(path.join(usePath,name+".pattern"),out,"utf8",_.bind(function(err) {
+                    if (err) return console.log("ERROR writing file",err);
+                    self.loadPatterns();
+                },self));
+            }
+
+            fs.exists(usePath,_.bind(function(exists) {
+                if (!exists) {
+                    fs.mkdir(usePath,_.bind(function(err) {
+                        if (err) return console.log("ERROR mkdir! ",err,usePath);
+                        createPattern();
+                    },this));
+                } else {
+                    createPattern();
+                }
             },this));
         },this));
     },
@@ -287,12 +304,13 @@ extend(This.prototype,{
     },
     loadPatterns:function() {
         this.loadFolderPatterns(this.folderConfig.userPatternFolder,_.bind(function(patterns) {
+            console.log("loaded user: ",this.userPatternFolder);
             this.userPatterns = patterns;
             this.conduit.emit("PatternsLoaded",this.userPatterns);
         },this));
         if (this.folderConfig.basicPatternFolder) { //only happens in mobile.. atm
-            console.log("loading basic patterns",this.folderConfig.basicPatternFolder);
             this.loadFolderPatterns(this.folderConfig.basicPatternFolder,_.bind(function(patterns) {
+                console.log("loaded basic: ",this.basicPatterns);
                 this.basicPatterns = patterns;
                 this.conduit.emit("BasicPatternsLoaded",this.basicPatterns);
             },this));

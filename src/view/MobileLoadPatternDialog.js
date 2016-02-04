@@ -38,6 +38,11 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             },this));
             this.$el.find(".tabs").append(this.tabs.$el);
             this.showPatterns(this.gui.basicPatterns);
+            $(this.gui).on("BasicPatternsLoaded PatternsLoaded",_.bind(function() {
+                var key = this.tabs.getSelectedKey();
+                if (key == "basic") this.showPatterns(this.gui.basicPatterns);
+                if (key == "user") this.showPatterns(this.gui.userPatterns);
+            },this));
 
 			this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternClicked,this));
 			this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternClicked,this));
@@ -58,7 +63,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             },this));
         },
         showPatterns:function(patterns) {
-            console.log("showing patterns",patterns);
+            console.log("showing patterns gui",patterns);
             this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
             this.$el.find(".patternlist").empty().append(this.patternSelect.$el).removeClass("empty");
             $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
@@ -86,27 +91,38 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             if (selectedObjects.length == 0) return;
 
             var pattern = selectedObjects[0];
-            this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
-                if (pattern.type == "bitmap") {
-					var binary_string =  window.atob(body);
-					var len = binary_string.length;
-					var bytes = [];
-					for (var i = 0; i < len; i++) {
-						bytes[i] = binary_string.charCodeAt(i);
-					}
-					body = bytes;
-                }
-                pattern.body = body;
-                this.selectedPattern = pattern;
-                if (!pattern.type) pattern.type = "javascript";
-                util.evaluatePattern(this.selectedPattern);
+            console.log("selected pattern",pattern);
+            if (!pattern.body && pattern.id) {
+                this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
+                    if (pattern.type == "bitmap") {
+                        var binary_string =  window.atob(body);
+                        var len = binary_string.length;
+                        var bytes = [];
+                        for (var i = 0; i < len; i++) {
+                            bytes[i] = binary_string.charCodeAt(i);
+                        }
+                        body = bytes;
+                    }
+                    pattern.body = body;
+                    this.selectedPattern = pattern;
+                    if (!pattern.type) pattern.type = "javascript";
 
+                    util.evaluatePattern(this.selectedPattern);
+                    this.stripRenderer.setPattern(pattern.rendered);
+
+                    setTimeout(_.bind(function() {
+                        this.stripRenderer.resizeToParent();
+                    },this),5);
+                },this));
+            } else {
+                this.selectedPattern = pattern;
+                util.evaluatePattern(this.selectedPattern);
                 this.stripRenderer.setPattern(pattern.rendered);
 
                 setTimeout(_.bind(function() {
                     this.stripRenderer.resizeToParent();
                 },this),5);
-            },this));
+            }
         },
         patternOptionRenderer:function(pattern,$el) {
             if ($el) {
