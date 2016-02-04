@@ -149,9 +149,12 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                 this.editor.setImage(this.canvas);
 
                 this.$el.find(".patternControls input").change(_.bind(function() {
-                    this.pattern.fps = parseFloat(this.$fps.val());
-                    this.pattern.frames = parseFloat(this.$frames.val())
+                    this.pattern.fps = parseInt(this.$fps.val()); //TODO upgeade to float
+                    this.pattern.frames = parseInt(this.$frames.val())
                     this.pattern.pixels = parseInt(this.$pixels.val());
+                    if (!this.pattern.fps || this.pattern.fps < 1) this.pattern.fps = 1;
+                    if (!this.pattern.frames || this.pattern.frames < 1) this.pattern.frames = 1;
+                    if (!this.pattern.pixels || this.pattern.pixels < 1) this.pattern.pixels = 1;
 
                     this.updateEditor();
                     this.updatePattern();
