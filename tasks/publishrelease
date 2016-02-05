@@ -26,8 +26,10 @@ if [ ! -e "$ROOT/credentials.txt" ]; then
     exit
 fi
 
-RELEASE_LOG=$(mktemp /tmp/releasetext.XXXXXX)
-(echo "Changelog: "; git log `git describe --tags --abbrev=0 'HEAD^'`..HEAD --oneline | tail -n +2 | tail -r | sed 's/^[^ ]* /* /') > $RELEASE_LOG
+RELEASE_LOG=./releasetext.txt
+if [[ ! -e $RELEASE_LOG ]]; then
+	(echo "Changelog: "; git log `git describe --tags --abbrev=0 'HEAD^'`..HEAD --oneline | tail -n +2 | tail -r | sed 's/^[^ ]* /* /') > $RELEASE_LOG
+fi
 
 touch -A -01 $RELEASE_LOG
 EDIT_TIME=`stat -f %m $RELEASE_LOG`
@@ -47,7 +49,7 @@ else
     mkdir -p $ROOT/releases
     cp $ROOT/build/nwjs/*.zip $ROOT/releases
     cp ./build/cordova/platforms/android/build/outputs/apk/android-release.apk ./releases/FlickerstripApp-Android-$RELEASE.apk
-    cp ./build/cordova/platforms/ios/build/device/Flickerstrip.ipa' ./releases/FlickerstripApp-iOS-$RELEASE.ipa
+    cp ./build/cordova/platforms/ios/build/device/Flickerstrip.ipa ./releases/FlickerstripApp-iOS-$RELEASE.ipa
 
     # Generate json body
     DATA_FILE=/tmp/publishreleasedata.json
@@ -76,4 +78,6 @@ else
     blue "Cleaning up"
     (cd $ROOT; make clean)
 fi
+
+rm $RELEASE_LOG
 

@@ -222,8 +222,13 @@ body {
 
 .preview {
     .flex(0 0 auto);
-    padding-left: 10px;
-    width: 20px;
+    outline: 1px solid #666;
+	margin-left:10px;
+	width: 10px;
+}
+
+.createPattern {
+	margin-bottom: 5px;
 }
 
 .nextToPreview {
@@ -242,6 +247,14 @@ body {
 .noTouchEvents {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+body .mainContainer .body.bodyNoPadding {
+	border: none;
+	padding: 0;
+	.buttons {
+		padding: 0px 10px;
+	}
 }
 
 .mobilePanel {
@@ -303,29 +316,90 @@ body {
         .flex(0 0 auto);
     }
 
-    .controls {
-        order: 1;
-    }
-
-    .current .sp-preview {
-        width: 60px;
-        height: 60px;
-    }
-
     .bg {
         display: none;
     }
 
-    .palette {
-        display: block;
-        .color {
-            display: inline-block;
-            width: 50px;
-            height: 50px;
-        }
+    .controls {
+        order: 1;
+		.flex-display;
+		.flex-direction(row);
+		width: 100%;
+		padding: 0;
+		margin: 0;
 
-    }
+		.current {
+			.flex(0 0 auto);
+		    .sp-replacer {
+				margin: 0;
+				padding: 0;
+			}
+			padding: 0;
+			border: none;
+		}
+
+		.palette {
+			.flex(0 0 auto);
+			display: block;
+			padding: 0;
+			margin: 0;
+
+			.paletteRow {
+				display: flex;
+				padding: 0;
+				margin: 0;
+			}
+
+			.color {
+				.flex(1 1 auto);
+				padding: 0;
+				margin: 0;
+				margin-left: 1px;
+			}
+		}
+	}
 }
+
+.editorcontainer > div > .drawingArea {
+	border: none;
+}
+
+.metricsPanel {
+	width: 100%;
+	.flex-display;
+	font-size: 0;
+	label {
+		.flex(1 1 auto);
+		font-size: 15px;
+	}
+}
+
+.metricsDisclosure {
+	.flex-display;
+	.flex-direction(column);
+	font-size: 11px;
+	border:1px solid #999;
+	border-radius:5px;
+	margin-left:2px;
+	padding:2px;
+	margin-right:2px;
+
+	label {
+		.flex(1 1 auto);
+		font-weight: bold;
+		margin: 0;
+		padding: 0;
+	    margin-left: 2px;
+	}
+
+	span {
+		display: inline;
+		font-weight: normal;
+		padding: 0;
+		margin: 0;
+	}
+}
+
 /////////////////////////////////////////////////////////////
 
 .progressDialog {
@@ -412,6 +486,7 @@ body {
 }
 
 .brightnessControl {
+	top: 20px;
     right: 10px;
 
     .indicator {
@@ -419,7 +494,9 @@ body {
     }
 
     .brightness {
-        top: -26px;
+		right: -6px;
+		top: -18px;
+		font-size: 14px;
     }
 }
 

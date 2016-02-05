@@ -44,6 +44,7 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
 
     $.extend(This.prototype, {
         init:function(conduit,gui,pattern) {
+            window.epd = this;
             this.conduit = conduit;
             this.pattern = $.extend({},pattern);
             this.gui = gui;
@@ -53,11 +54,11 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             this.$el.append(platform == "desktop" ? desktop_template : mobile_template);
             this.$el = this.$el.children();
 
+            if (platform == "mobile") this.$el.find(".patternControls>.right").hide();
+
             this.$el.find(".hideButton").click(_.bind(function() {
                 this.hide()
             },this));
-
-            //util.testFunctions();
 
             if (!this.pattern.name) this.pattern.name = "New Lightwork";
 
@@ -137,18 +138,13 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                     this.pattern.palette = palette;
                 },this));
                 
-                this.$fps = this.$el.find(".fps");
-                this.$frames = this.$el.find(".frames");
-                this.$pixels = this.$el.find(".pixels");
-
-                this.updateEditor();
 
                 $(this.canvas).css("border","1px solid black");
 
                 this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,false,false);
                 this.editor.setImage(this.canvas);
 
-                this.$el.find(".patternControls input").change(_.bind(function() {
+                this.$el.find(".metricsPanel input").change(_.bind(function() {
                     this.pattern.fps = parseInt(this.$fps.val()); //TODO upgeade to float
                     this.pattern.frames = parseInt(this.$frames.val())
                     this.pattern.pixels = parseInt(this.$pixels.val());
@@ -170,6 +166,11 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
                     this.editor.resizeToParent();
                 },this),5);
 
+                this.$fps = this.$el.find(".metricsPanel .fps");
+                this.$frames = this.$el.find(".metricsPanel .frames");
+                this.$pixels = this.$el.find(".metricsPanel .pixels");
+                this.updateEditor();
+
                 this.pattern.body = util.canvasToBytes(this.canvas);
                 this.updateRendered();
             }
@@ -180,6 +181,12 @@ function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,
             this.$fps.val(this.pattern.fps);
             this.editor.setFps(this.pattern.fps);
             this.editor.setCanvasSize(this.pattern.pixels,this.pattern.frames);
+
+            if (platform == "mobile") {
+                this.$el.find(".metricsDisclosure .frames").text(this.pattern.frames);
+                this.$el.find(".metricsDisclosure .pixels").text(this.pattern.pixels);
+                this.$el.find(".metricsDisclosure .fps").text(this.pattern.fps);
+            }
         },
         savePatternClicked:function() {
             this.updatePattern();

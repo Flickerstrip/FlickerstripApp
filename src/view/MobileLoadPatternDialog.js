@@ -33,7 +33,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             $(this.tabs).on("select",_.bind(function(e,key) {
                 this.$el.find(".createPattern").toggle(key == "user");
                 if (key == "basic") this.showPatterns(this.gui.basicPatterns);
-                if (key == "user") this.showPatterns(this.gui.userPatterns);
+                if (key == "user") this.showPatterns(this.gui.userPatterns,true);
                 if (key == "server") this.refreshPatterns();
             },this));
             this.$el.find(".tabs").append(this.tabs.$el);
@@ -41,7 +41,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             $(this.gui).on("BasicPatternsLoaded PatternsLoaded",_.bind(function() {
                 var key = this.tabs.getSelectedKey();
                 if (key == "basic") this.showPatterns(this.gui.basicPatterns);
-                if (key == "user") this.showPatterns(this.gui.userPatterns);
+                if (key == "user") this.showPatterns(this.gui.userPatterns,true);
             },this));
 
 			this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternClicked,this));
@@ -62,9 +62,9 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 this.showPatterns(patterns);
             },this));
         },
-        showPatterns:function(patterns) {
-            console.log("showing patterns gui",patterns);
-            this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,{multiple:false});
+        showPatterns:function(patterns,editable) {
+            this.editable = editable;
+            this.patternSelect = new SelectList(patterns,this.patternOptionRenderer,this,{multiple:false});
             this.$el.find(".patternlist").empty().append(this.patternSelect.$el).removeClass("empty");
             $(this.patternSelect).on("change",_.bind(this.patternSelected,this));
         },
@@ -91,7 +91,6 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
             if (selectedObjects.length == 0) return;
 
             var pattern = selectedObjects[0];
-            console.log("selected pattern",pattern);
             if (!pattern.body && pattern.id) {
                 this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
                     if (pattern.type == "bitmap") {
@@ -134,6 +133,23 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 $el.append($("<span class='name'></span>").text(pattern.name));
                 var aside = pattern.Owner ? pattern.Owner.display : "";
                 $el.append($("<span class='aside'></span>").text(aside));
+
+                var $edit = $("<button class='btn btn-default editButton asideButton'><span class='glyphicon glyphicon-pencil'></span></button>");
+                $edit.click(_.bind(function(e) {
+                    var pattern = $(e.target).closest(".listElement").data("object");
+                    console.log("editing pattern",pattern);
+                    this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,pattern).show();
+                    this.stripRenderer.stop();
+                    $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                        this.conduit.emit("SavePattern",pattern);
+                        this.editPatternDialog.hide();
+                        this.stripRenderer.start();
+                    },this));
+                },this));
+                if (this.editable && pattern.type == "bitmap") {
+                    $el.append($edit);
+                    $el.addClass("hasAsideButton");
+                }
             }
             return $el;
         },

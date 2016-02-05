@@ -315,7 +315,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
             } else {
-                $el = $("<li class='list-group-item listElement' />");
+                $el = $("<li class='list-group-item listElement hasAsideButton' />");
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.append($("<span class='name'></span>").text(name));
@@ -326,7 +326,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                     setVersionClass($ver,strip.firmware,this.latestRelease);
                 },this));
 
-                var $onoff = $("<button class='btn btn-default powerButton'><span class='glyphicon glyphicon-off'></span></button>");
+                var $onoff = $("<button class='btn btn-default powerButton asideButton'><span class='glyphicon glyphicon-off'></span></button>");
                 $onoff.toggleClass("on",strip.power == 1);
                 $(strip).on("Strip.StatusUpdated",function() {
                     $onoff.toggleClass("on",strip.power == 1);

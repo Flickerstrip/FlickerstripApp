@@ -116,13 +116,7 @@
     right: 0;
 }
 
-.patternControls {
-    .flex-display;
-    .justify-content(flex-start);
-    .align-items(center);
-    .flex-direction(row);
-
-    margin-bottom: 3px;
+.metricsPanel {
     label {
         display: inline-block;
         border: 1px solid #ddd;
@@ -130,6 +124,15 @@
         padding: 1px 4px;
         margin: 2px 5px;
     }
+}
+
+.patternControls {
+    .flex-display;
+    .justify-content(flex-start);
+    .align-items(center);
+    .flex-direction(row);
+
+    margin-bottom: 3px;
 
     input {
         width: 45px;
@@ -172,15 +175,17 @@
 
     .palette {
         .flex(1 1 auto);
-        .flex-display;
-        .flex-direction(row);
-        .align-items(center);
-
         margin: 0px 3px;
         margin-left: 10px;
 
+		.paletteRow {
+			display: inline-block;
+			line-height: 0;
+		}
+
         .color {
-            .flex(0 0 auto);
+			line-height: 0;
+			display: inline-block;
             width: 20px;
             height: 20px;
             margin: 2px;
@@ -416,9 +421,21 @@ input.seamless {
     transition: none;
 }
 
-.stripListing .listElement {
+.listElement.hasAsideButton {
 	padding-right: 0px;
 }
+.asideButton {
+	height: 100%;
+	width:70px;
+	border-top: none;
+	border-bottom: none;
+	border-right: none;
+	border-radius: 0;
+	margin-left: 8px;
+
+}
+
+
 .powerButton {
     color: black;
 	&:hover,&:focus {
@@ -430,16 +447,8 @@ input.seamless {
 			background-color: #ddd;
 		}
     }
-
-	height: 100%;
-	width:70px;
-	border-top: none;
-	border-bottom: none;
-	border-right: none;
-	border-radius: 0;
-	margin-left: 8px;
-
 }
+
 
 .patternConfiguration {
     .panel-body;
@@ -585,6 +594,7 @@ input.seamless {
         border-radius: 4px;
         -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
         box-shadow: 0 1px 1px rgba(0,0,0,.05);
+
     }
 }
 

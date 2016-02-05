@@ -173,8 +173,11 @@ jxcoreExtensions: ./buildcache/io.jxcore.node/plugin.xml ./buildcache/io.jxcore.
 
 cordova: ./build/cordova
 
-run_ios: cordova
-	cd ./build/cordova && cordova run ios
+sim_ios: cordova
+	cd ./build/cordova && cordova emulate ios --target="iPhone-6"
+
+dev_ios: cordova
+	cd ./build/cordova && cordova run ios --device
 
 run_android: cordova
 	cd ./build/cordova && cordova run android
@@ -190,6 +193,9 @@ ios_release: cordova ./build/cordova/build.json
 	cd ./build/cordova && cordova build ios --device
 
 release_all: nwjs_all android_release ios_release
+
+open_xcode: cordova
+	open ./build/cordova/platforms/ios/Flickerstrip.xcodeproj
 
 	
 	
