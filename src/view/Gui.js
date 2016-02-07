@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","view/TopBar.js","shared/util.js","text!tmpl/stripList.html",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,TopBar,util,template) {
+define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","view/TopBar.js","shared/util.js","text!tmpl/stripList.html","hammer",'jquery.contextMenu'],
+function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,TopBar,util,template,Hammer) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -174,9 +174,9 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             return found;
         },
         stripAdded:function(e,strip) {
-            this.$el.find(".createDummyStrip").hide();
             this.selectList.addElement(strip,strip.group);
             var self = this;
+            this.updatePanelDisabler();
             $(strip).on("Strip.StatusUpdated",_.bind(function() {
                 self.selectList.updateElement(strip);
             },this));
@@ -187,6 +187,21 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                     $(this).remove();
                 }
             });
+            this.updatePanelDisabler();
+        },
+        updatePanelDisabler:function() {
+            if (this.selectList.$el.find(".listElement").length == 0) {
+                var $el = $("<div class='paneldisabled'>No Flickerstrips found, you can <a class='createDummyStrip' href='#'>create a test strip</a></div>");
+                $el.find(".createDummyStrip").click(_.bind(function(e) {
+                    this.conduit.emit("CreateDummy");
+                    e.preventDefault();
+                },this));
+                this.$el.find("#strip-list").append($el);
+                this.selectList.$el.hide();
+            } else {
+                this.$el.find("#strip-list").find(".paneldisabled").remove();
+                this.selectList.$el.show();
+            }
         },
         groupSelected:function(group) {
             var strips = [];
@@ -250,6 +265,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             var selectList = new SelectList([],this.stripElementRenderer,this,null,this.stripElementGroupRenderer);
             this.selectList = selectList;
             $stripList.append(selectList.$el);
+            this.updatePanelDisabler();
 
             this.$el.find(".reportIssue").click(_.bind(function() {
                 this.conduit.emit("OpenLink","https://github.com/Flickerstrip/FlickerstripApp/issues");
@@ -291,10 +307,6 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             });
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
-
-            this.$el.find(".createDummyStrip").click(_.bind(function() {
-                this.conduit.emit("CreateDummy");
-            },this));
 
             this.$el.find(".changeMode").click(_.bind(function() {
                 this.conduit.emit("Restart");
@@ -343,8 +355,33 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                     e.stopPropagation();
                     return false;
                 },this));
-                $el.append($onoff);
 
+                if (platform == "mobile") {
+                    var $forgetStrip = $("<button class='mobileSlideButton forgetStrip btn btn-danger'>Forget</span></button>");
+                    new Hammer($el.get(0)).on("panright",_.bind(function() {
+                        if ($el.hasClass("showSlideButton")) {
+                            $el.removeClass("showSlideButton");
+                        } else {
+                            this.$el.find(".listElement").removeClass("showSlideButton");
+                            $el.addClass("showSlideButton");
+                        }
+                    },this)).on("panleft",_.bind(function() {
+                        $el.removeClass("showSlideButton");
+                    },this));
+                    $el.append($forgetStrip);
+
+                    $forgetStrip.click(_.bind(function(e) {
+                        var obj = $(e.target).closest(".listElement").data("object");
+                        this.conduit.emit("ForgetStrip",[obj.id]);
+                        this.selectList.refreshGroupings();
+                        this.updatePanelDisabler();
+
+                        e.preventDefault();
+                        e.stopPropagation();
+                    },this));
+                }
+
+                $el.append($onoff);
             }
             return $el;
         },

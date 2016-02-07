@@ -9,6 +9,8 @@
 
 /////////////////// Font Size Adjustments /////////////////
 body {
+	font-family: "Helvetica", Helvetica, Arial, sans-serif;
+	font-family: -apple-system, Helvetica, Arial, sans-serif;
     font-size: 200%;
     height: 100vh;
     overflow-x: hidden;
@@ -95,6 +97,7 @@ body {
 }
 
 .powerButton {
+    z-index: 2;
 	height: 100%;
 	width:70px;
 	border-top: none;
@@ -164,22 +167,23 @@ body {
     display: none;
 }
 
-.forgetPattern {
+.mobileSlideButton {
+    z-index: 1;
     font-weight: bold;
     position: relative;
     -webkit-transition: left .5s;
     transition: left .5s;
 }
 
-.forgetPattern {
+.mobileSlideButton {
     left: 200px;
 }
 
-.forgetPattern {
+.mobileSlideButton {
     display: block !important;
 }
 
-.showDeleteButton .forgetPattern {
+.showSlideButton .mobileSlideButton {
     left: 0;
 }
 
@@ -501,10 +505,6 @@ body .mainContainer .body.bodyNoPadding {
 }
 
 //////////////////////////////////////////
-.brightnessControl {
-	top: 105px;
-}
-
 .stripDetails {
     position: absolute;
     -webkit-transition: top .5s;

@@ -7,7 +7,14 @@ SHARED_FILES := $(shell find ./src/shared $(FIND_FLAGS))
 SRC_FILES := $(shell find ./src)
 NWJS_PLATFORMS = $(shell ls ./nwjs)
 RSYNC_OPT = --update -qravh --exclude '.*.swp'
+VERBOSE ?= 0
 DEBUG ?= 0
+
+ifeq ($(VERBOSE),1)
+	CORDOVA_FLAGS=-d
+else
+	CORDOVA_FLAGS=
+endif
 
 all: nwjs
 
@@ -21,8 +28,8 @@ clean:
 	mkdir ./buildcache
 
 ./buildcache/node_modules: | ./buildcache
-	cat src/nwjs/default.json src/nwjs/user.json | json --deep-merge > ./buildcache/package.json
-	cd ./buildcache/ && npm install
+	cat src/default.json src/user.json | json --deep-merge > ./buildcache/package.json
+	cd ./buildcache/ && npm install --no-optional
 	rm ./buildcache/package.json
 
 ############ NWJS
@@ -125,7 +132,6 @@ nwjs_all: linux-x64 osx-x64 win-x64
 ./build/cordova/www/jxcore/patterns:
 	rsync $(RSYNC_OPT) ./patterns/base/* $@
 
-
 ./build/cordova/resources: ./src/cordova/resources/*
 	rsync $(RSYNC_OPT) ./src/cordova/resources ./build/cordova
 
@@ -136,61 +142,66 @@ nwjs_all: linux-x64 osx-x64 win-x64
 ./build/cordova/plugins: | ./build/cordova/plugins/cordova-plugin-statusbar ./build/cordova/plugins/io.jxcore.node ./build/cordova/plugins/cordova-plugin-inappbrowser
 
 ./build/cordova/plugins/cordova-plugin-statusbar:
-	cd ./build/cordova && cordova plugin add cordova-plugin-statusbar
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin add cordova-plugin-statusbar
 
 ./build/cordova/plugins/io.jxcore.node:
-	cd ./build/cordova && cordova plugin add ../../buildcache/io.jxcore.node
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin add ../../buildcache/io.jxcore.node
 
 ./build/cordova/plugins/cordova-plugin-inappbrowser:
-	cd ./build/cordova && cordova plugin add cordova-plugin-inappbrowser
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin add cordova-plugin-inappbrowser
 
 ####### Platforms
 ./build/cordova/platforms: | ./build/cordova/platforms/ios ./build/cordova/platforms/android
 
-./build/cordova/platforms/ios:
-	cd ./build/cordova && cordova platforms add ios
+./build/cordova/platforms/ios: | ./build/cordova/scripts ./build/cordova/resources
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) platforms add ios
 
-./build/cordova/platforms/android:
-	cd ./build/cordova && cordova platforms add android
+./build/cordova/platforms/android: | ./build/cordova/scripts ./build/cordova/resources
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) platforms add android
+
+./build/cordova/scripts:
+	rsync $(RSYNC_OPT) ./src/cordova/scripts/* $@
+	cd ./build/cordova/scripts && npm install && rm package.json
 
 jxcoreExtensions: ./buildcache/io.jxcore.node/plugin.xml ./buildcache/io.jxcore.node/src/ios/JXcoreExtension.h ./buildcache/io.jxcore.node/src/ios/JXcoreExtension.m ./buildcache/io.jxcore.node/src/android/java/io/jxcore/node/JXcoreExtension.java
 
 ./buildcache/io.jxcore.node/plugin.xml: ./src/cordova/plugin.xml
 	cp ./src/cordova/plugin.xml $@
-	-cd ./build/cordova && cordova plugin remove io.jxcore.node
+	-cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin remove io.jxcore.node
 
 ./buildcache/io.jxcore.node/src/ios/JXcoreExtension.h: ./src/cordova/ios/JXcoreExtension.h
 	cp ./src/cordova/ios/JXcoreExtension.h $@
-	-cd ./build/cordova && cordova plugin remove io.jxcore.node
+	-cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin remove io.jxcore.node
 
 ./buildcache/io.jxcore.node/src/ios/JXcoreExtension.m: ./src/cordova/ios/JXcoreExtension.m
 	cp ./src/cordova/ios/JXcoreExtension.m $@
-	-cd ./build/cordova && cordova plugin remove io.jxcore.node
+	-cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin remove io.jxcore.node
 
 ./buildcache/io.jxcore.node/src/android/java/io/jxcore/node/JXcoreExtension.java: ./src/cordova/android/JXcoreExtension.java
 	cp ./src/cordova/android/JXcoreExtension.java $@
-	-cd ./build/cordova && cordova plugin remove io.jxcore.node
+	-cd ./build/cordova && cordova $(CORDOVA_FLAGS) plugin remove io.jxcore.node
 
 cordova: ./build/cordova
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) prepare
 
 sim_ios: cordova
-	cd ./build/cordova && cordova emulate ios --target="iPhone-6"
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) emulate ios --target="iPhone-6"
 
 dev_ios: cordova
-	cd ./build/cordova && cordova run ios --device
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) run ios --device
 
 run_android: cordova
-	cd ./build/cordova && cordova run android
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) run android
 ############ CORDOVA
 
 run: | osx-x64
 	open ./build/nwjs/osx-x64/nwjs.app
 
 android_release: cordova ./build/cordova/build.json
-	cd ./build/cordova && cordova build --release android
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) build --release android
 
 ios_release: cordova ./build/cordova/build.json
-	cd ./build/cordova && cordova build ios --device
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) build ios --device
 
 release_all: nwjs_all android_release ios_release
 

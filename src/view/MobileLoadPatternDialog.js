@@ -137,7 +137,6 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 var $edit = $("<button class='btn btn-default editButton asideButton'><span class='glyphicon glyphicon-pencil'></span></button>");
                 $edit.click(_.bind(function(e) {
                     var pattern = $(e.target).closest(".listElement").data("object");
-                    console.log("editing pattern",pattern);
                     this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,pattern).show();
                     this.stripRenderer.stop();
                     $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {

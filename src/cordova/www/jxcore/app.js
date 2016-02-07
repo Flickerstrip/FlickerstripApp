@@ -29,6 +29,7 @@ Mobile("guiReady").registerAsync(function(json) {
                 if (key.indexOf("_") === 0) return false;
                 return value;
             });
+			console.log("manager emitting.. "+JSON.stringify(args));
             Mobile("managerEventReceived").call(args);
         });
     } catch (e) {

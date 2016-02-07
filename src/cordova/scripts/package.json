@@ -1,0 +1,7 @@
+{
+  "name": "project",
+  "version": "0.0.1",
+  "devDependencies": {
+    "xcode": "0.8.3"
+  }
+}

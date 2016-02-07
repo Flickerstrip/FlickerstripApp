@@ -116,7 +116,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 if (platform == "mobile") {
                     this.touchDelay = setTimeout(_.bind(doDrawing,this),50);
                 } else {
-                    doDrawing();
+                    doDrawing.call(this);
                 }
 			},this));
 

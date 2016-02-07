@@ -175,21 +175,26 @@
             } else {
                 $el = $("<li class='list-group-item listElement' />");
                 //var $select = $("<button class='selectPattern btn btn-success'><span class='glyphicon glyphicon-play'></span></button>");
-                var $forget = $("<button class='forgetPattern btn btn-danger'><span class='mobileOnly'>Forget</span><span class='mobileHide glyphicon glyphicon-minus'></span></button>");
+                var $forget;
+			    if (platform == "desktop") {
+					$forget = $("<button class='forgetPattern btn btn-danger'><span class='glyphicon glyphicon-minus'></span></button>");
+				} else {
+					$forget = $("<button class='mobileSlideButton forgetPattern btn btn-danger'>Forget</span></button>");
+				}
 
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
                 //$select.on("click",_.bind(this.selectPatternClicked,this));
 
                 if (platform == "mobile") {
                     new Hammer($el.get(0)).on("panright",_.bind(function() {
-                        if ($el.hasClass("showDeleteButton")) {
-                            $el.removeClass("showDeleteButton");
+                        if ($el.hasClass("showSlideButton")) {
+                            $el.removeClass("showSlideButton");
                         } else {
-                            this.$el.find(".listElement").removeClass("showDeleteButton");
-                            $el.addClass("showDeleteButton");
+                            this.$el.find(".listElement").removeClass("showSlideButton");
+                            $el.addClass("showSlideButton");
                         }
                     },this)).on("panleft",_.bind(function() {
-                        $el.removeClass("showDeleteButton");
+                        $el.removeClass("showSlideButton");
                     },this));
                 }
                 //$el.append($select);

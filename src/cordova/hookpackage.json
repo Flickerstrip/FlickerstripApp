@@ -1,0 +1,10 @@
+{
+  "name": "project",
+  "version": "0.0.1",
+  "devDependencies": {
+    "xcode": "0.6.2"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  }
+}

@@ -22,6 +22,7 @@
     <preference name="StatusBarBackgroundColor" value="#000000" />
     <preference name="StatusBarStyle" value="lightcontent" />
 	<preference name="SplashScreenDelay" value="500" />
+    <preference name="orientation" value="portrait" />
     <platform name="android">
         <allow-intent href="market:*" />
 
@@ -45,6 +46,8 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+
+        <hook type="after_prepare" src="scripts/configureProject.js" />
 
 		<!-- SEE: https://cordova.apache.org/docs/en/latest/config_ref/images.html -->
 		<splash src="resources/icons/splash320x480.png" width="320" height="480"/>
