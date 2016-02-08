@@ -49,7 +49,7 @@ else
     mkdir -p $ROOT/releases
     cp $ROOT/build/nwjs/*.zip $ROOT/releases
     cp ./build/cordova/platforms/android/build/outputs/apk/android-release.apk ./releases/FlickerstripApp-Android-$RELEASE.apk
-    cp ./build/cordova/platforms/ios/build/device/Flickerstrip.ipa ./releases/FlickerstripApp-iOS-$RELEASE.ipa
+#cp ./build/cordova/platforms/ios/build/device/Flickerstrip.ipa ./releases/FlickerstripApp-iOS-$RELEASE.ipa
 
     # Generate json body
     DATA_FILE=/tmp/publishreleasedata.json
@@ -72,8 +72,8 @@ else
     blue "Uploading FlickerstripApp-Android-$RELEASE.apk"
     uploadFile $ROOT/releases/FlickerstripApp-Android-$RELEASE.apk
 
-    blue "Uploading FlickerstripApp-iOS-$RELEASE.ipa"
-    uploadFile $ROOT/releases/FlickerstripApp-iOS-$RELEASE.ipa
+#blue "Uploading FlickerstripApp-iOS-$RELEASE.ipa"
+#uploadFile $ROOT/releases/FlickerstripApp-iOS-$RELEASE.ipa
 
     blue "Cleaning up"
     (cd $ROOT; make clean)

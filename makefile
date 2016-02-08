@@ -185,7 +185,7 @@ cordova: ./build/cordova
 	cd ./build/cordova && cordova $(CORDOVA_FLAGS) prepare
 
 sim_ios: cordova
-	cd ./build/cordova && cordova $(CORDOVA_FLAGS) emulate ios --target="iPhone-6"
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) emulate ios --target="iPhone-6, 8.4"
 
 dev_ios: cordova
 	cd ./build/cordova && cordova $(CORDOVA_FLAGS) run ios --device
@@ -203,7 +203,7 @@ android_release: cordova ./build/cordova/build.json
 ios_release: cordova ./build/cordova/build.json
 	cd ./build/cordova && cordova $(CORDOVA_FLAGS) build ios --device
 
-release_all: nwjs_all android_release ios_release
+release_all: nwjs_all android_release
 
 open_xcode: cordova
 	open ./build/cordova/platforms/ios/Flickerstrip.xcodeproj

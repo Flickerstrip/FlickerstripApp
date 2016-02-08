@@ -129,7 +129,7 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             var i = bytes*(x+y*width);
 			return i;
 		},
-        getPixelFromArray(array,width,height,x,y,bytes) {
+        getPixelFromArray:function(array,width,height,x,y,bytes) {
 			var i = This.pixelToIndex(width,height,x,y,bytes);
 
             var pixel = [];
@@ -138,7 +138,7 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             }
             return pixel;
         },
-        getPixelFromImageData(data,x,y) {
+        getPixelFromImageData:function(data,x,y) {
             var pixel = This.getPixelFromArray(data.data,data.width,data.height,x,y,4);
             if (pixel == null) return null;
             return pixel.slice(0,3);
