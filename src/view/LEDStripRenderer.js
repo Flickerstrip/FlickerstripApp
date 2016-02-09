@@ -173,6 +173,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                 var start = Math.floor(frameSize*t);
                 if (start == lastYDrawn) continue;
 
+                var bigFrameSize = Math.ceil(frameSize);
                 frameSize = Math.floor(frameSize);
                 if (frameSize < 1) frameSize = 1;
                 lastYDrawn = start;
@@ -191,7 +192,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
                     g.fillRect(loc.x,loc.y+start,loc.width,frameSize);
                     g.drawImage(tcanvas,loc.x, loc.y+start, loc.width, frameSize);
                 } else {
-                    g.drawImage(this.rendered, 0, t, this.rendered.width, 1, loc.x, loc.y+start, loc.width, frameSize);
+                    g.drawImage(this.rendered, 0, t, this.rendered.width, 1, loc.x, loc.y+start, loc.width, bigFrameSize);
                 }
             }
 			//console.log("count: ",litCount);
