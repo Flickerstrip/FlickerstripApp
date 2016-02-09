@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+then
+    #Use the last tag name as the version number, but strip the "v" off it
+    VERSION=`git describe --tags --abbrev=0`
+    VERSION=${VERSION#"v"}
+else
+    VERSION=$1
+fi
+
+sed -i '' 's/"version".*/"version":"'$VERSION'",/' src/default.json 
+sed -i '' 's/version="[^"]*"/version="'$VERSION'"/' src/cordova/cordovaconfig.xml

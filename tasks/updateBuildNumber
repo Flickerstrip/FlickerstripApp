@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]
+then
+    #Calculate the build number as the number of commits since last tag
+    BUILD_NUMBER=`git describe | awk -F'-' '{print $2}'`
+else
+    BUILD_NUMBER=$1
+fi
+
+sed -i '' 's/ios-CFBundleVersion="[^"]*"/ios-CFBundleVersion="'$BUILD_NUMBER'"/' src/cordova/cordovaconfig.xml
