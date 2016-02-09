@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ROOT=`dirname $GIT_DIR`
+BUILD_NUMBER=`git describe | awk -F'-' '{print $2}'`
+BUILD_NUMBER=$((BUILD_NUMBER+1))
+$ROOT/tasks/updateBuildNumber $BUILD_NUMBER
+git add $ROOT/src/cordova/cordovaconfig.xml
+
+

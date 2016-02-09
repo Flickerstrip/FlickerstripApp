@@ -1,0 +1,4 @@
+#!/bin/sh
+
+git rev-parse HEAD > gitversion.txt
+
