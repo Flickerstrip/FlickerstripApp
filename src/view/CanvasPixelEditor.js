@@ -83,7 +83,16 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 						}
 					}
 				}
+                var isShortDrag = this.down && ((new Date().getTime() - this.down.dragStart < 100) && distance(this.down.startX,this.down.startY,pos[0],pos[1]) == 0);
 				if (e.type == "mouseup" || e.type == "touchend") {
+                    if (this.down.button == 2 && isShortDrag) {
+                        var ipos = this.translateCanvasToImage(pos[0],pos[1]);
+                        var g = this.image.getContext("2d");
+                        var pixel = g.getImageData(ipos[0],ipos[1], 1, 1).data;
+                        console.log("setting fg",pixel[0],pixel[1],pixel[2]);
+                        this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
+                        this.updateColorUI();
+                    }
 					this.down = false;
 					this.previousMousePosition = null;
 					return;
