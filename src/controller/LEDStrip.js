@@ -107,6 +107,7 @@ extend(This.prototype,{
             }
         }
         if (!notimeout) opt.timeout = 2000;
+        //For upload status: r.req.connection.socket._bytesDispatched
         request(opt,_.bind(function(error, response, body) {
             this.startWatchdogTimer();
             if (error) {

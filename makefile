@@ -9,6 +9,7 @@ NWJS_PLATFORMS = $(shell ls ./nwjs)
 RSYNC_OPT = --update -qravh --exclude '.*.swp'
 VERBOSE ?= 0
 DEBUG ?= 0
+LESSC := /usr/local/bin/lessc
 
 ifeq ($(VERBOSE),1)
 	CORDOVA_FLAGS=-d
@@ -84,7 +85,8 @@ endif
 
 ./build/nwjs/%/view/css/style.css: $(LESS_FILES)
 	mkdir -p `dirname $@`
-	lessc ./src/view/less/desktop.less > $@
+	cp -r ./src/view/less/fonts `dirname $@`
+	$(LESSC) --relative-urls ./src/view/less/desktop.less > $@
 
 linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/patterns ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
 osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/patterns ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
@@ -119,7 +121,8 @@ nwjs_all: linux-x64 osx-x64 win-x64
 #update application code
 ./build/cordova/www/view/css/style.css: $(LESS_FILES)
 	mkdir -p ./build/cordova/www/view/css/
-	lessc ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
+	cp -r ./src/view/less/fonts ./build/cordova/www/view/css/
+	$(LESSC) --relative-urls ./src/view/less/mobile.less > ./build/cordova/www/view/css/style.css
 
 ./build/cordova/www: ./build/cordova/www/view/css/style.css ./build/cordova/www/jxcore/package.json ./build/cordova/www/jxcore/node_modules ./build/cordova/www/jxcore/patterns $(SRC_FILES)
 	mkdir -p ./build/cordova/www

@@ -1,5 +1,5 @@
-define(["jquery","tinycolor","ace/ace","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/CanvasPixelEditor","text!tmpl/editPatternDialog.html","text!tmpl/editPatternDialogMobile.html"],
-function($,tinycolor,ace,util,SelectList,patterns,LEDStripRenderer,ControlsView,CanvasPixelEditor,desktop_template,mobile_template) {
+define(["jquery","tinycolor","ace/ace","view/util.js","view/LEDStripRenderer.js","view/CanvasPixelEditor","text!tmpl/editPatternDialog.html","text!tmpl/editPatternDialogMobile.html"],
+function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_template,mobile_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }

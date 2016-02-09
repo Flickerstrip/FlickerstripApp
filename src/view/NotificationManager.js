@@ -24,6 +24,14 @@ function($,_) {
                 button.addClass("btn-xs");
                 $buttons.append(button);
             });
+
+            function doHide() {
+                $alert.fadeOut(function() {
+                    $alert.remove();
+                    if (self.$el.find(".alert").length == 0) self.$el.hide();
+                });
+            }
+
             $alert.append($buttons);
             this.$el.append($alert);
             this.$el.show();
@@ -34,11 +42,12 @@ function($,_) {
             } else if (duration) {
                 var self = this;
                 setTimeout(function() {
-                    $alert.fadeOut(function() {
-                        $alert.remove();
-                        if (self.$el.find(".alert").length == 0) self.$el.hide();
-                    });
+                    doHide();
                 },duration);
+            }
+
+            if (platform == "mobile") { //data-dismiss doesnt seem to work on mobile
+                $alert.find("[data-dismiss='alert']").click(doHide);
             }
         },
     });
