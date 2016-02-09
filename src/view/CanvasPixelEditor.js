@@ -91,7 +91,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                         var pixel = g.getImageData(ipos[0],ipos[1], 1, 1).data;
                         if (e.shiftKey) {
                             this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
-                        } else 
+                        } else {
                             this.bg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
                         }
                         this.updateColorUI();
