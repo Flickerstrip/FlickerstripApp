@@ -1,5 +1,5 @@
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/downloadPatternDialog.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desktop_template) {
+define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/NotificationManager.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/downloadPatternDialog.html"],
+function($,tinycolor,util,SelectList,NotificationManager,LEDStripRenderer,ControlsView,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -43,6 +43,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,desk
             },this));
         },
         doDownloadPattern:function() {
+            NotificationManager.notify("info","Lightwork downloaded: "+this.selectedPattern.name,1000);
             $(this).trigger("DownloadPattern",this.selectedPattern);
         },
         getPattern:function(patternSpec) { //TODO dedupe me

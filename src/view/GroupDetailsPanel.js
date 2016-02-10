@@ -150,7 +150,7 @@
                 var strip = this.strips[0];
                 this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
                 $(strip).one("Strip.UploadPatternComplete",_.bind(function() {
-                    this.patternDialog.hide();
+                    if (!isPreview) this.patternDialog.hide();
                 },this));
             }
         },
