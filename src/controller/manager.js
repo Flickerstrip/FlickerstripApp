@@ -41,6 +41,9 @@ extend(This.prototype,{
         this.loadFirmwareReleaseInfo();
         this.checkForUpdates();
 
+        this.clientData = {};
+        this.emit("ClientDataUpdated",this.clientData);
+
         this.loadPatterns();
 
         ///////////////////////////////////////// Strip actions
@@ -313,6 +316,11 @@ extend(This.prototype,{
                 this.conduit.emit("BasicPatternsLoaded",this.basicPatterns);
             },this));
         }
+
+        this.loadPatternFile(path.join(this.folderConfig.userPatternFolder,"_defaultAdvanced.pattern"),_.bind(function(err,pattern) {
+            this.clientData.defaultAdvanced = pattern;
+            this.conduit.emit("ClientDataUpdated",this.clientData);
+        },this));
     },
     loadFolderPatterns(fpath,cb) {
         fs.readdir(fpath,_.bind(function(err,files) {
@@ -320,22 +328,22 @@ extend(This.prototype,{
                 return console.log("ERROR READING DIR",path,err);
                 cb(null);
             }
+            files = _.reject(files,function(name) { return name.startsWith("_") || name.startsWith("."); });
             async.map(files,_.bind(function(file,callback) {
-                fs.readFile(path.join(fpath,file),'utf8',callback);
-            },this),_.bind(function(err,results) {
-                var patterns = [];
-                _.each(_.zip(files,results),_.bind(function(info) {
-                    var filename=info[0];
-                    var content=info[1];
-                    if (filename[0] == '.') return;
-                    var pattern = this.populatePattern(content);
-
-                    pattern.path = path.join(fpath,filename);
-                    patterns.push(pattern);
-                },this));
-
+                this.loadPatternFile(path.join(fpath,file),callback);
+            },this),_.bind(function(err,patterns) {
                 cb(patterns);
             },this));
+        },this));
+    },
+    loadPatternFile(filePath,callback) {
+        fs.readFile(filePath,'utf8',_.bind(function(err,contents) {
+            if (err) return callback(err,null);
+            var filename = path.basename(filePath);
+            var pattern = this.populatePattern(contents);
+
+            pattern.path = filePath;
+            callback(err,pattern);
         },this));
     },
     installUpdate:function(version) {
@@ -482,7 +490,6 @@ extend(This.prototype,{
             var cb = function() {
                 conduit.respond(emitObject.callback,arguments);
             };
-            //console.log("calling",this,[emitObject.name,cb].concat(emitObject.args).concat([emitObject]));
             this.emit.apply(this,[emitObject.name,cb].concat(emitObject.args).concat([emitObject]));
         } else {
             this.emit.apply(this,[emitObject.name].concat(emitObject.args).concat([emitObject]));

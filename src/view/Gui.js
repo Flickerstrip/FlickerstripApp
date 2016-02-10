@@ -65,6 +65,10 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
 
             $(this).on("UpdateAvailable",_.bind(this.updateAvailable,this));
 
+            $(this).on("ClientDataUpdated",_.bind(function(e,data) {
+                this.clientData = data;
+            },this));
+
             $(this).on("ShowProgress",_.bind(function(e,text,waiting) {
                 if (!this.progress) {
                     this.progress = new ProgressDialog(text,waiting).show();

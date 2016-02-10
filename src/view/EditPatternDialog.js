@@ -44,7 +44,6 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
 
     $.extend(This.prototype, {
         init:function(conduit,gui,pattern) {
-            window.epd = this;
             this.conduit = conduit;
             this.pattern = $.extend({},pattern);
             this.gui = gui;
@@ -91,7 +90,7 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
             this.$el.find(".saveButton").click(_.bind(this.savePatternClicked,this));
 
             if (this.pattern.type == "javascript") {
-                if (!this.pattern.body) this.pattern.body = defaultBody;
+                if (!this.pattern.body) this.pattern = $.extend({},this.gui.clientData.defaultAdvanced);
 
                 this.updateRendered();
 

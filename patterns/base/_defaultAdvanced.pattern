@@ -1,0 +1,31 @@
+name:New Advanced Lightwork
+type:javascript
+
+({
+    //You can optionally define form fields that allow easy customization of the lightwork
+    //The "id" field lets you retrieve this value later
+    //The type field can be "color" to give user a colorpicker
+	controls:[
+		{name: "Repetitions",id:"num",type:"numeric",default:"3"}
+	],
+
+    // Pattern must be EITHER an object containing the members "pixels","frames","fps", and "render"
+    // OR
+    // A function that returns a object that fits the criteria
+	pattern:function(args) {
+		this.pixels=150;
+		this.frames=150;
+		this.fps=30;
+
+        // The render function accepts a pixel index and a time value and returns the color of the pixel at that location
+        // x will be between 0 and this.pixels, t will be between 0 and this.frames. Both will always be integers
+		this.render=function(x,t) {
+			var v = 360* ((x+t) % (this.pixels/parseInt(args.num)))/(this.pixels/parseInt(args.num))
+
+            // Return the color of the pixel either in {h:0,s:100,v:100} or {r:255,g:255,b:255} form
+			return {h:v,s:100,v:100};
+		}
+		return this;
+	}
+})
+
