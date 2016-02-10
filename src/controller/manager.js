@@ -39,7 +39,7 @@ extend(This.prototype,{
         },this));
 
         this.loadFirmwareReleaseInfo();
-        this.checkForUpdates();
+        if (platform == "desktop") this.checkForUpdates();
 
         this.clientData = {};
         this.emit("ClientDataUpdated",this.clientData);

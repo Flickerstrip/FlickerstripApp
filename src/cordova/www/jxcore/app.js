@@ -31,7 +31,7 @@ Mobile("guiReady").registerAsync(function(json) {
             });
 			console.log("manager emitting.. "+JSON.stringify(args));
             Mobile("managerEventReceived").call(args);
-        });
+        },"mobile");
     } catch (e) {
         console.log("manager failed to instantiate");
         console.log(e.message);
