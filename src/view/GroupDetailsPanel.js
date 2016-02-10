@@ -83,6 +83,8 @@
                 var name = strip.name || "Unknown Strip";
                 $header.find(".name").text(name);
 
+                this.$el.toggleClass("disconnected",!strip.visible);
+
                 if (!strip.status) return false; //we dont have any status information on this strip
 
                 //Update firmware upload button visibility

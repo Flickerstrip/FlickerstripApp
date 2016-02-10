@@ -326,10 +326,12 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 setVersionClass($ver,strip.firmware,this.latestRelease);
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.find(".statusIndicator").removeClass("connected").removeClass("error").addClass(statusClass);
+                $el.toggleClass("disconnected",!strip.visible);
             } else {
                 $el = $("<li class='list-group-item listElement hasAsideButton' />");
                 var statusClass = strip.visible ? "connected" : "error";
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
+                $el.toggleClass("disconnected",!strip.visible);
                 $el.append($("<span class='name'></span>").text(name));
                 //$el.append($("<span class='version'></span>").text(strip.firmware));
                 var $ver = $el.find(".version");
