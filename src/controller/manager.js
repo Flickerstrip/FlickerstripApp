@@ -304,13 +304,11 @@ extend(This.prototype,{
     },
     loadPatterns:function() {
         this.loadFolderPatterns(this.folderConfig.userPatternFolder,_.bind(function(patterns) {
-            console.log("loaded user: ",this.userPatternFolder);
             this.userPatterns = patterns;
             this.conduit.emit("PatternsLoaded",this.userPatterns);
         },this));
         if (this.folderConfig.basicPatternFolder) { //only happens in mobile.. atm
             this.loadFolderPatterns(this.folderConfig.basicPatternFolder,_.bind(function(patterns) {
-                console.log("loaded basic: ",this.basicPatterns);
                 this.basicPatterns = patterns;
                 this.conduit.emit("BasicPatternsLoaded",this.basicPatterns);
             },this));
