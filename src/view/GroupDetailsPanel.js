@@ -38,7 +38,7 @@
             },this));
 
             _.each(this.strips,_.bind(function(strip) {
-                $(strip).on("NameUpdated",_.bind(this.statusUpdated(),this));
+                $(strip).on("NameUpdated",_.bind(this.statusUpdated,this));
             },this));
 
             this.statusUpdated();
