@@ -46,7 +46,11 @@
             this.$el.find(".createGroupFromSelected").click(_.bind(this.createGroupClicked,this));
             this.$el.find(".groupNextPattern").click(_.bind(this.groupNextPattern,this));
 
-            this.$el.find(".stripInfoButton").click(_.bind(this.showDetailsClicked,this));
+            if (platform == "mobile") {
+                this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
+            } else {
+                this.$el.find(".stripInfoButton").click(_.bind(this.showDetailsClicked,this));
+            }
 
             this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
             this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
