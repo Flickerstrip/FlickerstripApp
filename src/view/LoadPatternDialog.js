@@ -70,6 +70,14 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.$el.find(".patternConfiguration").empty();
 
             $(this.patternOptions).on("change",_.bind(this.patternSelected,this));
+
+            if (this.selectedPatternName) {
+                var index = _.findIndex(this.gui.userPatterns,_.bind(function(pattern) { return pattern.name == this.selectedPatternName; },this));
+                if (index != -1) {
+                    this.patternOptions.select(index);
+                    this.patternOptions.scrollToSelected();
+                }
+            }
         },
         uploadPattern:function() {
             if (!this.selectedPatternObject) return;
@@ -111,6 +119,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
             this.stripRenderer.stop();
             $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.selectedPatternName = pattern.name;
                 this.conduit.emit("SavePattern",pattern);
                 this.editPatternDialog.hide();
                 this.stripRenderer.start();
@@ -120,6 +129,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"javascript"}).show();
             this.stripRenderer.stop();
             $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.selectedPatternName = pattern.name;
                 this.conduit.emit("SavePattern",pattern);
                 this.editPatternDialog.hide();
                 this.stripRenderer.start();
@@ -128,13 +138,16 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
         downloadPatternsButtonClicked:function(e) {
             this.downloadPatternsDialog = new DownloadPatternsDialog(this.conduit,this.gui).show();
             $(this.downloadPatternsDialog).on("DownloadPattern",_.bind(function(e,pattern) {
+                this.selectedPatternName = pattern.name;
                 this.conduit.emit("SavePattern",pattern);
             },this));
         },
         editPatternClicked:function(e) {
             this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,this.selectedPatternObject).show();
             $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
+                this.selectedPatternName = pattern.name;
                 this.conduit.emit("SavePattern",pattern);
+                console.log("pattern",pattern);
                 this.editPatternDialog.hide();
             },this));
         },
@@ -162,6 +175,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             $(document.body).addClass("configurePatternShowing"); //for mobile
 
             this.selectedPatternObject = selectedObjects[0];
+            this.selectedPatternName = this.selectedPatternObject.name;
 
             if (!this.selectedPatternObject.type) this.selectedPatternObject.type = "javascript"; //temporary hack TODO
             util.evaluatePattern(this.selectedPatternObject,null);

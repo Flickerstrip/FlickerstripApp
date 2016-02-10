@@ -146,13 +146,33 @@ define(['jquery'],function($) {
             }
         },
         scrollToIndex:function(index) {
-            //TODO implement me gracefully
-            var elOffset = this.$el.children(".listElement").eq(index).offset().top - this.$el.offset().top;
-            console.log("scrollto debug",elOffset);
-            //this.$el.scrollTop(elOffset);
+            var $el = this.$el.children(".listElement").eq(index);
+            var currentScroll = this.$el.scrollTop();
+            var elOffset = $el.offset().top - this.$el.offset().top + currentScroll;
+            var elHeight = $el.outerHeight(true);
+            var visibleHeight = this.$el.height();
+
+            var visibleMin = currentScroll;
+            var visibleMax = currentScroll+visibleHeight;
+
+            var scrollingTo = null;
+            if (elOffset+elHeight > visibleMax) {
+                scrollingTo = currentScroll + (elOffset - visibleMax) + elHeight;
+            } else if (elOffset < visibleMin) {
+                scrollingTo = currentScroll + (elOffset - visibleMin);
+            }
+
+            if (scrollingTo != null) {
+                this.$el.scrollTop(scrollingTo);
+            }
         },
         getSize:function() {
             return this.$el.find(".listElement").length;
+        },
+        scrollToSelected:function() {
+            if (this.selectedIndexes.length) {
+                this.scrollToIndex(this.selectedIndexes[0]);
+            }
         },
         select:function(index,appendSelection) {
             var selectedMap = {};

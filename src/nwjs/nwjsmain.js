@@ -61,6 +61,7 @@ win.on('close',function() {
 
 function handleSpecialCommands(command) {
     if (command.name == "OpenConsole") {
+        var dev = win.showDevTools();
         dev.moveTo(0,win.height+40);
         dev.height =  window.screen.availHeight - win.height - 20;
         dev.width =  window.screen.availWidth;

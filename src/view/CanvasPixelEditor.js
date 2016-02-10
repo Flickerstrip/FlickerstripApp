@@ -13,6 +13,10 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
        }
     }
 
+    function distance(x0,y0,x1,y1) {
+        return Math.sqrt(Math.pow(x1-x0,2) + Math.pow(y1-y0,2));
+    }
+
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -78,21 +82,22 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 						button:e.button,
 						startX:pos[0],
 						startY:pos[1],
+                        dragStart:new Date().getTime(),
 						params:{
 							offset:this.offset
 						}
 					}
 				}
-                var isShortDrag = this.down && ((new Date().getTime() - this.down.dragStart < 100) && distance(this.down.startX,this.down.startY,pos[0],pos[1]) == 0);
+                var isShortDrag = this.down && ((new Date().getTime() - this.down.dragStart < 300) && distance(this.down.startX,this.down.startY,pos[0],pos[1]) < 1);
 				if (e.type == "mouseup" || e.type == "touchend") {
                     if (this.down.button == 2 && isShortDrag) {
                         var ipos = this.translateCanvasToImage(pos[0],pos[1]);
                         var g = this.image.getContext("2d");
                         var pixel = g.getImageData(ipos[0],ipos[1], 1, 1).data;
                         if (e.shiftKey) {
-                            this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
-                        } else {
                             this.bg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
+                        } else {
+                            this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
                         }
                         this.updateColorUI();
                     }
@@ -141,6 +146,25 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
 
 				this.doZoom(delta,pos[0],pos[1]);
+            },this));
+
+            $(document).on("keyup",_.bind(function(e) {
+                var code = e.keyCode;
+                var brightenAmount = 10;
+                var spinAmount = 10;
+                if (code == 38) { //UP
+                    this.fg = this.fg.clone().lighten(brightenAmount);
+                    this.updateColorUI();
+                } else if (code == 40) { //DOWN
+                    this.fg = this.fg.clone().darken(brightenAmount);
+                    this.updateColorUI();
+                } else if (code == 37) { //LEFT
+                    this.fg = this.fg.clone().spin(spinAmount);
+                    this.updateColorUI();
+                } else if (code == 39) { //RIGHT
+                    this.fg = this.fg.clone().spin(-spinAmount);
+                    this.updateColorUI();
+                }
             },this));
 
 			this.pinch = null;
