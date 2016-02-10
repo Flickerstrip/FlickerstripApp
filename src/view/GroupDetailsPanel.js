@@ -37,6 +37,10 @@
                 e.stopPropagation();
             },this));
 
+            _.each(this.strips,_.bind(function(strip) {
+                $(strip).on("NameUpdated",_.bind(this.statusUpdated(),this));
+            },this));
+
             this.statusUpdated();
 
             this.$el.find(".createGroupFromSelected").click(_.bind(this.createGroupClicked,this));
@@ -72,10 +76,6 @@
                 this.$el.find(".stripHeader .name").text("Group: "+this.group);
             } else if (this.strips.length == 1) {
                 var strip = this.strips[0];
-
-				var renderedPatternHash = _.pluck(strip.patterns,"name").join("\t");
-				if (renderedPatternHash == this.renderedPatternHash) return; //most times the patterns are identical
-				this.renderedPatternHash = renderedPatternHash;
 
                 //update header
                 var $header = this.$el.find(".stripHeader");
@@ -114,12 +114,15 @@
                     statusIndicator.addClass("error").attr("title","disconnected");
                 }
 
+				var renderedPatternHash = _.pluck(strip.patterns,"name").join("\t");
+				if (renderedPatternHash == this.renderedPatternHash) return; //most times the patterns are identical
+				this.renderedPatternHash = renderedPatternHash;
+
                 //update pattern space available indicator
                 var percent = Math.floor(100*strip.memory.used/strip.memory.total);
                 this.$el.find(".spaceAvailableIndicator").css("width",percent+"%").text(percent+"% used");
             } else {
                 this.$el.find(".stripHeader .name").text("Multiple selected");
-                console.log("multistrip update");
             }
         },
         selectPatternClicked:function(e) {
