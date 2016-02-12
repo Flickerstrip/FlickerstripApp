@@ -134,6 +134,9 @@ extend(This.prototype,{
 	setCycle:function(seconds) {
         this.sendCommand("config/cycle?value="+parseInt(seconds));
 	},
+	setLength:function(length) {
+        this.sendCommand("config/length?value="+parseInt(length));
+	},
 	setGroup:function(name) {
         this.sendCommand("config/group",null,{"name":name});
 	},

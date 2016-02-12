@@ -92,6 +92,11 @@ extend(This.prototype,{
             strip.setCycle(seconds);
         },this));
 
+        this.on("SetStripLength",_.bind(function(id,length) {
+            var strip = this.getStrip(id);
+            strip.setLength(length);
+        },this));
+
         this.on("RenameStrip",_.bind(function(id,newname) {
             this.setStripName(id,newname);
         },this));

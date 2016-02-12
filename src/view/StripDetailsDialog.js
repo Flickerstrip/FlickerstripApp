@@ -49,6 +49,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             this.generateList([
                 {"key":"Name","value":name,"click":_.bind(this.renameStrip,this)},
                 {"key":"Change Pattern Frequency","value":!this.strip.cycle?"Disabled":this.strip.cycle,"click":_.bind(this.setCycle,this)},
+                {"key":"Strip Length","value":this.strip.length,"click":_.bind(this.setLength,this)},
                 {"key":"MAC Address","value":this.strip.id},
                 {"key":"IP Address","value":this.strip.ip ? this.strip.ip : "Disconnected"},
                 {"key":"Firmware Version","value":firmware},
@@ -78,6 +79,13 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             if (seconds === null || seconds === undefined) return;
             this.strip.cycle = seconds;
             this.conduit.emit("SetCycle",this.strip.id,seconds);
+            this.update();
+        },
+        setLength:function() {
+            var length = prompt("Enter the length in pixels of this strip",this.strip.length);
+            if (length === null || length === undefined) return;
+            this.strip.length = length;
+            this.conduit.emit("SetStripLength",this.strip.id,length);
             this.update();
         },
         generateList:function(arr,$els) {

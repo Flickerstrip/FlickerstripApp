@@ -7,8 +7,6 @@ var plist = require('simple-plist');
 var exec = require('child_process').exec;
 
 module.exports = function(ctx) {
-    return console.log("Skipping configureProject scirpt");
-    console.log("Running configureProject.js script");
     var iosRoot = path.join(ctx.opts.projectRoot, 'platforms/ios');
     var projectPath = path.join(iosRoot,"Flickerstrip.xcodeproj/project.pbxproj");
 	var projectPlist = path.join(iosRoot,"Flickerstrip/Flickerstrip-Info.plist");
