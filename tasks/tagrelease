@@ -50,7 +50,7 @@ esac
 echo "Next version will be: $NEXT_REVISION"
 
 ./tasks/updateVersionNumber ${NEXT_REVISION#"v"}
-./tasks/updateBuildNumber 0
+./tasks/updateBuildNumber 1
 
 #Add the files edited by the previous commands
 git add src/cordova/cordovaconfig.xml
