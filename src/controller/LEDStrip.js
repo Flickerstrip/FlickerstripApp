@@ -71,6 +71,7 @@ extend(This.prototype,{
         },this));
     },
     receivedStatus:function(status) {
+        if (!status) status = {};
         extend(this,status);
         this.setVisible(true);
         this.status = true;
@@ -87,6 +88,7 @@ extend(This.prototype,{
     sendCommand:function(command,cb,data,notimeout) {
         if (!this.ip) {
             console.log("ERROR: sending command to disconnected strip");
+            cb(null,"DISCONNECTED");
             return;
         }
         if (this._busy) {
@@ -112,6 +114,7 @@ extend(This.prototype,{
             if (error) {
                 this.setVisible(false);
                 if (error.code != "ETIMEDOUT") console.log("error!",error,command);
+                cb(null,error.code);
                 return;
             }
             var json = body;
@@ -181,9 +184,11 @@ extend(This.prototype,{
 
         var concatted = Buffer.concat([metadata,payload]);
 
-        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function() {
+        console.log("calling send pattern",this);
+        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function(content,err) {
+            console.log("got callback",arguments,callback);
             this.emit("Strip.UploadPatternComplete");
-            if (callback) callback();
+            if (callback) callback(err);
         },this),concatted,true);
 
         if (!isPreview) this.requestStatus();

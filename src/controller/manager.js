@@ -57,9 +57,17 @@ extend(This.prototype,{
 		    var strip = this.getStrip(id);
             if (!strip) return;
             this.conduit.emit("ShowProgress","Uploading",true);
-            strip.loadPattern(renderedPattern,isPreview,_.bind(function() {
+
+            var to = null;
+            strip.loadPattern(renderedPattern,isPreview,_.bind(function(err) {
+                if (err) console.log("ERR",err);
                 this.conduit.emit("HideProgress");
+                if (to) clearTimeout(to);
             },this));
+
+            to = setTimeout(_.bind(function() { //20 second timeout
+                this.conduit.emit("HideProgress");
+            },this),20000);
         },this));
 
         this.on("UploadFirmware",_.bind(function(id) {
@@ -508,7 +516,9 @@ extend(This.prototype,{
         fs.readFile(this.folderConfig.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             try {
+                console.log("json: ",contents);
                 var config = util.parseJson(contents);
+                console.log("parsed config: ",config);
                 this.config = config;
 
                 //load strips
@@ -520,6 +530,7 @@ extend(This.prototype,{
                     return;
                 }
                 _.each(this.config.strips,_.bind(function(strip) {
+                    console.log("loading script",strip);
                     var lstrip = new LEDStrip();
                     for (var key in strip) {
                         if (key.indexOf("_") === 0) continue;

@@ -50,6 +50,7 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
 
             this.$el.find(".disconnectIndicator").toggle(!allVisible);
             $previewButton.toggleClass("disabled",!allVisible);
+            if (this.editPatternDialog) this.editPatternDialog.togglePreviewButton(allVisible);
             $loadButton.toggleClass("disabled",!allVisible);
 
             if (allVisible) {

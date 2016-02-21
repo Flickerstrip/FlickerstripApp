@@ -86,6 +86,7 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                 this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.pattern,true);
             },this));
 
+
             this.$el.find(".patternControls").addClass("hide");
             this.$el.find(".saveButton").click(_.bind(this.savePatternClicked,this));
 
@@ -173,6 +174,9 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                 this.pattern.body = util.canvasToBytes(this.canvas);
                 this.updateRendered();
             }
+        },
+        togglePreviewButton:function(enabled) {
+            this.$el.find(".previewPatternButton").toggleClass("disabled",!enabled);
         },
         updateEditor:function() {
             this.$frames.val(this.pattern.frames);
