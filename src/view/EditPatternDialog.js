@@ -108,13 +108,13 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                     },_.bind(function(path) {
                         if (!path) return;
                         this.conduit.request("OpenImage",path,_.bind(function(width,height,pixels) {
-                            var transpose = true;
+                            var transpose = false;
                             this.canvas = util.renderPattern(pixels,width,height,null,null,transpose);
                             this.editor.setImage(this.canvas);
 							this.editor.setFps(this.pattern.fps);
 
-                            this.pattern.frames = transpose ? height : width;
-                            this.pattern.pixels = transpose ? width : height;
+                            this.pattern.frames = transpose ? width : height;
+                            this.pattern.pixels = transpose ? height : width;
 
                             this.updateEditor();
                             this.updatePattern();
