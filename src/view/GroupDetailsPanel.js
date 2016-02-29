@@ -130,10 +130,32 @@
             } else {
                 this.$el.find(".stripHeader .name").text("Multiple selected");
             }
-        },
-        selectPatternClicked:function(e) {
-            var pattern = $(e.target).closest(".listElement").data("object");
-            this.conduit.emit("SelectPattern",this.strip.id,pattern.index);
+
+            if (this.strips.length > 1) {
+                var allPatternsByName = {};
+                var allPatternsList = [];
+                _.each(this.strips,function(strip) {
+                    _.each(strip.patterns,function(pattern) {
+                        if (!allPatternsByName[pattern.name]) {
+                            var patternWrapper = {name:pattern.name,strips:{}};
+                            allPatternsByName[pattern.name] = patternWrapper;
+                            allPatternsList.push(patternWrapper);
+                        }
+                        allPatternsByName[pattern.name]["strips"][strip.id] = pattern.index;
+                    });
+                });
+
+                _.each(allPatternsList,_.bind(function(pattern) {
+                    var stripMembership = Object.keys(pattern["strips"]).length;
+                    pattern.patternInGroup = stripMembership;
+                    if (stripMembership == this.strips.length) pattern.patternInGroup = true;
+                },this));
+
+                this.patternList = new SelectList(allPatternsList,this.patternListRenderer,this);
+                //if (strip.selectedPattern !== undefined) this.patternList.select(strip.selectedPattern);
+                $(this.patternList).change(_.bind(this.patternSelected,this));
+                this.$el.find(".patterns").empty().append(this.patternList.$el);
+            }
         },
         loadPatternClicked:function(e) {
             if (platform == "mobile") {
@@ -176,6 +198,11 @@
                 this.$el.find(".listElement").removeClass("showDeleteButton");
                 var selectedPattern = selectedItems[0]
                 this.conduit.emit("SelectPattern",strip.id,selectedPattern.index);
+            } else if (this.strips.length > 1) {
+                var selectedPattern = selectedItems[0]
+                _.each(selectedPattern.strips,_.bind(function(index,id) {
+                    this.conduit.emit("SelectPattern",id,index);
+                },this));
             }
         },
         patternListRenderer:function(pattern,$el) {
@@ -192,7 +219,6 @@
 				}
 
                 $forget.on("click",_.bind(this.forgetPatternClicked,this));
-                //$select.on("click",_.bind(this.selectPatternClicked,this));
 
                 if (platform == "mobile") {
                     new Hammer($el.get(0)).on("panright",_.bind(function() {
@@ -208,6 +234,8 @@
                 }
                 //$el.append($select);
                 $el.append($("<span class='name'></span>").text(pattern.name));
+                $el.append($("<span class='aside'></span>").text(pattern.patternInGroup === true ? "" : pattern.patternInGroup));
+                if (pattern.patternInGroup != undefined && pattern.patternInGroup !== true) $el.addClass("disabled");
                 $el.append($forget);
             }
             return $el;

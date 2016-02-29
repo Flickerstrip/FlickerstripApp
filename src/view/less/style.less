@@ -391,7 +391,6 @@ input.seamless {
 .groupDetails.group-selected {
     .groupselect { display: block; }
     .multiselect { display: none; }
-    .nextToBrightnessBar { display: none; }
 }
 
 .groupDetails.one-selected {
@@ -401,7 +400,6 @@ input.seamless {
 .groupDetails.multiple-selected {
     .brightnessControl,
     .progress,
-    .nextToBrightnessBar { display: none; }
 
     .multiselect { display: block; }
 }
@@ -507,6 +505,10 @@ input.seamless {
 }
 
 /////////////////////////////////////////////////////
+.storedPatterns {
+    overflow: hidden;
+}
+
 .groupDetails {
     .flex-display;
     .flex-direction(column);
@@ -525,7 +527,6 @@ input.seamless {
         >* {
             .flex(0 0 auto);
             &.storedPatterns {
-                overflow: hidden;
                 .flex(1 1 auto);
             }
         }
@@ -539,7 +540,7 @@ input.seamless {
 .brightnessControl {
     position: absolute;
     right: 5px;
-    top: 50px;
+    top: 12px;
     bottom: 5px;
     width: 20px;
 
@@ -696,6 +697,10 @@ input.seamless {
 
 .floatLeft {
 	float: left;
+}
+
+.floatRight {
+	float: right;
 }
 
 //Themes

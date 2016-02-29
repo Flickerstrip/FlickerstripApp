@@ -83,6 +83,8 @@ define(['jquery'],function($) {
                     var $groupHeader = this.grouprenderer(header);
                     $groupHeader.click(_.bind(function() {
                         //group clicked
+                        this.$el.find(".selected").removeClass("selected");
+                        $groupHeader.addClass("selected");
                         var args = [false,false,header];
                         $(this).trigger("change",args);
                     },this));
@@ -197,6 +199,7 @@ define(['jquery'],function($) {
 
             var i = 0;
             var self = this;
+            this.$el.find(".selected").removeClass("selected");
             this.$el.children(".listElement").each(function() {
                 $(this).toggleClass("selected",selectedMap[i] == true);
                 i++;
@@ -228,6 +231,7 @@ define(['jquery'],function($) {
             $nodes.each(function() {
                 $(this).click(function(e) {
                     var clickedIndex = $(this).data("index");
+                    if ($(this).is(".disabled")) return;
                     if (self.opts.multiple && e.shiftKey) {
                         var clickedIndex = $(this).data("index");
                         var min = Math.min(clickedIndex,self.cursorIndex);
@@ -236,7 +240,7 @@ define(['jquery'],function($) {
                             self.select(i,true);
                         }
                     } else {
-                        self.select($(this).data("index"),e.ctrlKey);
+                        self.select($(this).data("index"),e.ctrlKey || e.altKey);
                     }
                 });
             });

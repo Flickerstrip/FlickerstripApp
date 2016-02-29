@@ -70,7 +70,11 @@ extend(This.prototype,{
             },this));
         },this));
     },
-    receivedStatus:function(status) {
+    receivedStatus:function(status,err) {
+        if (err) {
+            if (this.visible) this.setVisible(false);
+            return;
+        }
         if (!status) status = {};
         extend(this,status);
         this.setVisible(true);

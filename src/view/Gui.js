@@ -178,6 +178,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             return found;
         },
         stripAdded:function(e,strip) {
+            console.log("strip added!",strip);
             this.selectList.addElement(strip,strip.group);
             var self = this;
             this.updatePanelDisabler();
