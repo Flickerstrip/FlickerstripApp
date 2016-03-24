@@ -118,7 +118,7 @@ extend(This.prototype,{
             if (error) {
                 this.setVisible(false);
                 if (error.code != "ETIMEDOUT") console.log("error!",error,command);
-                cb(null,error.code);
+                if (cb) cb(null,error.code);
                 return;
             }
             var json = body;
@@ -139,10 +139,26 @@ extend(This.prototype,{
         this.sendCommand("config/name",null,{"name":name});
 	},
 	setCycle:function(seconds) {
+        if (seconds === false) seconds = 0;
         this.sendCommand("config/cycle?value="+parseInt(seconds));
 	},
 	setLength:function(length) {
         this.sendCommand("config/length?value="+parseInt(length));
+	},
+	setStart:function(value) {
+        if (value === false) value = 0;
+        this.sendCommand("config/start?value="+parseInt(value));
+	},
+	setEnd:function(value) {
+        if (value === false) value = -1;
+        this.sendCommand("config/end?value="+parseInt(value));
+	},
+	setFade:function(value) {
+        if (value === false) value = 0;
+        this.sendCommand("config/fade?value="+parseInt(value));
+	},
+	setReversed:function(value) {
+        this.sendCommand("config/reversed?value="+(value ? 1 : 0));
 	},
 	setGroup:function(name) {
         this.sendCommand("config/group",null,{"name":name});

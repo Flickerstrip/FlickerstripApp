@@ -3,7 +3,7 @@ name:Rainbow Chase
 ({
 	pattern:function() {
 		this.pixels=150;
-		this.frames=360;
+		this.frames=150;
 		this.fps=30;
         this.render=function(x,t) {
             return {h:360*(((t+x)%this.pixels)/this.pixels),s:100,v:100};

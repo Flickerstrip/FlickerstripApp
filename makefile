@@ -67,6 +67,17 @@ else
 endif
 	cp -r ./nwjs/`basename $@`/* $@
 
+./build/nwjs/win-x32: $(SRC_FILES)
+	mkdir -p $@
+	rsync $(RSYNC_OPT) ./src/nwjs/* $@
+	cp ./updater.bat $@/updater.bat
+ifeq ($(DEBUG),1)
+	cat ./src/default.json ./src/debug.json | json --deep-merge > $@/package.json
+else
+	cat ./src/default.json ./src/user.json | json --deep-merge > $@/package.json
+endif
+	cp -r ./nwjs/`basename $@`/* $@
+
 ./build/nwjs/%/node_modules: ./buildcache/node_modules
 	cp -r ./buildcache/node_modules `dirname $@`
 
@@ -91,9 +102,10 @@ endif
 linux-x64: ./build/nwjs/linux-x64 ./build/nwjs/linux-x64/patterns ./build/nwjs/linux-x64/view ./build/nwjs/linux-x64/controller ./build/nwjs/linux-x64/shared ./build/nwjs/linux-x64/node_modules ./build/nwjs/linux-x64/view/css/style.css
 osx-x64: ./build/nwjs/osx-x64 ./build/nwjs/osx-x64/patterns ./build/nwjs/osx-x64/view ./build/nwjs/osx-x64/controller ./build/nwjs/osx-x64/shared ./build/nwjs/osx-x64/node_modules ./build/nwjs/osx-x64/view/css/style.css
 win-x64: ./build/nwjs/win-x64 ./build/nwjs/win-x64/patterns ./build/nwjs/win-x64/view ./build/nwjs/win-x64/controller ./build/nwjs/win-x64/shared ./build/nwjs/win-x64/node_modules ./build/nwjs/win-x64/view/css/style.css
+win-x32: ./build/nwjs/win-x32 ./build/nwjs/win-x32/patterns ./build/nwjs/win-x32/view ./build/nwjs/win-x32/controller ./build/nwjs/win-x32/shared ./build/nwjs/win-x32/node_modules ./build/nwjs/win-x32/view/css/style.css
 
 
-nwjs_all: linux-x64 osx-x64 win-x64
+nwjs_all: linux-x64 osx-x64 win-x64 win-x32
 ############ NWJS
 
 

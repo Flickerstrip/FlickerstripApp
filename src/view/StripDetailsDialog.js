@@ -50,11 +50,16 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
                 {"key":"Name","value":name,"click":_.bind(this.renameStrip,this)},
                 {"key":"Change Pattern Frequency","value":!this.strip.cycle?"Disabled":this.strip.cycle,"click":_.bind(this.setCycle,this)},
                 {"key":"Strip Length","value":this.strip.length,"click":_.bind(this.setLength,this)},
+                {"key":"Strip Start","value":this.strip.start,"click":_.bind(this.setStart,this)},
+                {"key":"Strip End","value":this.strip.end == -1 ? "-" : this.strip.end,"click":_.bind(this.setEnd,this)},
+                {"key":"Fade Duration","value":this.strip.fade,"click":_.bind(this.setFade,this)},
+                {"key":"Reversed","value":$("<input type='checkbox' />").prop("checked",this.strip.reversed),"change":_.bind(this.setReversed,this)},
                 {"key":"MAC Address","value":this.strip.id},
                 {"key":"IP Address","value":this.strip.ip ? this.strip.ip : "Disconnected"},
                 {"key":"Firmware Version","value":firmware},
                 {"key":"Used Space","value":this.strip.memory.used},
                 {"key":"Available Space","value":this.strip.memory.free},
+                {"key":"Forget Network","value":$("<button class='btn btn-danger btn-xs'>Forget Network</button>").click(_.bind(this.forgetNetwork,this))},
             ],this.$el.find(".infoList"));
 
             var statusIndicator = this.$el.find(".statusIndicator").css("visibility","visible");
@@ -88,12 +93,45 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
             this.conduit.emit("SetStripLength",this.strip.id,length);
             this.update();
         },
+        setStart:function() {
+            var value = prompt("Enter the start pixel",this.strip.start);
+            if (value === null || value === undefined) return;
+            this.strip.start = value;
+            this.conduit.emit("SetStripStart",this.strip.id,value);
+            this.update();
+        },
+        setEnd:function() {
+            var value = prompt("Enter the end pixel",this.strip.end);
+            if (value === null || value === undefined) return;
+
+            if (value == "" || value == "-") value = -1;
+            this.strip.end = value;
+            this.conduit.emit("SetStripEnd",this.strip.id,value);
+            this.update();
+        },
+        setFade:function() {
+            var value = prompt("Enter the fade duration",this.strip.start);
+            if (value === null || value === undefined) return;
+            this.strip.start = value;
+            this.conduit.emit("SetStripFade",this.strip.id,value);
+            this.update();
+        },
+        setReversed:function(e) {
+            var checked = $(e.target).is(":checked");
+            this.strip.reversed = checked;
+            this.conduit.emit("SetStripReversed",this.strip.id,checked);
+            this.update();
+        },
+        forgetNetwork:function() {
+            this.conduit.emit("DisconnectStrip",this.strip.id);
+        },
         generateList:function(arr,$els) {
             _.each(arr,function(item) {
                 var $lel = $("<div class=\"info\"><span class=\"infoLabel\"></span><span class=\"infoValue\"></span></div>");
                 $lel.find(".infoLabel").text(item.key);
                 $lel.find(".infoValue").append(item.value);
                 if (item.click) $lel.click(item.click);
+                if (item.change) item.value.change(item.change);
                 $els.append($lel);
             });
             return $els;

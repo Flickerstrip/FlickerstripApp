@@ -6,7 +6,7 @@
   "showDebugger":false,
   "closeOnEsc":false,
   "patternRepository":"http://flickerstrip.elasticbeanstalk.com",
-  "includedpatterns":"base",
+  "includedpatterns":"base flickerstrip",
   "window": {
     "title": "Flickerstrip",
     "icon": "icon.png",

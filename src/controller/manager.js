@@ -100,9 +100,29 @@ extend(This.prototype,{
             strip.setCycle(seconds);
         },this));
 
-        this.on("SetStripLength",_.bind(function(id,length) {
+        this.on("SetStripvalue",_.bind(function(id,value) {
             var strip = this.getStrip(id);
-            strip.setLength(length);
+            strip.setvalue(value);
+        },this));
+
+        this.on("SetStripStart",_.bind(function(id,value) {
+            var strip = this.getStrip(id);
+            strip.setStart(value);
+        },this));
+
+        this.on("SetStripEnd",_.bind(function(id,value) {
+            var strip = this.getStrip(id);
+            strip.setEnd(value);
+        },this));
+
+        this.on("SetStripFade",_.bind(function(id,value) {
+            var strip = this.getStrip(id);
+            strip.setFade(value);
+        },this));
+
+        this.on("SetStripReversed",_.bind(function(id,value) {
+            var strip = this.getStrip(id);
+            strip.setReversed(value);
         },this));
 
         this.on("RenameStrip",_.bind(function(id,newname) {
