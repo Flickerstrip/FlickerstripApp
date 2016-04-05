@@ -112,7 +112,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
         setFade:function() {
             var value = prompt("Enter the fade duration",this.strip.start);
             if (value === null || value === undefined) return;
-            this.strip.start = value;
+            this.strip.fade = value;
             this.conduit.emit("SetStripFade",this.strip.id,value);
             this.update();
         },

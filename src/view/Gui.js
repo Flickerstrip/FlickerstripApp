@@ -198,6 +198,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             if (this.selectList.$el.find(".listElement").length == 0) {
                 var $el = $("<div class='paneldisabled'>No Flickerstrips found, you can <a class='createDummyStrip' href='#'>create a test strip</a></div>");
                 $el.find(".createDummyStrip").click(_.bind(function(e) {
+                    console.log("link clicked");
                     this.conduit.emit("CreateDummy");
                     e.preventDefault();
                 },this));

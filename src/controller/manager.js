@@ -350,10 +350,12 @@ extend(This.prototype,{
             },this));
         }
 
-        this.loadPatternFile(path.join(this.folderConfig.userPatternFolder,"_defaultAdvanced.pattern"),_.bind(function(err,pattern) {
-            this.clientData.defaultAdvanced = pattern;
-            this.conduit.emit("ClientDataUpdated",this.clientData);
-        },this));
+        if (platform == "desktop") {
+            this.loadPatternFile(path.join(this.folderConfig.userPatternFolder,"_defaultAdvanced.pattern"),_.bind(function(err,pattern) {
+                this.clientData.defaultAdvanced = pattern;
+                this.conduit.emit("ClientDataUpdated",this.clientData);
+            },this));
+        }
     },
     loadFolderPatterns(fpath,cb) {
         fs.readdir(fpath,_.bind(function(err,files) {
@@ -517,6 +519,8 @@ extend(This.prototype,{
         //download url: https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/v0.0.1/v0.0.1.bin
     },
     eventHandler:function(emitObject) {
+        console.log("manager got event",emitObject);
+
         if (emitObject.target) {
         } else if (emitObject.callback) {
             var conduit = this.conduit;

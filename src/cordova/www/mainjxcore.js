@@ -1,10 +1,72 @@
+//JXCORE FRONTEND CODE (jxcore_ready loaded from index.html)
+
 var defaultLogger = console.log;
+var debugMessagingSystem = false;
+
+function backendLog() {
+    jxcore("backendLog_fromFrontend").call(JSON.stringify(Array.prototype.slice.call(arguments)));
+}
+
+function frontendLog() {
+    var source = null;
+    try {
+        var e = new Error();
+        var stack = e.stack.toString().split(/\r\n|\n/);
+        var stackLine = stack[1];
+
+        source = stackLine.substring(stackLine.lastIndexOf("/")+1);
+    } catch (e) { }
+
+    defaultLogger.apply(console,[source].concat(Array.prototype.slice.call(arguments)));
+}
+
+function handleSpecialCommands(command) {
+    if (command.name == "OpenLink") {
+        cordova.InAppBrowser.open(command.args[0], '_system');
+    }
+}
+
+var gui = null;
+
+function init() {
+    requirejs(['jquery','view/Gui.js'],function($,Gui) {
+        platform = "mobile";
+
+        try {
+            gui = new Gui(window,function() {
+                if (debugMessagingSystem) console.log("[GUI EMIT]",arguments);
+
+                handleSpecialCommands(arguments[0]);
+
+                var serializedArguments = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
+                    if (key && key.indexOf && key.indexOf("_") === 0) return false;
+                    return value;
+                });
+                jxcore("guiEventReceived").call(serializedArguments);
+            });
+
+            jxcore("guiReady").call();
+        } catch (e) {
+            console.log(e.message);
+            console.log(JSON.stringify(e));
+        }
+    });
+}
+
+//Called by index.html
 function jxcore_ready() {
-    var gui = null;
+    //console.log = frontendLog;
+
+    var debugInitialization = true;
 
     jxcore("managerEventReceived").register(function(json) {
         var args = JSON.parse(json);
         gui.eventHandler.apply(gui,args);
+    });
+
+    jxcore("frontendLog_fromBackend").register(function(json) {
+        var args = JSON.parse(json);
+        frontendLog.apply(this,args);
     });
 
     requirejs.config({
@@ -24,58 +86,14 @@ function jxcore_ready() {
         }
     });
 
-    function guiReady() {
-        jxcore("guiReady").call();
-    }
-
-    var isGuiReady = false;
-
-    function log() {
-        jxcore("guiLog").call(JSON.stringify(Array.prototype.slice.call(arguments)));
-    }
-
+    /*
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-        log("Error occured: " + errorMsg+ " "+url+":"+lineNumber)
+        console.log("Error occured: " + errorMsg+ " "+url+":"+lineNumber)
         return false;
     }
+    */
 
-    function handleSpecialCommands(command) {
-        log("handling command",command.name);
-        if (command.name == "OpenLink") {
-            cordova.InAppBrowser.open(command.args[0], '_system');
-        }
-    }
-
-    function init() {
-        requirejs(['jquery','view/Gui.js'],function($,Gui) {
-            //console.log = log;
-            platform = "mobile";
-
-            //$(document).on("touchmove", function(evt) { evt.preventDefault() });
-            //$(document).on("touchmove", ".scrollable", function(evt) { evt.stopPropagation() });
-
-            try {
-                gui = new Gui(window,function() {
-                    var args = JSON.stringify(Array.prototype.slice.call(arguments),function(key,value) {
-                        if (key && key.indexOf && key.indexOf("_") === 0) return false;
-                        return value;
-                    });
-
-                    log("got message: "+JSON.stringify(arguments[0]));
-                    handleSpecialCommands(arguments[0]);
-
-                    jxcore("guiEventReceived").call(args);
-                });
-            } catch (e) {
-                log(e.message);
-                log(JSON.stringify(e));
-            }
-            guiReady();
-        });
-    }
-
-    var instant = true; //set this to false to debug initialization
-    if (instant) {
+    if (!debugInitialization) {
         init();
     } else {
         var a = document.createElement("a");
