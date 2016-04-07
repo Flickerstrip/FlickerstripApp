@@ -20,7 +20,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 "server":{"label":"Shared"}
             });
 
-            this.$el.find(".createPattern").hide().click(_.bind(function() {
+            util.bindClickEvent(this.$el.find(".createPattern").hide(),_.bind(function() {
                 this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
                 this.stripRenderer.stop();
                 $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
@@ -44,10 +44,10 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 if (key == "user") this.showPatterns(this.gui.userPatterns,true);
             },this));
 
-			this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternClicked,this));
-			this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternClicked,this));
+			util.bindClickEvent(this.$el.find(".loadPatternButton"),_.bind(this.loadPatternClicked,this));
+			util.bindClickEvent(this.$el.find(".previewPatternButton"),_.bind(this.previewPatternClicked,this));
 
-            this.$el.find(".hideButton").click(_.bind(function() {
+            util.bindClickEvent(this.$el.find(".hideButton"),_.bind(function() {
                 this.hide()
             },this));
 
@@ -135,7 +135,7 @@ function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,Edit
                 $el.append($("<span class='aside'></span>").text(aside));
 
                 var $edit = $("<button class='btn btn-default editButton asideButton'><span class='glyphicon glyphicon-pencil'></span></button>");
-                $edit.click(_.bind(function(e) {
+                util.bindClickEvent($edit,_.bind(function(e) {
                     var pattern = $(e.target).closest(".listElement").data("object");
                     this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,pattern).show();
                     this.stripRenderer.stop();

@@ -7,8 +7,11 @@ var path = require("path");
 var pjson = require('./package.json');
 var os = require("os");
 var child_process = require("child_process");
+
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
+platform = "desktop";
+global.platform = platform;
 
 requirejs.config({
     nodeRequire:require,
@@ -128,7 +131,6 @@ requirejs(['jquery','./view/Gui.js'],function($,Gui) {
             gui.eventHandler.apply(gui,args);
         }
 
-        platform = "desktop";
         gui = new Gui(window,guiEmit);
         var config = new Configuration(path.join(".","config.json"),path.join(".","firmwareVersions"),path.join(".","patterns"));
         manager = new Manager(config,managerEmit,platform);

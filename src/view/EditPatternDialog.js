@@ -55,7 +55,7 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
 
             if (platform == "mobile") this.$el.find(".patternControls>.right").hide();
 
-            this.$el.find(".hideButton").click(_.bind(function() {
+            util.bindClickEvent(this.$el.find(".hideButton"),_.bind(function() {
                 this.hide()
             },this));
 
@@ -74,21 +74,21 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
             },this));
 
             this.$el.find(".titletext").text(this.pattern.name);
-            this.$el.find(".titletext").click(_.bind(function() {
+            util.bindClickEvent(this.$el.find(".titletext"),_.bind(function() {
                 var name = prompt("Pattern name",this.pattern.name);
                 if (name == null) return;
                 this.pattern.name = name;
                 this.$el.find(".titletext").text(this.pattern.name);
             },this));
 
-            this.$el.find(".previewPatternButton").click(_.bind(function() {
+            util.bindClickEvent(this.$el.find(".previewPatternButton"),_.bind(function() {
                 util.evaluatePattern(this.pattern,null);
                 this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.pattern,true);
             },this));
 
 
             this.$el.find(".patternControls").addClass("hide");
-            this.$el.find(".saveButton").click(_.bind(this.savePatternClicked,this));
+            util.bindClickEvent(this.$el.find(".saveButton"),_.bind(this.savePatternClicked,this));
 
             if (this.pattern.type == "javascript") {
                 if (!this.pattern.body) this.pattern = $.extend({},this.gui.clientData.defaultAdvanced);
@@ -102,7 +102,7 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                 this.$el.find(".openConsole").hide();
                 this.$el.find(".patternControls").removeClass("hide");
 
-                this.$el.find(".loadImage").click(_.bind(function() {
+                util.bindClickEvent(this.$el.find(".loadImage"),_.bind(function() {
                     util.openFileDialog(this.$el,{
                         accepts:"*.png,*.gif,*.jpg,*.jpeg"
                     },_.bind(function(path) {
@@ -122,7 +122,7 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                     },this));
                             
                 },this));
-                this.$el.find(".saveImage").click(_.bind(function() {
+                util.bindClickEvent(this.$el.find(".saveImage"),_.bind(function() {
                     util.openFileDialog(this.$el,{
                         nwsaveas:"pattern.png"
                     },_.bind(function(path) {

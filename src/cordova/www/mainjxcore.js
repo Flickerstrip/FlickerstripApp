@@ -2,6 +2,7 @@
 
 var defaultLogger = console.log;
 var debugMessagingSystem = false;
+    var debugInitialization = false;
 
 function backendLog() {
     jxcore("backendLog_fromFrontend").call(JSON.stringify(Array.prototype.slice.call(arguments)));
@@ -57,8 +58,6 @@ function init() {
 function jxcore_ready() {
     //console.log = frontendLog;
 
-    var debugInitialization = true;
-
     jxcore("managerEventReceived").register(function(json) {
         var args = JSON.parse(json);
         gui.eventHandler.apply(gui,args);
@@ -86,12 +85,10 @@ function jxcore_ready() {
         }
     });
 
-    /*
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
         console.log("Error occured: " + errorMsg+ " "+url+":"+lineNumber)
         return false;
     }
-    */
 
     if (!debugInitialization) {
         init();

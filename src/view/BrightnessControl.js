@@ -15,7 +15,7 @@ define(['jquery',"view/util.js"],function($,util) {
             this.$el.append(this.$indicator);
             this.$el.append(this.$text);
 
-            $(this.$el).click(_.bind(this.barClicked,this));
+            util.bindClickEvent($(this.$el),_.bind(this.barClicked,this));
 
             this.dragging = false;
             this.$el.on("mousedown touchstart",_.bind(function() {

@@ -1,5 +1,5 @@
-define(["jquery","underscore"],
-function($,_) {
+define(["jquery","underscore","view/util.js"],
+function($,_,util) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -47,7 +47,7 @@ function($,_) {
             }
 
             if (platform == "mobile") { //data-dismiss doesnt seem to work on mobile
-                $alert.find("[data-dismiss='alert']").click(doHide);
+                util.bindClickEvent($alert.find("[data-dismiss='alert']"),doHide);
             }
         },
     });

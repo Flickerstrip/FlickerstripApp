@@ -142,7 +142,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
         },
         updateAvailable:function(e,version) {
             var buttons = [$("<button class='btn btn-primary' data-dismiss='alert'>Update</button></div>"),$("<button class='btn btn-default' data-dismiss='alert'>Hide</button></div>")]
-            buttons[0].click(_.bind(function() {
+            gutil.bindClickEvent(buttons[0],_.bind(function() {
                 this.conduit.emit("InstallUpdate",version);
             },this));
             if (platform == "mobile") buttons.shift();
@@ -178,7 +178,6 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             return found;
         },
         stripAdded:function(e,strip) {
-            console.log("strip added!",strip);
             this.selectList.addElement(strip,strip.group);
             var self = this;
             this.updatePanelDisabler();
@@ -197,8 +196,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
         updatePanelDisabler:function() {
             if (this.selectList.$el.find(".listElement").length == 0) {
                 var $el = $("<div class='paneldisabled'>No Flickerstrips found, you can <a class='createDummyStrip' href='#'>create a test strip</a></div>");
-                $el.find(".createDummyStrip").click(_.bind(function(e) {
-                    console.log("link clicked");
+                gutil.bindClickEvent($el.find(".createDummyStrip"),_.bind(function(e) {
                     this.conduit.emit("CreateDummy");
                     e.preventDefault();
                 },this));
@@ -273,7 +271,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $stripList.append(selectList.$el);
             this.updatePanelDisabler();
 
-            this.$el.find(".reportIssue").click(_.bind(function() {
+            gutil.bindClickEvent(this.$el.find(".reportIssue"),_.bind(function() {
                 this.conduit.emit("OpenLink","https://github.com/Flickerstrip/FlickerstripApp/issues");
             },this));
 
@@ -287,7 +285,6 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                             self.conduit.emit("ForgetStrip",[obj.id]);
                             self.selectList.refreshGroupings();
                         }},
-                        //bar: {name: "Boo", callback: function(key, opt){ console.log("bar arguments: ",arguments); }},
                     }
             });
 
@@ -314,7 +311,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
 
             $(selectList).on("change",_.bind(this.stripSelected,this));
 
-            this.$el.find(".changeMode").click(_.bind(function() {
+            gutil.bindClickEvent(this.$el.find(".changeMode"),_.bind(function() {
                 this.conduit.emit("Restart");
             },this));
         },
@@ -352,7 +349,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                     $onoff.toggleClass("on",strip.power == 1);
                 });
 
-                $onoff.click(_.bind(function(e) {
+                gutil.bindClickEvent($onoff,_.bind(function(e) {
                     if ($onoff.hasClass("on")) {
                         this.conduit.emit("ToggleStrip",strip.id,0);
                         $onoff.toggleClass("on",false);
@@ -360,7 +357,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                         this.conduit.emit("ToggleStrip",strip.id,1);
                         $onoff.toggleClass("on",true);
                     }
-                    e.stopPropagation();
+                    if (e.stopPropagation) e.stopPropagation();
                     return false;
                 },this));
 
@@ -378,14 +375,14 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                     },this));
                     $el.append($forgetStrip);
 
-                    $forgetStrip.click(_.bind(function(e) {
+                    gutil.bindClickEvent($forgetStrip,_.bind(function(e) {
                         var obj = $(e.target).closest(".listElement").data("object");
                         this.conduit.emit("ForgetStrip",[obj.id]);
                         this.selectList.refreshGroupings();
                         this.updatePanelDisabler();
 
                         e.preventDefault();
-                        e.stopPropagation();
+                        if (e.stopPropagation) e.stopPropagation();
                     },this));
                 }
 

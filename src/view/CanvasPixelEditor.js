@@ -31,7 +31,7 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
             if (platform == "mobile") {
                 var $metricsDisclosure = $("<div class='metricsDisclosure'><label>P<span class='pixels'></span></label><label>T<span class='frames'></span></label><label>F<span class='fps'></span></label>");
-                $metricsDisclosure.appendTo(this.$controls).click(_.bind(function() {
+                util.bindClickEvent($metricsDisclosure.appendTo(this.$controls),_.bind(function() {
                     this.$el.closest(".editPatternDialog").find(".patternControls>.right").toggle();
                 },this));
             }
@@ -69,64 +69,32 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
             this.updatePalette();
 
             this.offset = {x:0,y:0};
+			this.zoomFactor = 20;
+			this.zoomBounds = {min:5,max:60};
 
 			this.destroyed = false;
 
             this.drawingArea = this.$el.find(".drawingArea").get(0);
+
+            var useTouchEvents = platform == "mobile";
+
+            if (useTouchEvents) {
+                this.attachTouchListeners();
+            } else {
+                this.attachMouseAndKeyboardListeners();
+            }
+
+            /*
 			$(this.drawingArea).on(platform == "desktop" ? "click mouseup mousedown mousemove" : "touchstart touchend touchmove",_.bind(function(e) {
 				if (e.originalEvent.touches && e.originalEvent.touches.length > 1) return;
-				var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
-				if (!this.previousMousePosition) this.previousMousePosition = pos;
-				if (e.type == "mousedown" || e.type == "touchstart") {
-					this.down = {
-						button:e.button,
-						startX:pos[0],
-						startY:pos[1],
-                        dragStart:new Date().getTime(),
-						params:{
-							offset:this.offset
-						}
-					}
-				}
-                var isShortDrag = this.down && ((new Date().getTime() - this.down.dragStart < 300) && distance(this.down.startX,this.down.startY,pos[0],pos[1]) < 1);
+
 				if (e.type == "mouseup" || e.type == "touchend") {
-                    if (this.down.button == 2 && isShortDrag) {
-                        var ipos = this.translateCanvasToImage(pos[0],pos[1]);
-                        var g = this.image.getContext("2d");
-                        var pixel = g.getImageData(ipos[0],ipos[1], 1, 1).data;
-                        if (e.shiftKey) {
-                            this.bg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
-                        } else {
-                            this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
-                        }
-                        this.updateColorUI();
-                    }
 					this.down = false;
 					this.previousMousePosition = null;
 					return;
 				} 
 
                 function doDrawing() {
-                    var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
-                    if (this.down) {
-                        if (this.down.button == 2) {
-                            if (!this.down.startX || !this.down.startY) return;
-                            var dx = pos[0]-this.down.startX;
-                            var dy = pos[1]-this.down.startY;
-                            this.offset = {x:this.down.params.offset.x+dx,y:this.down.params.offset.y+dy};
-                            this.requestFrame();
-                        } else {
-                            var ipos = this.translateCanvasToImage(pos[0],pos[1]);
-                            var i2pos = this.translateCanvasToImage(this.previousMousePosition[0],this.previousMousePosition[1]);
-                            if (ipos != null && i2pos != null) {
-                                var g = this.image.getContext("2d");
-                                g.fillStyle = e.shiftKey ? this.bg.toHexString() : this.fg.toHexString();
-                                plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
-                                $(this).trigger("change");
-                                this.requestFrame();
-                            }
-                        }
-                    }
                     this.previousMousePosition = pos;
                 }
 
@@ -136,89 +104,9 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                     doDrawing.call(this);
                 }
 			},this));
+            */
 
-			this.zoomFactor = 20;
-			this.zoomBounds = {min:5,max:60};
 
-            var delay = null;
-            $(this.drawingArea).on("mousewheel",_.bind(function(e) {
-				var delta = e.originalEvent.detail || e.originalEvent.wheelDelta;
-                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
-
-				this.doZoom(delta,pos[0],pos[1]);
-            },this));
-
-            $(document).on("keyup",_.bind(function(e) {
-                var code = e.keyCode;
-                var brightenAmount = 10;
-                var spinAmount = 10;
-                if (code == 38) { //UP
-                    this.fg = this.fg.clone().lighten(brightenAmount);
-                    this.updateColorUI();
-                } else if (code == 40) { //DOWN
-                    this.fg = this.fg.clone().darken(brightenAmount);
-                    this.updateColorUI();
-                } else if (code == 37) { //LEFT
-                    this.fg = this.fg.clone().spin(spinAmount);
-                    this.updateColorUI();
-                } else if (code == 39) { //RIGHT
-                    this.fg = this.fg.clone().spin(-spinAmount);
-                    this.updateColorUI();
-                }
-            },this));
-
-			this.pinch = null;
-			new Hammer(this.drawingArea)
-				.on("pinchstart",_.bind(function(e) {
-                    if (this.touchDelay) clearTimeout(this.touchDelay);
-					var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
-					var ipos = this.translateCanvasToImage(pos[0],pos[1],true);
-				    this.pinch = {
-						center: {x:ipos[0],y:ipos[1]},
-						initialOffset: {x:this.offset.x,y:this.offset.y},
-						initialZoomFactor:this.zoomFactor
-					};
-				},this))
-				.on("pinch",_.bind(function(e) {
-					var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
-					if (!this.pinch) return;
-
-					this.zoomFactor = this.pinch.initialZoomFactor * e.scale;
-
-					this.offset = this.pinch.initialOffset;
-					var cAfter = this.translateCanvasToImage(pos[0],pos[1],true);
-					this.offset = {
-						x:this.pinch.initialOffset.x + (cAfter[0] - this.pinch.center.x) * this.zoomFactor,
-						y:this.pinch.initialOffset.y + (cAfter[1] - this.pinch.center.y) * this.zoomFactor
-					};
-
-					this.requestFrame();
-
-					/*
-					var g = this.drawingArea.getContext("2d");
-					g.strokeStyle = "#ff0000";
-					g.beginPath();
-					g.moveTo(0,0);
-					g.lineTo(this.displayMargins.left + this.offset.x + this.pinch.center.x*this.zoomFactor,this.displayMargins.top + this.offset.y + this.pinch.center.y*this.zoomFactor);
-					g.stroke();
-
-					g.strokeStyle = "#00ff00";
-					g.beginPath();
-					g.moveTo(50,0);
-					g.lineTo(this.displayMargins.left + this.offset.x + cAfter[0]*this.zoomFactor,this.displayMargins.top + this.offset.y + cAfter[1]*this.zoomFactor);
-					g.stroke();
-
-					g.strokeStyle = "#0000ff";
-					g.beginPath();
-					g.moveTo(100,0);
-					g.lineTo(this.displayMargins.left+pos[0],this.displayMargins.top+pos[1]);
-					g.stroke();
-					*/
-				},this))
-				.on("pinchend",_.bind(function(e) {
-					this.pinch = null;
-				},this))
-				.get('pinch').set({ enable: true });
 
 			this.requestFrame();
             this.repaint();
@@ -271,7 +159,6 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                         }
                     }
                     e.preventDefault();
-					e.stopPropagation();
 					return false;
                 },this);
 				if (platform == "desktop") $panel.on("click contextmenu",handler);
@@ -434,10 +321,185 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                     g.fillText(text,35,displayBox.y+this.offset.y+y*perPixelY+nudgeY);
                 }
             }
+
+            /*
+            if (this.tapList) {
+                for (var i=0; i<this.tapList.length; i++) {
+                    var pos = this.tapList[i];
+                    g.fillRect(displayBox.x+pos[0],displayBox.y+pos[1],2,2);
+                }
+            }
+            */
         },
 		destroy:function() {
 			this.destroyed = true;
 		},
+        doLineDrawing:function(a,b,useBgColor) {
+            var ipos = this.translateCanvasToImage(a[0],a[1]);
+            var i2pos = this.translateCanvasToImage(b[0],b[1]);
+            if (ipos != null && i2pos != null) {
+                var g = this.image.getContext("2d");
+                g.fillStyle = useBgColor ? this.bg.toHexString() : this.fg.toHexString();
+                plotLine(g,Math.floor(ipos[0]),Math.floor(ipos[1]),Math.floor(i2pos[0]),Math.floor(i2pos[1]));
+                $(this).trigger("change");
+                this.requestFrame();
+            }
+        },
+        attachMouseAndKeyboardListeners:function() {
+            ////////////////// MOUSE AND KEYBOARD CODE ///////////////////////////
+            $(this.drawingArea).on("mousedown",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+                this.previousMousePosition = null; //when we click down, we create a break in the previousMousePosition chain
+
+                this.down = {
+                    button:e.button,
+                    startX:pos[0],
+                    startY:pos[1],
+                    dragStart:new Date().getTime(),
+                    params:{
+                        offset:this.offset
+                    }
+                }
+            },this));
+
+            $(this.drawingArea).on("mouseup",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+                var image_pos = this.translateCanvasToImage(pos[0],pos[1]);
+
+                var isShortDown = this.down && ((new Date().getTime() - this.down.dragStart < 300) && distance(this.down.startX,this.down.startY,pos[0],pos[1]) < 1);
+
+                if (isShortDown) {
+                    if (this.down.button == 2) { //grab color under mouse
+                        var pixel = this.image.getContext("2d").getImageData(image_pos[0],image_pos[1], 1, 1).data;
+                        if (e.shiftKey) {
+                            this.bg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
+                        } else {
+                            this.fg = new tinycolor({r:pixel[0],g:pixel[1],b:pixel[2]});
+                        }
+                        this.updateColorUI();
+                    } else {
+                        this.doLineDrawing(pos,pos,e.shiftKey);
+                    }
+                }
+
+                this.down = false;
+            },this));
+
+            $(this.drawingArea).on("mousemove",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+
+                //var keys = [e.altKey,e.ctrlKey,e.shiftKey,e.metaKey];
+                if (this.down) {
+                    if (this.down.button == 2) { //pan drag
+                        if (!this.down.startX || !this.down.startY) return;
+                        var dx = pos[0]-this.down.startX;
+                        var dy = pos[1]-this.down.startY;
+                        this.offset = {x:this.down.params.offset.x+dx,y:this.down.params.offset.y+dy};
+                        this.requestFrame();
+                    } else if (this.previousMousePosition != null) { //draw drag
+                        this.doLineDrawing(pos,this.previousMousePosition,e.shiftKey);
+                    }
+                }
+
+                this.previousMousePosition = pos;
+            },this));
+
+            $(this.drawingArea).on("mousewheel",_.bind(function(e) {
+                var delta = e.originalEvent.detail || e.originalEvent.wheelDelta;
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+
+                this.doZoom(delta,pos[0],pos[1]);
+            },this));
+
+            $(document).on("keyup",_.bind(function(e) {
+                var code = e.keyCode;
+                var brightenAmount = 10;
+                var spinAmount = 10;
+                if (code == 38) { //UP
+                    this.fg = this.fg.clone().lighten(brightenAmount);
+                    this.updateColorUI();
+                } else if (code == 40) { //DOWN
+                    this.fg = this.fg.clone().darken(brightenAmount);
+                    this.updateColorUI();
+                } else if (code == 37) { //LEFT
+                    this.fg = this.fg.clone().spin(spinAmount);
+                    this.updateColorUI();
+                } else if (code == 39) { //RIGHT
+                    this.fg = this.fg.clone().spin(-spinAmount);
+                    this.updateColorUI();
+                }
+            },this));
+            ////////////////// MOUSE AND KEYBOARD CODE ///////////////////////////
+        },
+        attachTouchListeners:function() {
+			this.pinch = null;
+			var hammer = new Hammer(this.drawingArea);
+            hammer.on("tap",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+
+                /*
+                var ipos = this.translateCanvasToImage(pos[0],pos[1],true);
+                console.log("pos",pos,ipos);
+                if (!this.tapList) this.tapList = [];
+                this.tapList.push(pos);
+                */
+
+
+                this.doLineDrawing(pos,pos,false);
+            },this));
+
+            hammer.on("panstart",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+
+                this.previousMousePosition = pos;
+            },this));
+
+            hammer.on("panmove",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+
+                this.doLineDrawing(pos,this.previousMousePosition,false);
+
+                this.previousMousePosition = pos;
+            },this));
+
+            hammer.on("panend",_.bind(function(e) {
+                this.previousMousePosition = null;
+            },this));
+
+            hammer.on("pinchstart",_.bind(function(e) {
+                if (this.touchDelay) clearTimeout(this.touchDelay);
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+                var ipos = this.translateCanvasToImage(pos[0],pos[1],true);
+                this.pinch = {
+                    center: {x:ipos[0],y:ipos[1]},
+                    initialOffset: {x:this.offset.x,y:this.offset.y},
+                    initialZoomFactor:this.zoomFactor
+                };
+            },this));
+
+            hammer.on("pinch",_.bind(function(e) {
+                var pos = util.getCursorPosition(this.drawingArea,e,this.displayMargins.left,this.displayMargins.top);
+                if (!this.pinch) return;
+
+                this.zoomFactor = this.pinch.initialZoomFactor * e.scale;
+
+                this.offset = this.pinch.initialOffset;
+                var cAfter = this.translateCanvasToImage(pos[0],pos[1],true);
+                this.offset = {
+                    x:this.pinch.initialOffset.x + (cAfter[0] - this.pinch.center.x) * this.zoomFactor,
+                    y:this.pinch.initialOffset.y + (cAfter[1] - this.pinch.center.y) * this.zoomFactor
+                };
+
+                this.requestFrame();
+            },this));
+
+            hammer.on("pinchend",_.bind(function(e) {
+                this.pinch = null;
+            },this));
+
+            hammer.get('pinch').set({ enable: true });
+            hammer.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+        }
     });
 
     return This;

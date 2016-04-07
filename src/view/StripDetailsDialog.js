@@ -1,4 +1,4 @@
-define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html"],function($,util,mobile_template,desktop_template) {
+define(['jquery',"shared/util.js",'view/util.js',"text!tmpl/stripDetailsDialogMobile.html","text!tmpl/stripDetailsDialog.html"],function($,util,gutil,mobile_template,desktop_template) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -20,7 +20,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
 
             this.update();
 
-            this.$el.find(".closeDetails").click(_.bind(this.hide,this));
+            gutil.bindClickEvent(this.$el.find(".closeDetails"),_.bind(this.hide,this));
         },
         doUpdateClicked:function(e) {
             this.conduit.emit("UploadFirmware",this.strip.id);
@@ -70,7 +70,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
                 statusIndicator.addClass("error").attr("title","disconnected");
             }
 
-            this.$el.find(".doupdate").click(_.bind(this.doUpdateClicked,this));
+            gutil.bindClickEvent(this.$el.find(".doupdate"),_.bind(this.doUpdateClicked,this));
         },
         renameStrip:function() {
             var newName = prompt("Enter a new name for the strip.",this.strip.name || "Unknown Strip");
@@ -130,7 +130,7 @@ define(['jquery',"shared/util.js","text!tmpl/stripDetailsDialogMobile.html","tex
                 var $lel = $("<div class=\"info\"><span class=\"infoLabel\"></span><span class=\"infoValue\"></span></div>");
                 $lel.find(".infoLabel").text(item.key);
                 $lel.find(".infoValue").append(item.value);
-                if (item.click) $lel.click(item.click);
+                if (item.click) util.bindClickEvent($lel,item.click);
                 if (item.change) item.value.change(item.change);
                 $els.append($lel);
             });

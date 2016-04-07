@@ -519,8 +519,6 @@ extend(This.prototype,{
         //download url: https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/v0.0.1/v0.0.1.bin
     },
     eventHandler:function(emitObject) {
-        console.log("manager got event",emitObject);
-
         if (emitObject.target) {
         } else if (emitObject.callback) {
             var conduit = this.conduit;
@@ -540,21 +538,17 @@ extend(This.prototype,{
         fs.readFile(this.folderConfig.configLocation, "ascii", _.bind(function(err,contents) {
             if (err) return console.log("Failed to load strip data:",err);
             try {
-                console.log("json: ",contents);
                 var config = util.parseJson(contents);
-                console.log("parsed config: ",config);
                 this.config = config;
 
                 //load strips
                 this.strips = [];
                 if (!this.config || !this.config.strips) {
                     this.config = {};
-                    console.log("returning");
                     if (cb) cb();
                     return;
                 }
                 _.each(this.config.strips,_.bind(function(strip) {
-                    console.log("loading script",strip);
                     var lstrip = new LEDStrip();
                     for (var key in strip) {
                         if (key.indexOf("_") === 0) continue;

@@ -6,7 +6,6 @@ function($,_,LoginDialog,template) {
 
     $.extend(This.prototype, {
         init:function() {
-        console.log("initting");
             this.$el = $(template);
         },
     });

@@ -204,9 +204,7 @@ extend(This.prototype,{
 
         var concatted = Buffer.concat([metadata,payload]);
 
-        console.log("calling send pattern",this);
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function(content,err) {
-            console.log("got callback",arguments,callback);
             this.emit("Strip.UploadPatternComplete");
             if (callback) callback(err);
         },this),concatted,true);

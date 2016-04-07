@@ -29,7 +29,8 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             this.$el.find(".loadPatternButton").click(_.bind(this.loadPatternButtonClicked,this));
             this.$el.find(".previewPatternButton").click(_.bind(this.previewPatternButtonClicked,this));
             this.$el.find(".hideButton").click(_.bind(this.hide,this));
-            this.$el.find(".backButton").click(_.bind(function() {
+
+            util.bindClickEvent(this.$el.find(".backButton"),_.bind(function(e) {
                 this.patternOptions.deselect();
                 this.$el.removeClass("deselected");
                 $(document.body).removeClass("configurePatternShowing");
@@ -149,7 +150,6 @@ function($,tinycolor,util,ProgressDialog,SelectList,patterns,LEDStripRenderer,Ed
             $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
                 this.selectedPatternName = pattern.name;
                 this.conduit.emit("SavePattern",pattern);
-                console.log("pattern",pattern);
                 this.editPatternDialog.hide();
             },this));
         },

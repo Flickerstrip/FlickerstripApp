@@ -54,6 +54,7 @@ var manager;
 Mobile("guiReady").registerAsync(function(json) {
     console.log = backendLog;
     platform = "mobile";
+    console.log("Configuration: ",config);
 
     try {
         manager = new Manager(config,function() {

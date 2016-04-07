@@ -1,4 +1,4 @@
-define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
+define(['jquery','underscore','tinycolor','hammer'],function($,_,tinycolor,Hammer) {
     var This = function(view) {
     };
     $.extend(This,{
@@ -267,6 +267,7 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
 				ex = event.clientX || (event.center && event.center.x) || (event.originalEvent.touches && event.originalEvent.touches[0].clientX);
 				ey = event.clientY || (event.center && event.center.y) || (event.originalEvent.touches && event.originalEvent.touches[0].clientY);
 			} catch(e) {
+                console.log("got error",e);
 				return null;
 			}
 					
@@ -274,6 +275,16 @@ define(['jquery','underscore','tinycolor'],function($,_,tinycolor) {
             y = ey + document.body.scrollTop + document.documentElement.scrollTop - Math.floor(canoffset.top) + 1;
 
             return [x-marginLeft,y-marginTop];
+        },
+        bindClickEvent:function($el,fn) {
+            if ($el.length == 0) return;
+            if (platform == "mobile") {
+                $el.each(function() {
+                    new Hammer($(this).get(0)).on("tap",fn);
+                });
+            } else {
+				$el.click(fn);
+            }
         },
         openFileDialog:function($el,opts,cb) {
             var win = require('nw.gui').Window.get();

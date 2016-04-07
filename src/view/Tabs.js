@@ -1,4 +1,4 @@
-define(['jquery','underscore'],function($,_) {
+define(['jquery','underscore','view/util.js'],function($,_,util) {
     var This = function(data,renderer) {
         this.init.apply(this,arguments);
     }
@@ -19,14 +19,14 @@ define(['jquery','underscore'],function($,_) {
                 }
                 this.$el.append($el);
             },this));
-            this.$el.find("a").click(_.bind(function(e) {
+            util.bindClickEvent(this.$el.find("a"),_.bind(function(e) {
                 var $el = $(e.target).closest("li");
                 this.selected = $el.data("info");
                 $(this).trigger("select",$el.data("info").key);
                 this.$el.find("li").removeClass("active");
                 $el.addClass("active");
                 e.preventDefault();
-                e.stopPropagation();
+                if (e.stopPropagation) e.stopPropagation();
             },this));
         },
         getSelectedKey:function() {

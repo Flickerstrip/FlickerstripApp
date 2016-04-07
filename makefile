@@ -202,6 +202,9 @@ cordova: ./build/cordova
 sim_ios: cordova
 	cd ./build/cordova && cordova $(CORDOVA_FLAGS) emulate ios --target="iPhone-6, 8.4"
 
+sim_ipad: cordova
+	cd ./build/cordova && cordova $(CORDOVA_FLAGS) emulate ios --target="iPad-2, 8.4"
+
 dev_ios: cordova
 	cd ./build/cordova && cordova $(CORDOVA_FLAGS) run ios --device
 

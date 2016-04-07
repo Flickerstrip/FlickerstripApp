@@ -1,4 +1,4 @@
- define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","hammer"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog,Hammer) {
+define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","hammer"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog,Hammer) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -32,9 +32,9 @@
                 this.$el.addClass("multiple-selected");
             }
 
-            this.$el.find(".backButton").click(_.bind(function(e) {
+            util.bindClickEvent(this.$el.find(".backButton"),_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
-                e.stopPropagation();
+                if (e.stopPropagation) e.stopPropagation();
             },this));
 
             _.each(this.strips,_.bind(function(strip) {
@@ -43,19 +43,19 @@
 
             this.statusUpdated();
 
-            this.$el.find(".createGroupFromSelected").click(_.bind(this.createGroupClicked,this));
-            this.$el.find(".groupNextPattern").click(_.bind(this.groupNextPattern,this));
+            util.bindClickEvent(this.$el.find(".createGroupFromSelected"),_.bind(this.createGroupClicked,this));
+            util.bindClickEvent(this.$el.find(".groupNextPattern"),_.bind(this.groupNextPattern,this));
 
             if (platform == "mobile") {
-                this.$el.find(".navigationBar").click(_.bind(this.showDetailsClicked,this));
+                util.bindClickEvent(this.$el.find(".navigationBar"),_.bind(this.showDetailsClicked,this));
             } else {
                 this.$el.find(".stripInfoButton").click(_.bind(this.showDetailsClicked,this));
             }
 
-            this.$el.find(".loadPattern").on("click",_.bind(this.loadPatternClicked,this));
-            this.$el.find(".uploadFirmware").on("click",_.bind(this.uploadFirmwareClicked,this));
+            util.bindClickEvent(this.$el.find(".loadPattern"),_.bind(this.loadPatternClicked,this));
+            util.bindClickEvent(this.$el.find(".uploadFirmware"),_.bind(this.uploadFirmwareClicked,this));
 
-            this.$el.find(".disconnectStripButton").on("click",_.bind(function() {
+            util.bindClickEvent(this.$el.find(".disconnectStripButton"),_.bind(function() {
                 this.conduit.emit("DisconnectStrip",this.strip.id);
             },this));
         },
@@ -187,7 +187,7 @@
                 this.conduit.emit("ForgetPattern",strip.id,pattern.index);
 
                 e.preventDefault();
-                e.stopPropagation();
+                if (e.stopPropagation) e.stopPropagation();
                 return true;
             }
         },

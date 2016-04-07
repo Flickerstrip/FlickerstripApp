@@ -1,4 +1,4 @@
-define(['jquery'],function($) {
+define(['jquery','view/util.js'],function($,util) {
     var This = function(data,renderer) {
         this.init.apply(this,arguments);
     }
@@ -81,7 +81,7 @@ define(['jquery'],function($) {
                 var header = group == "" ? "Ungrouped" : group;
                 if (this.grouprenderer && keys.length > 1 && groupMap[group].length > 0) {
                     var $groupHeader = this.grouprenderer(header);
-                    $groupHeader.click(_.bind(function() {
+                    util.bindClickEvent($groupHeader,_.bind(function() {
                         //group clicked
                         this.$el.find(".selected").removeClass("selected");
                         $groupHeader.addClass("selected");
@@ -229,7 +229,7 @@ define(['jquery'],function($) {
             }
             var self = this;
             $nodes.each(function() {
-                $(this).click(function(e) {
+                util.bindClickEvent($(this),_.bind(function(e) {
                     var clickedIndex = $(this).data("index");
                     if ($(this).is(".disabled")) return;
                     if (self.opts.multiple && e.shiftKey) {
@@ -242,7 +242,7 @@ define(['jquery'],function($) {
                     } else {
                         self.select($(this).data("index"),e.ctrlKey || e.altKey);
                     }
-                });
+                },this));
             });
         }
     });
