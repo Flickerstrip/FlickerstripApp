@@ -145,6 +145,10 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
                 this.canvas = util.renderPattern(this.pattern.body,this.pattern.pixels,this.pattern.frames,null,null,false,false);
                 this.editor.setImage(this.canvas);
 
+                this.$el.find(".metricsPanel input").click(function() {
+                    $(this).select();
+                });
+
                 this.$el.find(".metricsPanel input").change(_.bind(function() {
                     this.pattern.fps = parseInt(this.$fps.val()); //TODO upgeade to float
                     this.pattern.frames = parseInt(this.$frames.val())

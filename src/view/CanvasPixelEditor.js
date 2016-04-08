@@ -180,16 +180,16 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
                 $special = $("<div class='specialPalette paletteRow'></div>");
 
                 var colors = [
-                    baseColor.clone().spin(nudgeSpinAmount),
-                    baseColor.clone().spin(-nudgeSpinAmount),
-                    baseColor.clone().lighten(nudgeBrightenAmount),
-                    baseColor.clone().darken(nudgeBrightenAmount)
+                    this.fg.clone().spin(nudgeSpinAmount),
+                    this.fg.clone().spin(-nudgeSpinAmount),
+                    this.fg.clone().lighten(nudgeBrightenAmount),
+                    this.fg.clone().darken(nudgeBrightenAmount)
                 ];
 
-                _.each(colors,function(c) {
+                _.each(colors,_.bind(function(c) {
                     if (isBlackOrWhite(c)) c = this.fg;
                     $special.append(this.generateColorPanel(c));
-                });
+                },this));
             }
 
             _.each(palette,_.bind(function(color,index) {
