@@ -51,7 +51,7 @@ body {
     border-top-right-radius: 0;
     border-top-left-radius: 0;
 
-    .navigationButtons button {
+    .navigationButtons .btn-transparent {
         color: black;
         background-color: transparent;
     }
@@ -249,6 +249,11 @@ body {
     .align-items(stretch);
 }
 
+.patternPreview {
+    margin: 4px;
+    width: 20px;
+}
+
 .noTouchEvents {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -329,6 +334,7 @@ body .mainContainer .body.bodyNoPadding {
         order: 1;
 		.flex-display;
 		.flex-direction(row);
+        .align-items(flex-start);
 		width: 100%;
 		padding: 0;
 		margin: 0;
@@ -340,7 +346,14 @@ body .mainContainer .body.bodyNoPadding {
 				padding: 0;
 			}
 			padding: 0;
-			border: none;
+
+            .sp-preview {
+                border: 1px solid #666;
+            }
+
+            * {
+                border-radius: 5px;
+            }
 		}
 
 		.palette {
@@ -363,6 +376,32 @@ body .mainContainer .body.bodyNoPadding {
 			}
 		}
 	}
+}
+
+.tablet {
+    .patternControls {
+        margin-top: 2px;
+    }
+    .patternControls .controls .palette .paletteRow { display: inline-block; }
+
+    .patternControls .current .sp-preview,
+    .patternControls .palette .color {
+        width: 40px;
+        height: 40px;
+    }
+
+    .patternControls input {
+        width: 40px;
+        height: 30px;
+        font-size: 17px;
+    }
+    .metricsPanel {
+        .justify-content(center);
+        label {
+            font-size: 20px;
+            .flex(0 1 auto);
+        }
+    }
 }
 
 .editorcontainer > div > .drawingArea {

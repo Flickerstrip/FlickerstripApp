@@ -11,6 +11,7 @@ var child_process = require("child_process");
 global.ShutdownHandler = ShutdownHandler;
 global.log = console.log;
 platform = "desktop";
+isTablet = false;
 global.platform = platform;
 
 requirejs.config({

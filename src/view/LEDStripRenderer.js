@@ -63,7 +63,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
         resizeToParent:function() {
 		    if (platform == "mobile") {
 				this.canvas.height = this.$el.parent().height();
-				this.canvas.width = 10;
+				this.canvas.width = this.$el.parent().width();
 			} else {
 				this.canvas.width = this.$el.parent().width();
 			}

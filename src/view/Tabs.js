@@ -26,7 +26,7 @@ define(['jquery','underscore','view/util.js'],function($,_,util) {
                 this.$el.find("li").removeClass("active");
                 $el.addClass("active");
                 e.preventDefault();
-                if (e.stopPropagation) e.stopPropagation();
+                e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
             },this));
         },
         getSelectedKey:function() {

@@ -33,6 +33,9 @@ function init() {
     requirejs(['jquery','view/Gui.js'],function($,Gui) {
         platform = "mobile";
 
+        isTablet = $(window).width() > 500;
+        console.log("istablet:",isTablet);
+
         try {
             gui = new Gui(window,function() {
                 if (debugMessagingSystem) console.log("[GUI EMIT]",arguments);

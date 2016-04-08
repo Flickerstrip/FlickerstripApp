@@ -34,7 +34,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             util.bindClickEvent(this.$el.find(".backButton"),_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
-                if (e.stopPropagation) e.stopPropagation();
+                e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
             },this));
 
             _.each(this.strips,_.bind(function(strip) {
@@ -187,7 +187,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 this.conduit.emit("ForgetPattern",strip.id,pattern.index);
 
                 e.preventDefault();
-                if (e.stopPropagation) e.stopPropagation();
+                e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
                 return true;
             }
         },

@@ -42,6 +42,8 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             this.$el.addClass("theme1");
             this.conduit = util.createConduit(send);
 
+            if (isTablet) this.$el.addClass("tablet");
+
             $(document).on('show.bs.modal', function (e) {
                 setTimeout(function() {
                     var visibleModals = $(document.body).find('.modal:visible').length;
@@ -357,7 +359,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                         this.conduit.emit("ToggleStrip",strip.id,1);
                         $onoff.toggleClass("on",true);
                     }
-                    if (e.stopPropagation) e.stopPropagation();
+                    e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
                     return false;
                 },this));
 
@@ -382,7 +384,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                         this.updatePanelDisabler();
 
                         e.preventDefault();
-                        if (e.stopPropagation) e.stopPropagation();
+                        e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
                     },this));
                 }
 

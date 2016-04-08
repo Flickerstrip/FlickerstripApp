@@ -21,15 +21,23 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
         this.init.apply(this,arguments);
     }
 
+    function isBlackOrWhite(color) {
+        return tinycolor.equals(color,tinycolor("black")) || tinycolor.equals(color,tinycolor("white"));
+    }
+
+    var nudgeBrightenAmount = 10;
+    var nudgeSpinAmount = 10;
+
     $.extend(This.prototype,{
         init:function(image,palette) {
 			window.cpe = this;
             this.image = image;
             this.palette = palette;
             this.$el = $(template);
+            this.lastNonblackwhiteColor = null;
             this.$controls = this.$el.find(".controls");
 
-            if (platform == "mobile") {
+            if (platform == "mobile" && !isTablet) {
                 var $metricsDisclosure = $("<div class='metricsDisclosure'><label>P<span class='pixels'></span></label><label>T<span class='frames'></span></label><label>F<span class='fps'></span></label>");
                 util.bindClickEvent($metricsDisclosure.appendTo(this.$controls),_.bind(function() {
                     this.$el.closest(".editPatternDialog").find(".patternControls>.right").toggle();
@@ -64,9 +72,12 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
             this.$controls.find(".fg").val("#fff").spectrum(colorOpts);
             if (platform != "mobile") this.$controls.find(".bg").val("#000").spectrum(colorOpts);
-            setTimeout(_.bind(this.colorChanged,this),5);
 
-            this.updatePalette();
+            setTimeout(_.bind(function() {
+                this.colorChanged();
+                this.updatePalette();
+            },this),5);
+
 
             this.offset = {x:0,y:0};
 			this.zoomFactor = 20;
@@ -129,43 +140,70 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
 			this.requestFrame();
 		},
+        generateColorPanel:function(c,index) {
+            var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
+            var handler = _.bind(function(e) {
+                if (index != null && (e.type == "press" || e.button == 2)) {
+                    if (e.shiftKey) {
+                        c = this.bg;
+                    } else {
+                        c = this.fg;
+                    }
+                    var rgb = c.toRgb();
+                    this.palette[index] = [rgb.r,rgb.g,rgb.b];
+                    this.updatePalette();
+                    $(this).trigger("PaletteUpdated",[this.palette]);
+                } else {
+                    if (e.shiftKey) {
+                        this.bg = c;
+                        this.updateColorUI();
+                    } else {
+                        this.fg = c;
+                        this.updateColorUI();
+                    }
+                }
+                e.preventDefault();
+                return false;
+            },this);
+            if (platform == "desktop") $panel.on("click contextmenu",handler);
+            if (platform == "mobile") new Hammer($panel.get(0)).on("tap press",handler);
+
+            return $panel;
+        },
         updatePalette:function() {
             var palette = this.palette;
-            var $palette = this.$controls.find(".palette").empty();
+            var $special = null;
             var $firstRow = $("<div class='paletteRow'></div>");
             var $secondRow = $("<div class='paletteRow'></div>");
-            $palette.append($firstRow,$secondRow);
+
+            if (isTablet) {
+                $special = $("<div class='specialPalette paletteRow'></div>");
+
+                var colors = [
+                    baseColor.clone().spin(nudgeSpinAmount),
+                    baseColor.clone().spin(-nudgeSpinAmount),
+                    baseColor.clone().lighten(nudgeBrightenAmount),
+                    baseColor.clone().darken(nudgeBrightenAmount)
+                ];
+
+                _.each(colors,function(c) {
+                    if (isBlackOrWhite(c)) c = this.fg;
+                    $special.append(this.generateColorPanel(c));
+                });
+            }
+
             _.each(palette,_.bind(function(color,index) {
                 var c = tinycolor({r:color[0],g:color[1],b:color[2]});
-                var $panel = $("<div class='color'></div>").css("background-color",c.toHexString());
-				var handler = _.bind(function(e) {
-                    if (e.type == "press" || e.button == 2) {
-                        if (e.shiftKey) {
-                            c = this.bg;
-                        } else {
-                            c = this.fg;
-                        }
-                        var rgb = c.toRgb();
-                        this.palette[index] = [rgb.r,rgb.g,rgb.b];
-                        this.updatePalette();
-                        $(this).trigger("PaletteUpdated",[this.palette]);
-                    } else {
-                        if (e.shiftKey) {
-                            this.bg = c;
-                            this.updateColorUI();
-                        } else {
-                            this.fg = c;
-                            this.updateColorUI();
-                        }
-                    }
-                    e.preventDefault();
-					return false;
-                },this);
-				if (platform == "desktop") $panel.on("click contextmenu",handler);
-				if (platform == "mobile") new Hammer($panel.get(0)).on("tap press",handler);
+                var $panel = this.generateColorPanel(c,index);
                 $panel.appendTo(index < palette.length/2 ? $firstRow : $secondRow);
             },this));
-            if (platform == "mobile") {
+
+            var $palette = this.$controls.find(".palette").empty();
+
+            if ($special) $palette.append($special);
+            $palette.append($firstRow,$secondRow);
+
+            if (platform == "mobile" && !isTablet) {
                 setTimeout(_.bind(function() {
                     var nPerRow = palette.length/2;
                     var paddingSpaceRequired = nPerRow*3+5; //1 px per border and 1px spacing
@@ -181,12 +219,24 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 			this.requestFrame();
         },
         updateColorUI:function() {
+            if (!isBlackOrWhite(this.fg)) {
+                this.lastNonblackwhiteColor = this.fg;
+            }
+
             this.$controls.find(".fg").spectrum("set", this.fg.toHexString());
             this.$controls.find(".bg").spectrum("set", this.bg.toHexString());
+
+            this.updatePalette();
         },
         colorChanged:function() {
             this.fg = tinycolor(this.$controls.find(".fg").val());
             this.bg = tinycolor(this.$controls.find(".bg").val());
+
+            if (!isBlackOrWhite(this.fg)) {
+                this.lastNonblackwhiteColor = this.fg;
+            }
+
+            this.updatePalette();
         },
         translateCanvasToImage:function(x,y,ignoreBounds) {
             var perPixelX = this.zoomFactor;
@@ -413,19 +463,23 @@ define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html',
 
             $(document).on("keyup",_.bind(function(e) {
                 var code = e.keyCode;
-                var brightenAmount = 10;
-                var spinAmount = 10;
+
+                var lastColor = this.fg;
                 if (code == 38) { //UP
-                    this.fg = this.fg.clone().lighten(brightenAmount);
+                    this.fg = this.fg.clone().lighten(nudgeBrightenAmount);
+                    if (isBlackOrWhite(this.fg)) this.fg = lastColor;
                     this.updateColorUI();
                 } else if (code == 40) { //DOWN
-                    this.fg = this.fg.clone().darken(brightenAmount);
+                    this.fg = this.fg.clone().darken(nudgeBrightenAmount);
+                    if (isBlackOrWhite(this.fg)) this.fg = lastColor;
                     this.updateColorUI();
                 } else if (code == 37) { //LEFT
-                    this.fg = this.fg.clone().spin(spinAmount);
+                    this.fg = this.fg.clone().spin(nudgeSpinAmount);
+                    if (isBlackOrWhite(this.fg)) this.fg = lastColor;
                     this.updateColorUI();
                 } else if (code == 39) { //RIGHT
-                    this.fg = this.fg.clone().spin(-spinAmount);
+                    this.fg = this.fg.clone().spin(-nudgeSpinAmount);
+                    if (isBlackOrWhite(this.fg)) this.fg = lastColor;
                     this.updateColorUI();
                 }
             },this));

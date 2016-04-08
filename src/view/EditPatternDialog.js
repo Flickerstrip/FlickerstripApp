@@ -53,10 +53,11 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,desktop_templat
             this.$el.append(platform == "desktop" ? desktop_template : mobile_template);
             this.$el = this.$el.children();
 
-            if (platform == "mobile") this.$el.find(".patternControls>.right").hide();
+            if (platform == "mobile" && !isTablet) this.$el.find(".patternControls>.right").hide();
 
             util.bindClickEvent(this.$el.find(".hideButton"),_.bind(function() {
-                this.hide()
+                var areYouSure = confirm("Are you sure you want to discard this pattern?");
+                if (areYouSure === true) this.hide()
             },this));
 
             if (!this.pattern.name) this.pattern.name = "New Lightwork";
