@@ -1,6 +1,6 @@
 {
   "name": "FlickerstripApp",
-  "version":"0.5.6",
+  "version":"0.5.7",
   "description": "An application to allow you to interact with your LED strips.",
   "main": "nwjs.html",
   "showDebugger":false,
