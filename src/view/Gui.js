@@ -20,6 +20,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
         if (!firmware || !latest) return;
         var fn = util.symanticToNumeric(firmware);
         var ln = util.symanticToNumeric(latest);
+        fn = fn;
 
         $el.removeClass("uptodate");
         $el.removeClass("outofdate");
@@ -94,10 +95,12 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             this.render();
             NotificationManager.setWindow(window);
 
-            /*this.$el.append($("<button>Clickme</button>").click(_.bind(function() {
-                //this.conduit.emit("Restart");
+            /*
+            this.$el.append($("<button>Clickme</button>").click(_.bind(function() {
+                this.conduit.emit("UploadFirmware","5c:cf:7f:88:7f:85");
             },this)));
             */
+            
 
 			//this.tempDialog = new EditPatternDialog(this.conduit,this,{"type":"bitmap"}).show();
 
@@ -326,7 +329,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
 
             if ($el) {
                 $el.find(".name").text(name);
-                $el.find(".version").text(strip.firmware);
+                //$el.find(".version").text(strip.firmware);
                 var $ver = $el.find(".version");
                 setVersionClass($ver,strip.firmware,this.latestRelease);
                 var statusClass = strip.visible ? "connected" : "error";
@@ -338,7 +341,7 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
                 $el.append($("<span class='statusIndicator'></span>").addClass(statusClass));
                 $el.toggleClass("disconnected",!strip.visible);
                 $el.append($("<span class='name'></span>").text(name));
-                //$el.append($("<span class='version'></span>").text(strip.firmware));
+                $el.append($("<span class='version'><span class='glyphicon glyphicon-circle-arrow-down'></span></span>"));
                 var $ver = $el.find(".version");
                 setVersionClass($ver,strip.firmware,this.latestRelease);
                 $(strip).on("LatestReleaseUpdated",_.bind(function() {

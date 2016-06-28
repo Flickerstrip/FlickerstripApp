@@ -304,17 +304,24 @@
 }
 
 .version {
+    opacity: 0;
+
     &.uptodate {
         opacity: 0;
     }
 
     &.outofdate {
-        color: #f00;
+        opacity: 1;
+        color: #00f;
     }
 
     &.devversion {
-        color: #00f;
+        opacity: 0;
     }
+}
+
+.disconnected .version.outofdate {
+    color: #999;
 }
 
 
@@ -393,6 +400,10 @@ input.seamless {
     color: #999;
 }
 
+.updateFirmware {
+    width: 100%;
+}
+
 .groupDetails.none-selected {
     .brightnessControl,
     .multiselect,
@@ -409,6 +420,7 @@ input.seamless {
 
 .groupDetails.one-selected {
     .multiselect { display: none; }
+    .singleStripSelected { display: block; }
 }
 
 .groupDetails.multiple-selected {

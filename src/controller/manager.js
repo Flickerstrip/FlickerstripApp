@@ -25,7 +25,7 @@ var This = function() {
 nutil.inherits(This,EventEmitter);
 extend(This.prototype,{
     strips:[],
-    firmwareReleases:[],
+    firmwareRelease:[],
     init:function(folderConfig,send,platform) {
         this.folderConfig = folderConfig;
         this.platform = platform;
@@ -73,10 +73,8 @@ extend(This.prototype,{
         this.on("UploadFirmware",_.bind(function(id) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
-            var releaseTag = this.firmwareReleases[0]["tag_name"];
-            console.log("uploading firmware: ",releaseTag);
+            var releaseTag = this.firmwareRelease.latest;
             this.downloadFirmware(releaseTag,_.bind(function() {
-                console.log(this.folderConfig.firmwareFolder,releaseTag);
                 strip.uploadFirmware(path.join(this.folderConfig.firmwareFolder,releaseTag+".bin"));
             },this));
         },this));
@@ -450,6 +448,11 @@ extend(This.prototype,{
         //https://github.com/Flickerstrip/FlickerstripApp/releases/download/v0.3.1/FlickerstripApp-Linux64-v0.3.1.zip
     },
     checkForUpdates:function() {
+        if (this.config.lastUpdateCheck && new Date().getTime() - this.config.lastUpdateCheck < 1000*60*60*24) {
+            console.log("Skipping update check");
+            return;
+        }
+
         request({
             url:"https://api.github.com/repos/Flickerstrip/FlickerstripApp/releases",
             json:true,
@@ -469,35 +472,33 @@ extend(This.prototype,{
             var tagName = latest["tag_name"];
             if (util.symanticToNumeric(tagName) > util.symanticToNumeric(pjson.version)) {
                 this.conduit.emit("UpdateAvailable",tagName);
+            } else {
+                this.config.lastUpdateCheck = new Date().getTime();
+                this.saveConfig();
             }
         },this));
         
     },
     loadFirmwareReleaseInfo:function() {
-        console.log("LOAD FIRMWARE RELEASE IS CURRENTLY DISABLED: TODO cache this");
-        return;
         request({
-            url:"https://api.github.com/repos/Flickerstrip/FlickerstripFirmware/releases",
+            url:"http://flickerstrip.com/firmware/latest.json",
             json:true,
             headers: {
                 "User-Agent":"Flickerstrip-Dashboard",
             }
-        },_.bind(function(error,response,releases) {
+        },_.bind(function(error,response,releaseInfo) {
             if (error) {
                 console.log("Failed to load firmware release information: ",error.code);
                 return;
             }
-            releases.sort(function(b,a) {
-                return util.symanticToNumeric(a["tag_name"]) - util.symanticToNumeric(b["tag_name"]);
-            });
-            this.firmwareReleases = releases;
-            var latest = releases[0];
-            this.conduit.emit("LatestReleaseUpdated",latest["tag_name"]);
-            this.downloadFirmware(latest["tag_name"],function(downloaded) {
+            this.firmwareRelease = releaseInfo;
+            var latest = this.firmwareRelease.latest;
+            this.conduit.emit("LatestReleaseUpdated",latest);
+            this.downloadFirmware(latest,function(downloaded) {
                 if (downloaded) {
-                    console.log("downloaded firmware: ",latest["tag_name"]);
+                    console.log("downloaded firmware: ",latest);
                 } else {
-                    console.log("already downloaded firmware: ",latest["tag_name"]);
+                    console.log("already downloaded firmware: ",latest);
                 }
             });
         },this));
@@ -512,7 +513,7 @@ extend(This.prototype,{
             return;
         }
         var f = fs.createWriteStream(binPath);
-        request("https://github.com/Flickerstrip/FlickerstripFirmware/releases/download/"+release+"/"+release+".bin")
+        request("http://flickerstrip.com/firmware/"+release+".bin")
             .on("response",function() {
                     if (cb) cb(true);
             }).pipe(f);

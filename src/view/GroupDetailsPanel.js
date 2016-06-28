@@ -1,4 +1,4 @@
-define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","hammer"],function($,util,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog,Hammer) {
+define(['jquery',"shared/util.js","view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js","view/ProgressDialog.js","text!tmpl/groupDetailPanel.html","view/BrightnessControl.js","view/StripDetailsDialog.js","view/MobileLoadPatternDialog.js","hammer"],function($,util,gutil,SelectList,LoadPatternDialog,ProgressDialog,template,BrightnessControl,StripDetailsDialog,MobileLoadPatternDialog,Hammer) {
 
     var This = function() {
         this.init.apply(this,arguments);
@@ -28,11 +28,17 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
                 $(this.brightnessControl).on("change",_.bind(function(e,val) {
                    this.conduit.emit("SetBrightness",strip.id,val); 
                 },this));
+
+                var needsUpdate = util.symanticToNumeric(strip.firmware) < util.symanticToNumeric(this.gui.latestRelease);
+                var $firmwarebutton = this.$el.find(".updateFirmware").toggle(needsUpdate);
+                gutil.bindClickEvent($firmwarebutton,_.bind(function() {
+                    this.conduit.emit("UploadFirmware",strip.id);
+                },this));
             } else {
                 this.$el.addClass("multiple-selected");
             }
 
-            util.bindClickEvent(this.$el.find(".backButton"),_.bind(function(e) {
+            gutil.bindClickEvent(this.$el.find(".backButton"),_.bind(function(e) {
                 $(this).trigger("GroupDetailsDismissed");
                 e.stopPropagation ? e.stopPropagation() : e.srcEvent.stopPropagation();
             },this));
@@ -43,19 +49,19 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
             this.statusUpdated();
 
-            util.bindClickEvent(this.$el.find(".createGroupFromSelected"),_.bind(this.createGroupClicked,this));
-            util.bindClickEvent(this.$el.find(".groupNextPattern"),_.bind(this.groupNextPattern,this));
+            gutil.bindClickEvent(this.$el.find(".createGroupFromSelected"),_.bind(this.createGroupClicked,this));
+            gutil.bindClickEvent(this.$el.find(".groupNextPattern"),_.bind(this.groupNextPattern,this));
 
             if (platform == "mobile") {
-                util.bindClickEvent(this.$el.find(".navigationBar"),_.bind(this.showDetailsClicked,this));
+                gutil.bindClickEvent(this.$el.find(".navigationBar"),_.bind(this.showDetailsClicked,this));
             } else {
                 this.$el.find(".stripInfoButton").click(_.bind(this.showDetailsClicked,this));
             }
 
-            util.bindClickEvent(this.$el.find(".loadPattern"),_.bind(this.loadPatternClicked,this));
-            util.bindClickEvent(this.$el.find(".uploadFirmware"),_.bind(this.uploadFirmwareClicked,this));
+            gutil.bindClickEvent(this.$el.find(".loadPattern"),_.bind(this.loadPatternClicked,this));
+            gutil.bindClickEvent(this.$el.find(".uploadFirmware"),_.bind(this.uploadFirmwareClicked,this));
 
-            util.bindClickEvent(this.$el.find(".disconnectStripButton"),_.bind(function() {
+            gutil.bindClickEvent(this.$el.find(".disconnectStripButton"),_.bind(function() {
                 this.conduit.emit("DisconnectStrip",this.strip.id);
             },this));
         },
@@ -105,7 +111,7 @@ define(['jquery',"view/util.js",'view/SelectList.js',"view/LoadPatternDialog.js"
 
                 //double click edit name of strip
                 $header.find(".name").off("dblclick");
-                util.doubleClickEditable($header.find(".name"),_.bind(function() {
+                gutil.doubleClickEditable($header.find(".name"),_.bind(function() {
                     strip.name = name;
                     $(strip).trigger("NameUpdated",strip.id,name);
                     this.conduit.emit("RenameStrip",strip.id,name);

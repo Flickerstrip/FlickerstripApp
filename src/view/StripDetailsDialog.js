@@ -130,7 +130,7 @@ define(['jquery',"shared/util.js",'view/util.js',"text!tmpl/stripDetailsDialogMo
                 var $lel = $("<div class=\"info\"><span class=\"infoLabel\"></span><span class=\"infoValue\"></span></div>");
                 $lel.find(".infoLabel").text(item.key);
                 $lel.find(".infoValue").append(item.value);
-                if (item.click) util.bindClickEvent($lel,item.click);
+                if (item.click) gutil.bindClickEvent($lel,item.click);
                 if (item.change) item.value.change(item.change);
                 $els.append($lel);
             });
