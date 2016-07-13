@@ -1,4 +1,4 @@
-define(['jquery','tinycolor','jquery.spectrum'],function($,tinycolor) {
+define(['jquery','tinycolor2','jquery.spectrum'],function($,tinycolor) {
     var This = function(window,form,data) {
         this.window = window;
         this.init(form,data);

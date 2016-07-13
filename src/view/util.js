@@ -1,4 +1,4 @@
-define(['jquery','underscore','tinycolor','hammer'],function($,_,tinycolor,Hammer) {
+define(['jquery','underscore','tinycolor2','hammer'],function($,_,tinycolor,Hammer) {
     var This = function(view) {
     };
     $.extend(This,{
@@ -205,58 +205,6 @@ define(['jquery','underscore','tinycolor','hammer'],function($,_,tinycolor,Hamme
 //                data.data[i+2] = 255;
             }
             return data;
-        },
-        evaluatePattern:function(pattern,values) {
-            if (!pattern.type || pattern.type == "javascript") {
-                try {
-                    var evaluatedPattern = eval("("+pattern.body+")");
-                } catch (e) {
-					throw e;
-                    console.log("Error evaluating pattern",pattern.body);
-                }
-
-                var args = {};
-                if (evaluatedPattern.controls) {
-                    _.each(evaluatedPattern.controls,function(item) {
-                        args[item.id] = item.default; //TODO arg processing?
-                    });
-                }
-                $.extend(args,values)
-
-                var patternFunction = typeof(evaluatedPattern.pattern) === "function" ? evaluatedPattern.pattern(args) : evaluatedPattern.pattern;
-
-                var patternRenderFunction = patternFunction.render;
-
-                var fps = patternFunction.fps || pattern.fps;
-                var pixels = patternFunction.pixels || pattern.pixels;
-                var frames = patternFunction.frames || pattern.frames;
-
-                var pixelData = [];
-                for (var t=0;t<frames; t++) {
-                    for (var x=0;x<pixels; x++) {
-                        var result = patternRenderFunction.apply(evaluatedPattern,[x,t]);
-                        var c = new tinycolor(result).toRgb();
-                        pixelData.push(c.r,c.g,c.b);
-                    }
-                }
-
-                pattern.rendered = {
-                    fps:fps,
-                    frames:frames,
-                    pixels:pixels,
-                    args:args,
-                    controls:evaluatedPattern.controls,
-                    data:pixelData,
-                }
-            } else if (pattern.type == "bitmap") {
-                pattern.rendered = {
-                    fps:pattern.fps,
-                    frames:pattern.frames,
-                    pixels:pattern.pixels,
-                    data:pattern.body,
-                }
-            }
-            return pattern;
         },
         getCursorPosition:function(canvas, event,marginLeft,marginTop) {
             var x, y;

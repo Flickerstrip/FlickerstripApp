@@ -1,5 +1,5 @@
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/patterns.js","view/LEDStripRenderer.js","view/ControlsView.js","view/EditPatternDialog.js","view/Tabs.js","text!tmpl/loadPatternDialogMobile.html"],
-function($,tinycolor,util,SelectList,patterns,LEDStripRenderer,ControlsView,EditPatternDialog,Tabs,template) {
+define(["jquery","tinycolor2","view/util.js","view/SelectList.js","view/LEDStripRenderer.js","view/ControlsView.js","view/EditPatternDialog.js","view/Tabs.js","text!tmpl/loadPatternDialogMobile.html"],
+function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDialog,Tabs,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }

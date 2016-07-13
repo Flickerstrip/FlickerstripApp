@@ -49,8 +49,8 @@ define([ "underscore" ],
                         args: Array.prototype.slice.call(arguments,1),
                         callback: null
                     }
-//                    console.log("emit called",arguments);
-//                    console.log("emit sending",emitObject);
+                    //console.log("emit called",arguments);
+                    //console.log("emit sending",emitObject);
                     send(emitObject);
                 };
 
@@ -62,8 +62,8 @@ define([ "underscore" ],
                         args: Array.prototype.slice.call(arguments,3),
                         callback: null
                     }
-//                    console.log("emitOn called",arguments);
-//                    console.log("emitOn sending",emitObject);
+                    //console.log("emitOn called",arguments);
+                    //console.log("emitOn sending",emitObject);
                     send(emitObject);
                 };
 

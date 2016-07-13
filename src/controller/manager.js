@@ -17,6 +17,7 @@ var getPixels = require("get-pixels")
 var yauzl = require("yauzl");
 var mkdirp = require("mkdirp");
 var progress = require('request-progress');
+var Pattern = require('../shared/Pattern.js');
 
 var This = function() {
     this.init.apply(this,arguments);
@@ -193,8 +194,10 @@ extend(This.prototype,{
         },this));
 
         this.on("LoadServerPattern",_.bind(function(callback,id) {
-            request.get(this.serverLocation+"/pattern/"+id,_.bind(function(error,response,data) {
-                callback(id,data);
+            request.get(this.serverLocation+"/pattern/"+id,_.bind(function(error,response,jsonString) {
+                var pattern = new Pattern();
+                pattern.deserializeFromJSON(jsonString);
+                callback(id,pattern);
             },this));
         },this));
 
@@ -238,23 +241,16 @@ extend(This.prototype,{
             this.saveConfig(callback);
         },this));
 
-        this.on("UploadPattern",_.bind(function(callback,pattern) {
-            var data = {
-                "name":pattern.name,
-                "type":pattern.type,
-                "data":pattern.body,
-            }
-            if (pattern.type == "bitmap") {
-                data["fps"] = pattern.fps;
-                data["frames"] = pattern.frames;
-                data["pixels"] = pattern.pixels;
-            }
+        this.on("UploadPattern",_.bind(function(callback,patternData) {
+            var pattern = new Pattern();
+            _.extend(pattern,patternData);
+
             var opt = {
                 url:this.serverLocation+"/pattern/create",
                 headers:{
                     "Authorization":"Basic " + new Buffer(this.config.user.email + ":" + this.config.user.password).toString("base64"),
                 },
-                json:data
+                json:pattern.serializeToJSON()
             }
             request.post(opt,_.bind(function(error,response,data) {
                 callback(response.statusCode == 200);
@@ -277,27 +273,23 @@ extend(This.prototype,{
             },this));
         },this));
 
-        this.on("SavePattern",_.bind(function(pattern) {
-            var out = "";
-            _.each(pattern,function(value,key) {
-                if (key == "body" || key == "rendered" || key == "path") return;
-                if (typeof value == "string") {
-                    out += key+":"+value+"\n";
-                } else {
-                    out += key+":"+JSON.stringify(value)+"\n";
-                }
-            })
-            out += "\n";
-            var body = typeof(pattern.body) == "string" ? pattern.body : JSON.stringify(pattern.body);
-            out += body;
+        this.on("SavePattern",_.bind(function(patternData) {
+            delete patternData.body;
+            delete patternData.index;
+
+            var pattern = new Pattern();
+            _.extend(pattern,patternData);
+
+            var name = pattern.name.replace(/[^a-zA-z0-9]/,"");
+            var out = pattern.serializeToJSON();
 
             if (pattern.path) fs.unlinkSync(pattern.path);
 
-            var name = pattern.name.replace(/[^a-zA-z0-9]/,"");
             var usePath = this.folderConfig.userPatternFolder ||  this.folderConfig.basicPatternFolder;
 
             var self = this;
             function createPattern() {
+                console.log("wrote keys",_.keys(patternData));
                 fs.writeFile(path.join(usePath,name+".pattern"),out,"utf8",_.bind(function(err) {
                     if (err) return console.log("ERROR writing file",err);
                     self.loadPatterns();
@@ -317,24 +309,39 @@ extend(This.prototype,{
         },this));
     },
     populatePattern:function(content) {
-        var loc = content.indexOf("\n\n");
-        var headerraw = content.substring(0,loc);
-        var body = content.substring(loc+2);
+        if (content.startsWith("{")) {
+            //load json format
+            var pattern = new Pattern();
+            pattern.deserializeFromJSON(content);
+            return pattern;
+        } else {
+            //legacy load code
+            var loc = content.indexOf("\n\n");
+            var headerraw = content.substring(0,loc);
+            var body = content.substring(loc+2);
 
-        var pattern = {};
-        _.each(headerraw.split("\n"),function(line) {
-            if (line == "") return;
-            var index = line.indexOf(":");
-            var tokens = [line.substring(0,index),line.substring(index+1)];
-            if (tokens[1][0] == "[" || tokens[1][0] == "{") {
-                //assume json
-                tokens[1] = util.parseJson(tokens[1]);
+            var pattern = new Pattern();
+            _.each(headerraw.split("\n"),function(line) {
+                if (line == "") return;
+                var index = line.indexOf(":");
+                var tokens = [line.substring(0,index),line.substring(index+1)];
+                if (tokens[1][0] == "[" || tokens[1][0] == "{") {
+                    //assume json
+                    tokens[1] = util.parseJson(tokens[1]);
+                }
+                pattern[tokens[0]] = tokens[1];
+            });
+
+            pattern.body = body[0] == "[" || body[0] == "{" ? util.parseJson(body) : body;
+            if (pattern.type == "bitmap") {
+                pattern.pixelData = pattern.body;
+            } else {
+                pattern.code = pattern.body;
+                pattern.renderJavascriptPattern();
             }
-            pattern[tokens[0]] = tokens[1];
-        });
-
-        pattern.body = body[0] == "[" || body[0] == "{" ? util.parseJson(body) : body;
-        return pattern;
+            delete pattern.type;
+            return pattern;
+        }
     },
     loadPatterns:function() {
         this.loadFolderPatterns(this.folderConfig.userPatternFolder,_.bind(function(patterns) {

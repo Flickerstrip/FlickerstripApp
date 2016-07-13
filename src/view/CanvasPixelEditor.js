@@ -1,4 +1,4 @@
-define(['jquery','tinycolor',"view/util.js", 'text!tmpl/canvasPixelEditor.html','hammer','jquery.spectrum'],function($,tinycolor,util,template,Hammer) {
+define(['jquery','tinycolor2',"view/util.js", 'text!tmpl/canvasPixelEditor.html','hammer','jquery.spectrum'],function($,tinycolor,util,template,Hammer) {
     function plotLine(g,x0, y0, x1, y1) {
        var dx =  Math.abs(x1-x0), sx = x0<x1 ? 1 : -1;
        var dy = -Math.abs(y1-y0), sy = y0<y1 ? 1 : -1;

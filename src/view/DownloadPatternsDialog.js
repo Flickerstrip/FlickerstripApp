@@ -1,5 +1,5 @@
-define(["jquery","tinycolor","view/util.js","view/SelectList.js","view/NotificationManager.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/downloadPatternDialog.html"],
-function($,tinycolor,util,SelectList,NotificationManager,LEDStripRenderer,ControlsView,desktop_template) {
+define(["jquery","tinycolor2","view/util.js","view/SelectList.js","shared/Pattern.js","view/NotificationManager.js","view/LEDStripRenderer.js","view/ControlsView.js","text!tmpl/downloadPatternDialog.html"],
+function($,tinycolor,util,SelectList,Pattern,NotificationManager,LEDStripRenderer,ControlsView,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -69,27 +69,19 @@ function($,tinycolor,util,SelectList,NotificationManager,LEDStripRenderer,Contro
         patternSelected:function(e,selectedObjects,selectedIndexes) {
             if (selectedObjects.length == 0) return;
 
-            var pattern = selectedObjects[0];
-            this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
-                if (pattern.type == "bitmap") {
-                    body = Buffer(body,"base64");
-                    var arr = [];
-                    for(var i = 0; i < body.length; i++){
-                      arr.push(body[i]);
-                    };
-                    body = arr;
-                }
+            this.conduit.request("LoadServerPattern",selectedObjects[0].id,_.bind(function(id,patternData) {
+                var pattern = new Pattern();
+                _.extend(pattern,patternData);
+
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
                 this.$el.find(".deletePattern").toggle(true == (this.user && pattern.Owner.id === this.user.id));
-                pattern.body = body;
-                this.selectedPattern = pattern;
-                if (!pattern.type) pattern.type = "javascript";
-                util.evaluatePattern(this.selectedPattern);
 
-                this.stripRenderer.setPattern(pattern.rendered);
+                this.selectedPattern = pattern;
+
+                this.stripRenderer.setPattern(pattern);
 
                 //update titlebar
-                var frameInfo = pattern.rendered.frames > 1 ? (pattern.rendered.frames/pattern.rendered.fps).toFixed(2)+"s" : "static";
+                var frameInfo = pattern.frames > 1 ? (pattern.frames/pattern.fps).toFixed(2)+"s" : "static";
                 this.$el.find(".patternTitle").text(pattern.name+ " ("+frameInfo+")");
 
                 setTimeout(_.bind(function() {

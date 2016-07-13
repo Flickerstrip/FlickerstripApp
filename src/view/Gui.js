@@ -1,5 +1,5 @@
-define(['jquery','underscore','view/util.js','tinycolor','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","view/TopBar.js","shared/util.js","text!tmpl/stripList.html","hammer",'jquery.contextMenu'],
-function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,TopBar,util,template,Hammer) {
+define(['jquery','underscore','view/util.js','shared/Pattern.js','tinycolor2','view/ProgressDialog.js','view/ControlsView.js','view/LEDStripRenderer.js', 'view/SelectList.js',"view/GroupDetailsPanel.js","view/EditPatternDialog.js","view/NotificationManager.js","view/TopBar.js","shared/util.js","text!tmpl/stripList.html","hammer",'jquery.contextMenu'],
+function($,_, gutil, Pattern, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, SelectList, GroupDetailsPanel,EditPatternDialog,NotificationManager,TopBar,util,template,Hammer) {
     var This = function(window,send) {
         this.window = window;
         var document = window.document;
@@ -60,7 +60,11 @@ function($,_, gutil, tinycolor, ProgressDialog, ControlsView, LEDStripRenderer, 
             $(this).on("StripRemoved",_.bind(this.stripRemoved,this));
             $(this).on("LatestReleaseUpdated",_.bind(this.releaseUpdated,this));
             $(this).on("PatternsLoaded",_.bind(function(e,patterns) {
-                this.userPatterns = patterns;
+                var transformedPatterns = [];
+                _.each(patterns,function(pattern) {
+                    transformedPatterns.push(_.extend(new Pattern(),pattern));
+                });
+                this.userPatterns = transformedPatterns;
             },this));
             $(this).on("BasicPatternsLoaded",_.bind(function(e,patterns) {
                 this.basicPatterns = patterns;

@@ -1,4 +1,4 @@
-define(["jquery","tinycolor","view/util.js","text!tmpl/loginDialog.html"],
+define(["jquery","tinycolor2","view/util.js","text!tmpl/loginDialog.html"],
 function($,tinycolor,util,desktop_template) {
     var This = function() {
         this.init.apply(this,arguments);

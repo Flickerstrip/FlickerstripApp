@@ -1,4 +1,4 @@
-define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
+define(['jquery','tinycolor2',"view/util.js"],function($,tinycolor,util) {
 
     var drawLine = function(g,x,y,xx,yy) {
         g.beginPath();
@@ -255,7 +255,7 @@ define(['jquery','tinycolor',"view/util.js"],function($,tinycolor,util) {
             }
 
             //                                 data              width               height              cWidth           chght xpo,rpt
-            this.rendered = util.renderPattern(this.pattern.data,this.pattern.pixels,this.pattern.frames,this.stripLength,null,false,true);
+            this.rendered = util.renderPattern(this.pattern.pixelData,this.pattern.pixels,this.pattern.frames,this.stripLength,null,false,true);
         },
         getRenderer:function() {
             return this.neopixelRenderer;
