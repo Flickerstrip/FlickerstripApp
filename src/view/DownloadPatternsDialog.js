@@ -57,7 +57,6 @@ function($,tinycolor,util,SelectList,Pattern,NotificationManager,LEDStripRendere
             return patternSpec.pattern;
         },
         previewPatternClicked:function() {
-            util.evaluatePattern(this.selectedPattern,null);
             this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.selectedPattern,true);
         },
         deletePatternClicked:function() {
@@ -74,7 +73,7 @@ function($,tinycolor,util,SelectList,Pattern,NotificationManager,LEDStripRendere
                 _.extend(pattern,patternData);
 
                 this.$el.find(".right").toggleClass("deselected",selectedObjects.length == 0);
-                this.$el.find(".deletePattern").toggle(true == (this.user && pattern.Owner.id === this.user.id));
+                this.$el.find(".deletePattern").toggle(true == (this.user && pattern.owner.id === this.user.id));
 
                 this.selectedPattern = pattern;
 
@@ -92,11 +91,11 @@ function($,tinycolor,util,SelectList,Pattern,NotificationManager,LEDStripRendere
         patternOptionRenderer:function(pattern,$el) {
             if ($el) {
                 $el.find(".name").text(pattern.name);
-                $el.find(".aside").text(pattern.Owner.display);
+                $el.find(".aside").text(pattern.owner.display);
             } else {
                 $el = $("<ul class='list-group-item listElement' />");
                 $el.append($("<span class='name'></span>").text(pattern.name));
-                $el.append($("<span class='aside'></span>").text(pattern.Owner.display));
+                $el.append($("<span class='aside'></span>").text(pattern.owner.display));
             }
             return $el;
         },

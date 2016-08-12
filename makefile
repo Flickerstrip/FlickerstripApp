@@ -128,7 +128,11 @@ nwjs_all: linux-x64 osx-x64 win-x64 win-x32
 
 ./build/cordova/www/jxcore/package.json: ./src/user.json ./src/default.json
 	mkdir -p ./build/cordova/www/jxcore
+ifeq ($(DEBUG),1)
+	cat ./src/default.json ./src/debug.json | json --deep-merge > $@
+else
 	cat ./src/default.json ./src/user.json | json --deep-merge > $@
+endif
 
 #update application code
 ./build/cordova/www/view/css/style.css: $(LESS_FILES)

@@ -54,13 +54,14 @@ extend(This.prototype,{
             strip.selectPattern(index);
         },this));
 		
-        this.on("LoadPattern",_.bind(function(id,renderedPattern,isPreview) {
+        this.on("LoadPattern",_.bind(function(id,pattern,isPreview) {
 		    var strip = this.getStrip(id);
             if (!strip) return;
             this.conduit.emit("ShowProgress","Uploading",true);
 
             var to = null;
-            strip.loadPattern(renderedPattern,isPreview,_.bind(function(err) {
+            pattern.pixelData = util.fixedTypedArrayDeserialization(pattern.pixelData);
+            strip.loadPattern(pattern,isPreview,_.bind(function(err) {
                 if (err) console.log("ERR",err);
                 this.conduit.emit("HideProgress");
                 if (to) clearTimeout(to);
@@ -187,9 +188,9 @@ extend(This.prototype,{
         },this));
 
         this.on("RefreshServerPatterns",_.bind(function(callback) {
-            request.get(this.serverLocation+"/pattern",_.bind(function(error,response,data) {
+            request.get(this.serverLocation+"/pattern?size=200",_.bind(function(error,response,data) {
                 var patterns = util.parseJson(data);
-                callback(patterns);
+                callback(patterns.results);
             },this));
         },this));
 
@@ -242,15 +243,19 @@ extend(This.prototype,{
         },this));
 
         this.on("UploadPattern",_.bind(function(callback,patternData) {
+            patternData.pixelData = util.fixedTypedArrayDeserialization(patternData.pixelData);
+
             var pattern = new Pattern();
             _.extend(pattern,patternData);
+            pattern.published = true;
 
             var opt = {
                 url:this.serverLocation+"/pattern/create",
                 headers:{
                     "Authorization":"Basic " + new Buffer(this.config.user.email + ":" + this.config.user.password).toString("base64"),
+                    "content-type": "application/json"
                 },
-                json:pattern.serializeToJSON()
+                body:pattern.serializeToJSON(),
             }
             request.post(opt,_.bind(function(error,response,data) {
                 callback(response.statusCode == 200);
@@ -258,15 +263,11 @@ extend(This.prototype,{
         },this));
 
         this.on("DeletePattern",_.bind(function(callback,patternId) {
-            var data = {
-                "id":patternId,
-            }
             var opt = {
-                url:this.serverLocation+"/pattern/delete",
+                url:this.serverLocation+"/pattern/"+patternId+"/delete",
                 headers:{
                     "Authorization":"Basic " + new Buffer(this.config.user.email + ":" + this.config.user.password).toString("base64"),
                 },
-                json:data
             }
             request.post(opt,_.bind(function(error,response) {
                 callback(response.statusCode == 200);
@@ -274,6 +275,8 @@ extend(This.prototype,{
         },this));
 
         this.on("SavePattern",_.bind(function(patternData) {
+            patternData.pixelData = util.fixedTypedArrayDeserialization(patternData.pixelData);
+
             delete patternData.body;
             delete patternData.index;
 
@@ -289,7 +292,6 @@ extend(This.prototype,{
 
             var self = this;
             function createPattern() {
-                console.log("wrote keys",_.keys(patternData));
                 fs.writeFile(path.join(usePath,name+".pattern"),out,"utf8",_.bind(function(err) {
                     if (err) return console.log("ERROR writing file",err);
                     self.loadPatterns();

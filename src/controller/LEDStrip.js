@@ -181,13 +181,13 @@ extend(This.prototype,{
     toggle:function(value) {
         this.sendCommand(value ? "power/on" : "power/off");
     },
-    loadPattern:function(renderedPattern,isPreview,callback) {
-        var frames = renderedPattern.rendered.frames;
-        var pixels = renderedPattern.rendered.pixels;
-        var fps = renderedPattern.rendered.fps;
-        var data = renderedPattern.rendered.data;
+    loadPattern:function(pattern,isPreview,callback) {
+        var frames = pattern.frames;
+        var pixels = pattern.pixels;
+        var fps = pattern.fps;
+        var data = pattern.pixelData;
         var metadata = _c.packSync("PatternMetadata",{
-            name:renderedPattern.name,
+            name:pattern.name,
             address: 0,
             len: pixels*frames*3, //payload total size
             frames: frames,
@@ -203,6 +203,20 @@ extend(This.prototype,{
         }
 
         var concatted = Buffer.concat([metadata,payload]);
+
+        /*
+        fs.writeFile("out.bin", concatted,  "binary",function() {
+            
+        });
+        */
+
+        /*
+        var out = "";
+        for (var i=0; i<concatted.length; i++) {
+            out+= " "+concatted[i].toString(16);
+        }
+        console.log("concatted: ",out,payload);
+        */
 
         this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function(content,err) {
             this.emit("Strip.UploadPatternComplete");

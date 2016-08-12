@@ -103,7 +103,6 @@ function($,tinycolor,ace,util,LEDStripRenderer,CanvasPixelEditor,Pattern,desktop
                 },this));
             },this));
 
-            console.log("initting cpe");
             this.editor = new CanvasPixelEditor(null,this.pattern.palette);
             $(this.editor).on("PaletteUpdated",_.bind(function(e,palette) {
                 this.pattern.palette = palette;

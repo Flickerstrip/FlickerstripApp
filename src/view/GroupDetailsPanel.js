@@ -177,10 +177,10 @@ define(['jquery',"shared/util.js","view/util.js",'view/SelectList.js',"view/Load
         uploadFirmwareClicked:function(e) {
             this.conduit.emit("UploadFirmware",this.strip.id);
         },
-        savePattern:function(e,renderedPattern,isPreview) {
+        savePattern:function(e,pattern,isPreview) {
             if (this.strips.length == 1) {
                 var strip = this.strips[0];
-                this.conduit.emit("LoadPattern",strip.id,renderedPattern,isPreview);
+                this.conduit.emit("LoadPattern",strip.id,pattern,isPreview);
                 $(strip).one("Strip.UploadPatternComplete",_.bind(function() {
                     if (!isPreview) this.patternDialog.hide();
                 },this));

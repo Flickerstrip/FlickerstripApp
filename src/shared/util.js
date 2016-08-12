@@ -20,6 +20,12 @@ define([ "underscore" ],
                 var numeric = parseInt(parts[0])*step*step + parseInt(parts[1])*step + parseInt(parts[2]);
                 return numeric;
             },
+            fixedTypedArrayDeserialization:function(obj) {
+                var len = Object.keys(obj).length;
+                var arr = new Uint8Array(len);
+                for (var i=0; i<len; i++) arr[i] = obj[i];
+                return arr;
+            },
             generateGuid:function() {
                 var S4 = function() {
                    return (((1+Math.random())*0x10000)|0).toString(16).substring(1);

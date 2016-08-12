@@ -62,6 +62,7 @@ function($,_, gutil, Pattern, tinycolor, ProgressDialog, ControlsView, LEDStripR
             $(this).on("PatternsLoaded",_.bind(function(e,patterns) {
                 var transformedPatterns = [];
                 _.each(patterns,function(pattern) {
+                    pattern.pixelData = util.fixedTypedArrayDeserialization(pattern.pixelData);
                     transformedPatterns.push(_.extend(new Pattern(),pattern));
                 });
                 this.userPatterns = transformedPatterns;

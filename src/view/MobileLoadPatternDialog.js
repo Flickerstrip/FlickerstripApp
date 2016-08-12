@@ -1,5 +1,5 @@
-define(["jquery","tinycolor2","view/util.js","view/SelectList.js","view/LEDStripRenderer.js","view/ControlsView.js","view/EditPatternDialog.js","view/Tabs.js","text!tmpl/loadPatternDialogMobile.html"],
-function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDialog,Tabs,template) {
+define(["jquery","tinycolor2","shared/Pattern","view/util.js","view/SelectList.js","view/LEDStripRenderer.js","view/ControlsView.js","view/EditPatternDialog.js","view/Tabs.js","text!tmpl/loadPatternDialogMobile.html"],
+function($,tinycolor,Pattern,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDialog,Tabs,template) {
     var This = function() {
         this.init.apply(this,arguments);
     }
@@ -31,6 +31,7 @@ function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDi
             },this));
 
             $(this.tabs).on("select",_.bind(function(e,key) {
+                console.log("tab selectd",key);
                 this.$el.find(".createPattern").toggle(key == "user");
                 if (key == "basic") this.showPatterns(this.gui.basicPatterns);
                 if (key == "user") this.showPatterns(this.gui.userPatterns,true);
@@ -79,11 +80,9 @@ function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDi
             return patternSpec.pattern;
         },
 	    previewPatternClicked:function() {
-			util.evaluatePattern(this.selectedPattern,null);
 			this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.selectedPattern,true);
 	    },
 	    loadPatternClicked:function() {
-			util.evaluatePattern(this.selectedPattern,null);
 			this.conduit.emit("LoadPattern",this.gui.selectedStrips[0].id,this.selectedPattern,false);
 			this.hide();
 	    },
@@ -92,22 +91,14 @@ function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDi
 
             var pattern = selectedObjects[0];
             if (!pattern.body && pattern.id) {
-                this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,body) {
-                    if (pattern.type == "bitmap") {
-                        var binary_string =  window.atob(body);
-                        var len = binary_string.length;
-                        var bytes = [];
-                        for (var i = 0; i < len; i++) {
-                            bytes[i] = binary_string.charCodeAt(i);
-                        }
-                        body = bytes;
-                    }
-                    pattern.body = body;
-                    this.selectedPattern = pattern;
-                    if (!pattern.type) pattern.type = "javascript";
+                this.conduit.request("LoadServerPattern",pattern.id,_.bind(function(id,patternData) {
+                    var pattern = new Pattern();
+                    _.extend(pattern,patternData);
 
-                    util.evaluatePattern(this.selectedPattern);
-                    this.stripRenderer.setPattern(pattern.rendered);
+                    this.selectedPattern = pattern;
+                    console.log("selected",pattern);
+
+                    this.stripRenderer.setPattern(pattern);
 
                     setTimeout(_.bind(function() {
                         this.stripRenderer.resizeToParent();
@@ -115,8 +106,7 @@ function($,tinycolor,util,SelectList,LEDStripRenderer,ControlsView,EditPatternDi
                 },this));
             } else {
                 this.selectedPattern = pattern;
-                util.evaluatePattern(this.selectedPattern);
-                this.stripRenderer.setPattern(pattern.rendered);
+                this.stripRenderer.setPattern(pattern);
 
                 setTimeout(_.bind(function() {
                     this.stripRenderer.resizeToParent();

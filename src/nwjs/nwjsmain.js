@@ -23,7 +23,8 @@ requirejs.config({
     },
     paths: {
         "view":"..",
-        "tmpl":"../tmpl"
+        "tmpl":"../tmpl",
+        "shared":"../../shared"
     }
 });
 

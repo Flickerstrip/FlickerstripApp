@@ -156,14 +156,12 @@ function($,tinycolor,util,ProgressDialog,SelectList,LEDStripRenderer,EditPattern
             if ($(e.target).is(".disabled")) return;
 
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                util.evaluatePattern(this.selectedPatternObject,this.controlView ? this.controlView.getValues() : null);
                 $(this).trigger("LoadPatternClicked",[this.selectedPatternObject,false]);
             },this),5);
         },
         previewPatternButtonClicked:function(e) {
             if ($(e.target).is(".disabled")) return;
             setTimeout(_.bind(function() { //this is to fix a weird delay that was happening when dismissing the dialog..
-                util.evaluatePattern(this.selectedPatternObject,this.controlView ? this.controlView.getValues() : null);
                 $(this).trigger("LoadPatternClicked",[this.selectedPatternObject,true]);
             },this),5);
         },

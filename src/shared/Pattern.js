@@ -18,6 +18,15 @@ define([ "underscore","tinycolor2","base64-js" ],
             return palette;
         }
 
+        function toUint8Array(arr) {
+            if (arr instanceof Uint8Array) return arr;
+            var newarr = new Uint8Array(arr.length);
+            for (var i=0; i<arr.length; i++) {
+                newarr[i] = arr[i];
+            }
+            return newarr;
+        }
+
         var This = function() {
             this.init.apply(this,arguments);
         }
@@ -39,7 +48,7 @@ define([ "underscore","tinycolor2","base64-js" ],
                 this.palette = defaultPalette;
             },
 
-            setDimensions(pixels,frames) {
+            setDimensions:function(pixels,frames) {
                 this.pixels = pixels;
                 this.frames = frames;
 
@@ -76,12 +85,16 @@ define([ "underscore","tinycolor2","base64-js" ],
                 this.pixels = patternFunction.pixels || this.pixels;
                 this.frames = patternFunction.frames || this.frames;
 
-                this.pixelData = [];
+                this.pixelData = new Uint8Array(this.frames*this.pixels*3);
+                var i = 0;
                 for (var t=0;t<this.frames; t++) {
                     for (var x=0;x<this.pixels; x++) {
                         var result = patternRenderFunction.apply(evaluatedPattern,[x,t]);
                         var c = new tinycolor(result).toRgb();
-                        this.pixelData.push(c.r,c.g,c.b);
+                        this.pixelData[i] = c.r;
+                        this.pixelData[i+1] = c.g
+                        this.pixelData[i+2] = c.b;
+                        i+=3;
                     }
                 }
 
@@ -92,14 +105,23 @@ define([ "underscore","tinycolor2","base64-js" ],
                 return _.extend(new This(),this);
             },
             serializeToJSON:function() {
-                return JSON.stringify(this,function(key,value) {
-                    if (key.startsWith("_")) return undefined;
-                    if (key == "pixelData" && value) return b64.fromByteArray(value);
-                    return value;
-                });
+                var obj = {};
+                for (var key in this) {
+                    var value = this[key];
+                    if (this.hasOwnProperty(key)) {
+                        if (key.startsWith("_")) continue;
+                        if (key == "pixelData" && value) {
+                            obj[key] = b64.fromByteArray(value);
+                        } else {
+                            obj[key] = value;
+                        }
+                    }
+                }
+                return JSON.stringify(obj);
             },
             deserializeFromJSON:function(json) {
                 var o = JSON.parse(json);
+                while(o.pixelData.length % 4 != 0) o.pixelData += "=";
                 o.pixelData = b64.toByteArray(o.pixelData);
                 _.extend(this,o);
             },
@@ -122,5 +144,7 @@ define([ "underscore","tinycolor2","base64-js" ],
         return This;
     }
 );
+
+
 
 

@@ -80,6 +80,7 @@ function jxcore_ready() {
         paths: {
             "view":"..",
             "tmpl":"../tmpl",
+            "shared":"../../shared",
         },
         config: {
             text: {
