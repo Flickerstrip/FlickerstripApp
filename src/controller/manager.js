@@ -188,6 +188,7 @@ extend(This.prototype,{
         },this));
 
         this.on("RefreshServerPatterns",_.bind(function(callback) {
+            console.log(this.serverLocation);
             request.get(this.serverLocation+"/pattern?size=200",_.bind(function(error,response,data) {
                 var patterns = util.parseJson(data);
                 callback(patterns.results);

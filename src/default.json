@@ -5,7 +5,7 @@
   "main": "nwjs.html",
   "showDebugger":false,
   "closeOnEsc":false,
-  "patternRepository":"http://flickerstrip.elasticbeanstalk.com",
+  "patternRepository":"https://lightwork.hohmbody.com",
   "includedpatterns":"base flickerstrip",
   "window": {
     "title": "Flickerstrip",
