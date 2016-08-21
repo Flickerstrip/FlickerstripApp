@@ -9,5 +9,5 @@ else
     VERSION=$1
 fi
 
-sed -i '' 's/"version".*/"version":"'$VERSION'",/' src/default.json 
-sed -i '' 's/version="[^"]*"/version="'$VERSION'"/' src/cordova/cordovaconfig.xml
+sed -i'' 's/"version".*/"version":"'$VERSION'",/' src/default.json 
+sed -i'' 's/version="[^"]*"/version="'$VERSION'"/' src/cordova/cordovaconfig.xml

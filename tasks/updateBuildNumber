@@ -8,4 +8,4 @@ else
     BUILD_NUMBER=$1
 fi
 
-sed -i '' 's/ios-CFBundleVersion="[^"]*"/ios-CFBundleVersion="'$BUILD_NUMBER'"/' src/cordova/cordovaconfig.xml
+sed -i'' 's/ios-CFBundleVersion="[^"]*"/ios-CFBundleVersion="'$BUILD_NUMBER'"/' src/cordova/cordovaconfig.xml
