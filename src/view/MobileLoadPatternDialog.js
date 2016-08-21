@@ -21,7 +21,7 @@ function($,tinycolor,Pattern,util,SelectList,LEDStripRenderer,ControlsView,EditP
             });
 
             util.bindClickEvent(this.$el.find(".createPattern").hide(),_.bind(function() {
-                this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,{"type":"bitmap"}).show();
+                this.editPatternDialog = new EditPatternDialog(this.conduit,this.gui,null).show();
                 this.stripRenderer.stop();
                 $(this.editPatternDialog).on("Save",_.bind(function(e,pattern) {
                     this.conduit.emit("SavePattern",pattern);
