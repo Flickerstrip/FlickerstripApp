@@ -92,7 +92,7 @@ define([ "underscore","tinycolor2","base64-js" ],
                         var result = patternRenderFunction.apply(evaluatedPattern,[x,t]);
                         var c = new tinycolor(result).toRgb();
                         this.pixelData[i] = c.r;
-                        this.pixelData[i+1] = c.g
+                        this.pixelData[i+1] = c.g;
                         this.pixelData[i+2] = c.b;
                         i+=3;
                     }

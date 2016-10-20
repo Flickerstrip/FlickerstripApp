@@ -3,23 +3,19 @@ var request = require("request");
 var EventEmitter = require("eventemitter2").EventEmitter2;
 var _ = require("underscore")._;
 var util = require("util");
-var StripWrapper = require("./StripWrapper");
 var fs = require("fs");
-
-var _c = require("c-struct");
-var PatternMetadata = new _c.Schema({
-    name: _c.type.string(16),
-    address: _c.type.uint32,
-    len: _c.type.uint32,
-    frames: _c.type.uint16,
-    flags: _c.type.uint8,
-    fps: _c.type.uint8,
-});
-_c.register("PatternMetadata",PatternMetadata);
+var Pattern = require("../shared/Pattern.js");
 
 var This = function() {
     this.init.apply(this,arguments);
 };
+
+function param(params) {
+    var query = Object.keys(params)
+        .map(function(k) { return params[k] == null ? encodeURIComponent(k) : encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+        .join('&');
+    return query;
+}
 
 var visibleTimeout = 9000;
 
@@ -182,46 +178,24 @@ extend(This.prototype,{
         this.sendCommand(value ? "power/on" : "power/off");
     },
     loadPattern:function(pattern,isPreview,callback) {
-        var frames = pattern.frames;
-        var pixels = pattern.pixels;
-        var fps = pattern.fps;
         var data = pattern.pixelData;
-        var metadata = _c.packSync("PatternMetadata",{
-            name:pattern.name,
-            address: 0,
-            len: pixels*frames*3, //payload total size
-            frames: frames,
-            flags: 0x0000,
-            fps: fps,
-        });
-        var page = 0;
-        var bufferSize = pixels*frames*3;
+        var bufferSize = pattern.pixels*pattern.frames*3;
         var payload = new Buffer(bufferSize);
+        for (var i=0; i<data.length; i++) payload.writeUInt8(data[i],i);
 
-        for (var i=0; i<data.length; i++) {
-            payload.writeUInt8(data[i],i);
+        var p = {
+            name: pattern.name,
+            frames: pattern.frames,
+            pixels: pattern.pixels,
+            fps: pattern.fps,
         }
 
-        var concatted = Buffer.concat([metadata,payload]);
+        if (isPreview) p.preview = null;
 
-        /*
-        fs.writeFile("out.bin", concatted,  "binary",function() {
-            
-        });
-        */
-
-        /*
-        var out = "";
-        for (var i=0; i<concatted.length; i++) {
-            out+= " "+concatted[i].toString(16);
-        }
-        console.log("concatted: ",out,payload);
-        */
-
-        this.sendCommand(isPreview ? "pattern/test" : "pattern/save",_.bind(function(content,err) {
+        this.sendCommand("pattern/create?"+param(p),_.bind(function(content,err) {
             this.emit("Strip.UploadPatternComplete");
             if (callback) callback(err);
-        },this),concatted,true);
+        },this),payload,true);
 
         if (!isPreview) this.requestStatus();
     },

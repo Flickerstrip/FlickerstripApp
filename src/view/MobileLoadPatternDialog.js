@@ -135,7 +135,7 @@ function($,tinycolor,Pattern,util,SelectList,LEDStripRenderer,ControlsView,EditP
                         this.stripRenderer.start();
                     },this));
                 },this));
-                if (this.editable && pattern.type == "bitmap") {
+                if (this.editable) {
                     $el.append($edit);
                     $el.addClass("hasAsideButton");
                 }
